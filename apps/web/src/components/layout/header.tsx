@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -10,74 +10,72 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { useTranslations } from 'next-intl';
+import { SideMenu, SideMenuClose } from '../overlays/side-menu';
 
 const links = [
-  { href: '/#catalogo', label: 'Juegos' },
-  { href: '/#ranking', label: 'Ranking' },
-];
+  { href: '/#catalog', label: 'games' },
+  { href: '/#ranking', label: 'ranking' },
+] as const;
 
 export function Header() {
+  const t = useTranslations('Header');
+
   return (
     <header className='sticky top-0 z-40 border-b bg-background/90 backdrop-blur'>
       <nav
-        aria-label='Navegación principal'
+        aria-label={t('mainNavigation')}
         className='mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8'
       >
-        <Link href='/' className='flex items-center gap-2 font-semibold'>
-          <span
-            aria-hidden='true'
-            className='grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground'
-          >
-            L
-          </span>
-          <span>Ludora</span>
-        </Link>
+        <Button asChild variant='link' size='sm'>
+          <Link href='/'>
+            <span
+              aria-hidden='true'
+              className='grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground'
+            >
+              L
+            </span>
+            <span>Ludora</span>
+          </Link>
+        </Button>
 
         <div className='hidden items-center gap-6 md:flex'>
           {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className='text-sm text-muted-foreground transition-colors hover:text-foreground'
-            >
-              {link.label}
-            </Link>
+            <Button asChild key={link.href} variant='link' size='sm'>
+              <Link
+                href={link.href}
+                className='text-sm text-muted-foreground transition-colors hover:text-foreground'
+              >
+                {t(link.label)}
+              </Link>
+            </Button>
           ))}
         </div>
 
         <Button asChild className='hidden md:inline-flex'>
-          <Link href='/#catalogo'>Explorar catálogo</Link>
+          <Link href='/#catalog'>{t('exploreCatalog')}</Link>
         </Button>
 
-        <Sheet>
-          <SheetTrigger asChild>
+        <SideMenu
+          trigger={
             <Button variant='outline' size='sm' className='md:hidden'>
-              Menú
+              {t('menu')}
             </Button>
-          </SheetTrigger>
-
-          <SheetContent side='right'>
-            <SheetHeader>
-              <SheetTitle>Menú de Ludora</SheetTitle>
-              <SheetDescription>
-                Accede a las secciones de la plataforma.
-              </SheetDescription>
-            </SheetHeader>
-
-            <nav
-              aria-label='Navegación móvil'
-              className='flex flex-col gap-4 px-6'
-            >
-              {links.map((link) => (
-                <SheetClose asChild key={link.href}>
-                  <Link href={link.href} className='text-base font-medium'>
-                    {link.label}
-                  </Link>
-                </SheetClose>
-              ))}
-            </nav>
-          </SheetContent>
-        </Sheet>
+          }
+          title={t('menuTitle')}
+          description={t('menuDescription')}
+          navigationLabel={t('mobileNavigation')}
+        >
+          {links.map((link) => (
+            <SideMenuClose asChild key={link.href}>
+              <div>
+                <Button asChild variant='link' size='sm'>
+                  <Link href={link.href}>{t(link.label)}</Link>
+                </Button>
+              </div>
+            </SideMenuClose>
+          ))}
+        </SideMenu>
       </nav>
     </header>
   );

@@ -1,0 +1,31 @@
+{
+    "Layout": {
+        "skipToContent": "Saltar al contenido"
+    },
+    "Header": {
+        "games": "Juegos",
+        "ranking": "Ranking",
+        "exploreCatalog": "Explorar catálogo",
+        "menu": "Menú",
+        "menuTitle": "Menú de Ludora",
+        "menuDescription": "Accede a las secciones de la plataforma.",
+        "mainNavigation": "Navegación principal",
+        "mobileNavigation": "Navegación móvil"
+    },
+    "Home": {
+        "eyebrow": "La plataforma para tus juegos",
+        "title": "Una mesa para todos tus mundos.",
+        "description": "Descubre juegos, reúne a tus amigos y comparte nuevas partidas desde un solo lugar.",
+        "exploreLudora": "Explorar Ludora",
+        "catalog": "Catálogo",
+        "catalogTitle": "Juegos para cada mesa",
+        "catalogEmptyTitle": "Estamos preparando el catálogo",
+        "catalogEmptyDescription": "Pronto encontrarás aquí los juegos disponibles en Ludora.",
+        "community": "Comunidad",
+        "rankingDescription": "Las clasificaciones aparecerán cuando haya partidas para compartir."
+    },
+    "Metadata": {
+        "title": "Ludora - La plataforma para tus juegos",
+        "description": "Descubre juegos, reúne a tus amigos y comparte nuevas partidas desde un solo lugar."
+    }
+}

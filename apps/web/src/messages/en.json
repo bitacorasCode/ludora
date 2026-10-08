@@ -1,0 +1,31 @@
+{
+    "Layout": {
+        "skipToContent": "Skip to content"
+    },
+    "Header": {
+        "games": "Games",
+        "ranking": "Ranking",
+        "exploreCatalog": "Explore catalog",
+        "menu": "Menu",
+        "menuTitle": "Ludora menu",
+        "menuDescription": "Browse the platform sections.",
+        "mainNavigation": "Main navigation",
+        "mobileNavigation": "Mobile navigation"
+    },
+    "Home": {
+        "eyebrow": "The platform for your games",
+        "title": "A table for all your worlds.",
+        "description": "Discover games, meet up with friends, and share new games in one place.",
+        "exploreLudora": "Explore Ludora",
+        "catalog": "Catalog",
+        "catalogTitle": "Games for every table",
+        "catalogEmptyTitle": "We’re preparing the catalog",
+        "catalogEmptyDescription": "You’ll find the games available on Ludora here soon.",
+        "community": "Community",
+        "rankingDescription": "Rankings will appear once there are games to share."
+    },
+    "Metadata": {
+        "title": "Ludora - The platform for your games",
+        "description": "Discover games, meet up with friends, and share new games in one place."
+    }
+}
