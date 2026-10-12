@@ -1,17 +1,9 @@
 import { Link } from '@/i18n/navigation';
 
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import { useTranslations } from 'next-intl';
 import { SideMenu, SideMenuClose } from '../overlays/side-menu';
+import { LocaleSwitcher } from '../language/locale-switcher';
 
 const links = [
   { href: '/#catalog', label: 'games' },
@@ -42,19 +34,12 @@ export function Header() {
         <div className='hidden items-center gap-6 md:flex'>
           {links.map((link) => (
             <Button asChild key={link.href} variant='link' size='sm'>
-              <Link
-                href={link.href}
-                className='text-sm text-muted-foreground transition-colors hover:text-foreground'
-              >
-                {t(link.label)}
-              </Link>
+              <Link href={link.href}>{t(link.label)}</Link>
             </Button>
           ))}
         </div>
 
-        <Button asChild className='hidden md:inline-flex'>
-          <Link href='/#catalog'>{t('exploreCatalog')}</Link>
-        </Button>
+        <LocaleSwitcher />
 
         <SideMenu
           trigger={
@@ -75,6 +60,7 @@ export function Header() {
               </div>
             </SideMenuClose>
           ))}
+          <LocaleSwitcher />
         </SideMenu>
       </nav>
     </header>

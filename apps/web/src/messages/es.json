@@ -2,6 +2,11 @@
     "Layout": {
         "skipToContent": "Saltar al contenido"
     },
+    "LocaleSwitcher": {
+        "label": "Idioma",
+        "es": "Español",
+        "en": "Ingles"
+    },
     "Header": {
         "games": "Juegos",
         "ranking": "Ranking",
