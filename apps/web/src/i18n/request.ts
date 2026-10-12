@@ -1,9 +1,9 @@
+import { notFound } from 'next/navigation';
 import * as rootParams from 'next/root-params';
 import { hasLocale } from 'next-intl';
 import { getRequestConfig } from 'next-intl/server';
-import { notFound } from 'next/navigation';
 
-import { routing, type Locale } from './routing';
+import { type Locale,routing } from './routing';
 
 const messages = {
     es: () => import('../messages/es.json').then((module) => module.default),

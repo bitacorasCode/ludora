@@ -1,10 +1,10 @@
 export { Header } from './layout/header';
 export { PageContainer, PageSection } from './layout/page-layout';
-export { PageTitle, SectionTitle, SubsectionTitle, BodyText, Eyebrow, LeadText } from './typography/typography';
-export { SectionHeading, PageHeading } from './typography/heading';
 export { SideMenu, SideMenuClose } from './overlays/side-menu';
+export { PageHeading,SectionHeading } from './typography/heading';
+export { BodyText, Eyebrow, LeadText,PageTitle, SectionTitle, SubsectionTitle } from './typography/typography';
 export {
-    Button, Sheet, SheetTrigger, SheetContent,
-    SheetHeader, SheetTitle, SheetDescription, SheetClose, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle
-} from './ui';
+    Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
+Sheet, SheetClose, SheetContent,
+SheetDescription,     SheetHeader, SheetTitle, SheetTrigger} from './ui';
 

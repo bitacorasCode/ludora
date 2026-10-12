@@ -1,10 +1,8 @@
 'use client';
 
-import { useId, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { useId, useTransition } from 'react';
 
-import { usePathname, useRouter } from '@/i18n/navigation';
-import { routing, type Locale } from '@/i18n/routing';
 import {
   Select,
   SelectContent,
@@ -12,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { usePathname, useRouter } from '@/i18n/navigation';
+import { type Locale,routing } from '@/i18n/routing';
 
 export function LocaleSwitcher() {
   const locale = useLocale();

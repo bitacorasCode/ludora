@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { cn } from 'cn';
 import { cva } from 'class-variance-authority';
+import { cn } from 'cn';
+import * as React from 'react';
 
 const cardVariants = cva(
   'group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-4xl border border-border bg-card py-(--card-spacing) text-sm text-card-foreground [--card-spacing:--spacing(6)] data-[size=sm]:[--card-spacing:--spacing(4)] has-[>img:first-child]:pt-0 *:[img:first-child]:rounded-t-4xl *:[img:last-child]:rounded-b-4xl',
@@ -112,10 +112,10 @@ function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
 
 export {
   Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
   CardAction,
-  CardDescription,
   CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 };

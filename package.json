@@ -2,5 +2,8 @@
     "name": "ludora",
     "private": true,
     "version": "0.1.0",
-    "packageManager": "pnpm@10.15.1"
+    "packageManager": "pnpm@10.15.1",
+    "devDependencies": {
+        "prettier": "^3.9.10"
+    }
 }

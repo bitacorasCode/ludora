@@ -1,10 +1,10 @@
 "use client"
 
-import * as React from "react"
+import { ArrowDown01Icon,ArrowUp01Icon, Tick02Icon, UnfoldMoreIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { cn } from "cn"
 import { Select as SelectPrimitive } from "radix-ui"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { UnfoldMoreIcon, Tick02Icon, ArrowUp01Icon, ArrowDown01Icon } from "@hugeicons/core-free-icons"
+import * as React from "react"
 
 function Select({
   ...props

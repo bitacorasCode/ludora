@@ -1,9 +1,10 @@
-import { Link } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
-import { useTranslations } from 'next-intl';
-import { SideMenu, SideMenuClose } from '../overlays/side-menu';
+import { Link } from '@/i18n/navigation';
+
 import { LocaleSwitcher } from '../language/locale-switcher';
+import { SideMenu, SideMenuClose } from '../overlays/side-menu';
 
 const links = [
   { href: '/#catalog', label: 'games' },

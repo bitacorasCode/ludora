@@ -1,10 +1,11 @@
-import { Link } from '@/i18n/navigation';
-import { PageContainer, PageSection } from '@/components/layout/page-layout';
-import { Card, CardFooter, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { BodyText, SubsectionTitle } from '@/components/typography/typography';
-import { PageHeading, SectionHeading } from '@/components/typography/heading';
 import { useTranslations } from 'next-intl';
+
+import { PageContainer, PageSection } from '@/components/layout/page-layout';
+import { PageHeading, SectionHeading } from '@/components/typography/heading';
+import { BodyText, SubsectionTitle } from '@/components/typography/typography';
+import { Button } from '@/components/ui/button';
+import { Card, CardFooter, CardHeader } from '@/components/ui/card';
+import { Link } from '@/i18n/navigation';
 
 export default function Home() {
   const t = useTranslations('Home');
