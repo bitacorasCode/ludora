@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation';
 
 import { LocaleSwitcher } from '../language/locale-switcher';
 import { SideMenu, SideMenuClose } from '../overlays/side-menu';
+import { ThemeSwitch } from '../theme/theme-switch';
 
 const links = [
   { href: '/#catalog', label: 'games' },
@@ -38,9 +39,9 @@ export function Header() {
               <Link href={link.href}>{t(link.label)}</Link>
             </Button>
           ))}
+          <ThemeSwitch />
+          <LocaleSwitcher />
         </div>
-
-        <LocaleSwitcher />
 
         <SideMenu
           trigger={
@@ -61,6 +62,7 @@ export function Header() {
               </div>
             </SideMenuClose>
           ))}
+          <ThemeSwitch showLabel />
           <LocaleSwitcher />
         </SideMenu>
       </nav>

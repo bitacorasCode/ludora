@@ -32,5 +32,8 @@
     "Metadata": {
         "title": "Ludora - La plataforma para tus juegos",
         "description": "Descubre juegos, reúne a tus amigos y comparte nuevas partidas desde un solo lugar."
+    },
+    "ThemeSwitch": {
+        "label": "Modo oscuro"
     }
 }

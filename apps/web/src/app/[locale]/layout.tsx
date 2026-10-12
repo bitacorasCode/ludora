@@ -6,6 +6,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 
 import { Header } from '@/components/layout/header';
+import { ThemeProvider } from '@/components/theme/theme-provider';
 import { routing } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 
@@ -47,6 +48,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
+      suppressHydrationWarning
       className={cn(
         'h-full',
         'antialiased',
@@ -57,18 +59,20 @@ export default async function RootLayout({
       )}
     >
       <body className='min-h-full flex flex-col'>
-        <NextIntlClientProvider>
-          <a
-            href='#content'
-            className='sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-foreground'
-          >
-            {t('skipToContent')}
-          </a>
-          <Header />
-          <main id='content' className='flex-1'>
-            {children}
-          </main>
-        </NextIntlClientProvider>
+        <ThemeProvider>
+          <NextIntlClientProvider>
+            <a
+              href='#content'
+              className='sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-foreground'
+            >
+              {t('skipToContent')}
+            </a>
+            <Header />
+            <main id='content' className='flex-1'>
+              {children}
+            </main>
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
