@@ -9,9 +9,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui';
 import { usePathname, useRouter } from '@/i18n/navigation';
-import { type Locale,routing } from '@/i18n/routing';
+import { type Locale, routing } from '@/i18n/routing';
 
 export function LocaleSwitcher() {
   const locale = useLocale();

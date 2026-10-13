@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { useId, useSyncExternalStore } from 'react';
 
-import { Switch } from '@/components/ui/switch';
+import { Switch } from '@/components/ui';
 
 export function ThemeSwitch({ showLabel = false }: { showLabel?: boolean }) {
   const { resolvedTheme, setTheme } = useTheme();

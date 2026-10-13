@@ -3,8 +3,7 @@ import { useTranslations } from 'next-intl';
 import { PageContainer, PageSection } from '@/components/layout/page-layout';
 import { PageHeading, SectionHeading } from '@/components/typography/heading';
 import { BodyText, SubsectionTitle } from '@/components/typography/typography';
-import { Button } from '@/components/ui/button';
-import { Card, CardFooter, CardHeader } from '@/components/ui/card';
+import { Button, Card, CardFooter, CardHeader } from '@/components/ui';
 import { Link } from '@/i18n/navigation';
 
 export default function Home() {

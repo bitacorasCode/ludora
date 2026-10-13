@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui';
 import { Link } from '@/i18n/navigation';
 
 import { LocaleSwitcher } from '../language/locale-switcher';
