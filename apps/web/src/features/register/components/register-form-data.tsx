@@ -1,22 +1,25 @@
 'use client';
 
-import type { Control, FieldValues, Path } from 'react-hook-form';
+import { useTranslations } from 'next-intl';
+import type { Control } from 'react-hook-form';
 
 import { FormDateField, FormTextField } from '@/components/forms';
 import { CardDescription, FieldGroup } from '@/components/ui';
+import type { UserRegistrationFormData } from '@/lib/schemas';
 
 import { userFields } from '../config';
 
-type RegisterFormDataProps<T extends FieldValues> = {
-  control: Control<T>;
+type RegisterFormDataProps = {
+  control: Control<UserRegistrationFormData>;
 };
 
-export default function RegisterFormData<T extends FieldValues>({
-  control,
-}: RegisterFormDataProps<T>) {
+export default function RegisterFormData({ control }: RegisterFormDataProps) {
+  const t = useTranslations('Register');
+
   return (
     <div className='w-full'>
-      <CardDescription>Datos personales</CardDescription>
+      <CardDescription>{t('personalData')}</CardDescription>
+
       <FieldGroup className='mt-4'>
         {userFields.map((field) => {
           if (field.type === 'string') {
@@ -24,26 +27,24 @@ export default function RegisterFormData<T extends FieldValues>({
               <FormTextField
                 key={field.name}
                 control={control}
-                name={field.name as Path<T>}
-                label={field.label}
-                placeholder={field.placeholder ?? ''}
+                name={field.name}
+                label={t(`fields.${field.name}.label`)}
+                placeholder={t(`fields.${field.name}.placeholder`)}
+                inputType={field.inputType}
+                autoComplete={field.autoComplete}
               />
             );
           }
 
-          if (field.type === 'date') {
-            return (
-              <FormDateField
-                key={field.name}
-                control={control}
-                name={field.name as Path<T>}
-                label={field.label}
-                placeholder={field.placeholder ?? ''}
-              />
-            );
-          }
-
-          return null;
+          return (
+            <FormDateField
+              key={field.name}
+              control={control}
+              name={field.name}
+              label={t('fields.birthDate.label')}
+              placeholder={t('fields.birthDate.placeholder')}
+            />
+          );
         })}
       </FieldGroup>
     </div>

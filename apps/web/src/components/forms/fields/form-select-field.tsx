@@ -1,6 +1,7 @@
 'use client';
 
-import { Controller, FieldValues } from 'react-hook-form';
+import { useId } from 'react';
+import { Controller, type FieldValues } from 'react-hook-form';
 
 import {
   Field,
@@ -21,7 +22,7 @@ type Option = {
 };
 
 type Props<T extends FieldValues> = BaseFormFieldProps<T> & {
-  placeholder?: string;
+  placeholder: string;
   options: Option[];
 };
 
@@ -29,16 +30,19 @@ export function FormSelectField<T extends FieldValues>({
   control,
   name,
   label,
-  placeholder = 'Seleccionar opción',
+  placeholder,
   options,
 }: Props<T>) {
+  const id = useId();
+  const errorId = `${id}-error`;
+
   return (
     <Controller
       name={name}
       control={control}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          <FieldLabel>{label}</FieldLabel>
+          <FieldLabel htmlFor={id}>{label}</FieldLabel>
 
           <Select
             value={field.value ?? ''}
@@ -47,7 +51,12 @@ export function FormSelectField<T extends FieldValues>({
               if (!open) field.onBlur();
             }}
           >
-            <SelectTrigger aria-label={label} aria-invalid={fieldState.invalid}>
+            <SelectTrigger
+              id={id}
+              aria-label={label}
+              aria-invalid={fieldState.invalid}
+              aria-describedby={fieldState.error ? errorId : undefined}
+            >
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
 
@@ -60,7 +69,9 @@ export function FormSelectField<T extends FieldValues>({
             </SelectContent>
           </Select>
 
-          {fieldState.error && <FieldError errors={[fieldState.error]} />}
+          {fieldState.error && (
+            <FieldError id={errorId} errors={[fieldState.error]} />
+          )}
         </Field>
       )}
     />

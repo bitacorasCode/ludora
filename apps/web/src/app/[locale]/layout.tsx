@@ -5,8 +5,8 @@ import { Geist, Geist_Mono, Noto_Sans } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 
-import { Header } from '@/components/layout/header';
-import { ThemeProvider } from '@/components/theme/theme-provider';
+import { Header } from '@/components/layout';
+import { ThemeProvider } from '@/components/theme';
 import { routing } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 

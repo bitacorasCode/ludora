@@ -1,6 +1,8 @@
 'use client';
 
-import { ErrorAlert } from '@/components/feedback/error-alert';
+import { useTranslations } from 'next-intl';
+
+import { FeedbackAlert } from '@/components/feedback';
 import {
   Card,
   CardContent,
@@ -14,8 +16,8 @@ import RegisterFormActions from './register-form-actions';
 import RegisterFormData from './register-form-data';
 
 export function RegisterForm() {
-  const { form, submissionError, hasValidationErrors, onSubmit } =
-    useRegisterForm();
+  const { form, submissionFeedback, onSubmit } = useRegisterForm();
+  const t = useTranslations('Register');
 
   return (
     <div className='mx-auto md:w-1/2 w-full px-4 py-6 sm:px-6 lg:px-8'>
@@ -23,23 +25,31 @@ export function RegisterForm() {
         href='#register-form'
         className='sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg'
       >
-        Saltar al formulario
+        {t('skipToForm')}
       </a>
 
       <Card className='w-full'>
         <CardHeader>
-          <CardTitle>Registro</CardTitle>
+          <CardTitle>
+            <h1>{t('title')}</h1>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {submissionError && (
-            <ErrorAlert title='Algo salió mal' message={submissionError} />
+          {submissionFeedback && (
+            <FeedbackAlert
+              status={submissionFeedback.status}
+              title={submissionFeedback.title}
+              message={submissionFeedback.message}
+            />
           )}
           <form
             id='register-form'
+            tabIndex={-1}
             onSubmit={form.handleSubmit(onSubmit)}
             noValidate
           >
             <fieldset disabled={form.formState.isSubmitting}>
+              <legend className='sr-only'>{t('personalData')}</legend>
               <div className='grid gap-8 lg:grid-cols-2'>
                 <RegisterFormData control={form.control} />
               </div>
@@ -47,10 +57,7 @@ export function RegisterForm() {
           </form>
         </CardContent>
         <CardFooter className='pt-0'>
-          <RegisterFormActions
-            isSubmitting={form.formState.isSubmitting}
-            disabled={form.formState.isSubmitting || hasValidationErrors}
-          />
+          <RegisterFormActions isSubmitting={form.formState.isSubmitting} />
         </CardFooter>
       </Card>
     </div>

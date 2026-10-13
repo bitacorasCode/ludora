@@ -1,8 +1,12 @@
 import { useTranslations } from 'next-intl';
 
-import { PageContainer, PageSection } from '@/components/layout/page-layout';
-import { PageHeading, SectionHeading } from '@/components/typography/heading';
-import { BodyText, SubsectionTitle } from '@/components/typography/typography';
+import { PageContainer, PageSection } from '@/components/layout';
+import {
+  BodyText,
+  PageHeading,
+  SectionHeading,
+  SubsectionTitle,
+} from '@/components/typography';
 import { Button, Card, CardFooter, CardHeader } from '@/components/ui';
 import { Link } from '@/i18n/navigation';
 

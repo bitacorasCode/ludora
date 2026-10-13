@@ -3,7 +3,10 @@
 import { Calendar01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { format } from 'date-fns';
-import { Controller, FieldValues } from 'react-hook-form';
+import { enUS, es } from 'date-fns/locale';
+import { useLocale } from 'next-intl';
+import { useId } from 'react';
+import { Controller, type FieldValues } from 'react-hook-form';
 
 import {
   Button,
@@ -19,22 +22,26 @@ import {
 import { BaseFormFieldProps } from './types';
 
 type Props<T extends FieldValues> = BaseFormFieldProps<T> & {
-  placeholder?: string;
+  placeholder: string;
 };
 
 export function FormDateField<T extends FieldValues>({
   control,
   name,
   label,
-  placeholder = 'Seleccionar fecha',
+  placeholder,
 }: Props<T>) {
+  const locale = useLocale();
+  const id = useId();
+  const errorId = `${id}-error`;
+
   return (
     <Controller
       name={name}
       control={control}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          <FieldLabel>{label}</FieldLabel>
+          <FieldLabel htmlFor={id}>{label}</FieldLabel>
 
           <Popover
             onOpenChange={(open) => {
@@ -43,11 +50,13 @@ export function FormDateField<T extends FieldValues>({
           >
             <PopoverTrigger asChild>
               <Button
+                id={id}
                 type='button'
                 variant='outline'
                 className='justify-between'
                 aria-label={label}
                 aria-invalid={fieldState.invalid}
+                aria-describedby={fieldState.error ? errorId : undefined}
               >
                 {field.value ? format(field.value, 'dd/MM/yyyy') : placeholder}
                 <HugeiconsIcon icon={Calendar01Icon} />
@@ -57,6 +66,7 @@ export function FormDateField<T extends FieldValues>({
             <PopoverContent className='w-auto p-0' align='start'>
               <Calendar
                 mode='single'
+                locale={locale === 'es' ? es : enUS}
                 selected={field.value}
                 onSelect={field.onChange}
                 captionLayout='dropdown'
@@ -64,7 +74,9 @@ export function FormDateField<T extends FieldValues>({
             </PopoverContent>
           </Popover>
 
-          {fieldState.error && <FieldError errors={[fieldState.error]} />}
+          {fieldState.error && (
+            <FieldError id={errorId} errors={[fieldState.error]} />
+          )}
         </Field>
       )}
     />

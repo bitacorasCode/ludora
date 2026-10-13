@@ -1,6 +1,7 @@
 'use client';
 
-import { Controller, FieldValues } from 'react-hook-form';
+import { useId } from 'react';
+import { Controller, type FieldValues } from 'react-hook-form';
 
 import { Field, FieldError, FieldLabel, Input } from '@/components/ui';
 
@@ -16,19 +17,24 @@ export function FormNumberField<T extends FieldValues>({
   label,
   placeholder,
 }: Props<T>) {
+  const id = useId();
+  const errorId = `${id}-error`;
+
   return (
     <Controller
       name={name}
       control={control}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          <FieldLabel>{label}</FieldLabel>
+          <FieldLabel htmlFor={id}>{label}</FieldLabel>
 
           <Input
+            id={id}
             type='number'
             value={field.value ?? ''}
             placeholder={placeholder}
             aria-invalid={fieldState.invalid}
+            aria-describedby={fieldState.error ? errorId : undefined}
             onChange={(event) => {
               const value = event.target.value;
 
@@ -39,7 +45,9 @@ export function FormNumberField<T extends FieldValues>({
             onBlur={field.onBlur}
           />
 
-          {fieldState.error && <FieldError errors={[fieldState.error]} />}
+          {fieldState.error && (
+            <FieldError id={errorId} errors={[fieldState.error]} />
+          )}
         </Field>
       )}
     />

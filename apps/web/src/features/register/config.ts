@@ -1,41 +1,64 @@
+import type { DefaultValues } from 'react-hook-form';
+
+import type { UserRegistrationFormData } from '@/lib/schemas';
+
+type RegisterField =
+    | {
+        name: Exclude<keyof UserRegistrationFormData, 'birthDate'>;
+        type: 'string';
+        inputType: 'text' | 'email' | 'password';
+        autoComplete: string;
+        defaultValue: string;
+    }
+    | {
+        name: 'birthDate';
+        type: 'date';
+        defaultValue: Date | undefined;
+    };
+
 export const userFields = [
     {
         name: 'nickname',
-        label: 'Nickname',
-        placeholder: 'Juanito123',
-        defaultValue: '',
         type: 'string',
+        inputType: 'text',
+        autoComplete: 'nickname',
+        defaultValue: '',
     },
     {
         name: 'names',
-        label: 'Nombres',
-        placeholder: 'Juan',
-        defaultValue: '',
         type: 'string',
+        inputType: 'text',
+        autoComplete: 'given-name',
+        defaultValue: '',
     },
     {
         name: 'lastNames',
-        label: 'Apellidos',
-        placeholder: 'Perez',
-        defaultValue: '',
         type: 'string',
+        inputType: 'text',
+        autoComplete: 'family-name',
+        defaultValue: '',
     },
     {
         name: 'birthDate',
-        label: 'Fecha de nacimiento',
-        placeholder: null,
-        defaultValue: undefined,
         type: 'date',
+        defaultValue: undefined,
     },
     {
         name: 'email',
-        label: 'Correo',
-        placeholder: 'juan.perez@gmail.com',
-        defaultValue: '',
         type: 'string',
-    }
-] as const;
+        inputType: 'email',
+        autoComplete: 'email',
+        defaultValue: '',
+    },
+    {
+        name: 'password',
+        type: 'string',
+        inputType: 'password',
+        autoComplete: 'new-password',
+        defaultValue: '',
+    },
+] as const satisfies readonly RegisterField[];
 
 export const userDefaultValues = Object.fromEntries(
-    userFields.map((field) => [field.name, field.defaultValue]),
-);
+    userFields.map(({ name, defaultValue }) => [name, defaultValue]),
+) as DefaultValues<UserRegistrationFormData>;

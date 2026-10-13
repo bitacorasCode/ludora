@@ -35,5 +35,54 @@
     },
     "ThemeSwitch": {
         "label": "Modo oscuro"
+    },
+    "Register": {
+        "title": "Registro",
+        "skipToForm": "Saltar al formulario",
+        "personalData": "Datos personales",
+        "fields": {
+            "nickname": {
+                "label": "Nombre de usuario",
+                "placeholder": "Juanito123"
+            },
+            "names": {
+                "label": "Nombres",
+                "placeholder": "Juan"
+            },
+            "lastNames": {
+                "label": "Apellidos",
+                "placeholder": "Pérez"
+            },
+            "birthDate": {
+                "label": "Fecha de nacimiento",
+                "placeholder": "Seleccionar fecha"
+            },
+            "email": {
+                "label": "Correo electrónico",
+                "placeholder": "juan.perez@ejemplo.com"
+            },
+            "password": {
+                "label": "Contraseña",
+                "placeholder": "Crea una contraseña"
+            }
+        },
+        "actions": {
+            "submit": "Continuar",
+            "submitting": "Validando..."
+        },
+        "feedback": {
+            "title": "Registro todavía no disponible",
+            "unavailable": "El formulario pasó la validación, pero aún no podemos crear cuentas. Tus datos no se guardaron.",
+            "errorTitle": "Algo salió mal",
+            "unexpectedError": "No pudimos procesar el formulario. Inténtalo de nuevo."
+        },
+        "validation": {
+            "nicknameMin": "El nombre de usuario debe tener al menos 2 caracteres.",
+            "namesMin": "Los nombres deben tener al menos 2 caracteres.",
+            "lastNamesMin": "Los apellidos deben tener al menos 2 caracteres.",
+            "birthDateRequired": "Selecciona una fecha de nacimiento válida.",
+            "emailInvalid": "Introduce un correo electrónico válido.",
+            "passwordMin": "La contraseña debe tener al menos 8 caracteres."
+        }
     }
 }

@@ -1,30 +1,40 @@
 'use server';
 
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { z } from 'zod';
+import { hasLocale } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 
-import { UserRegistrationFormData, userRegistrationSchema } from '@/lib/schemas/user-registration/user-registration';
+import { routing } from '@/i18n/routing';
+import {
+    createUserRegistrationSchema,
+    type UserRegistrationFormData,
+} from '@/lib/schemas';
 
-export type RegisterResult = {
-    errors: string[];
-};
+export type RegisterResult =
+    | { status: 'invalid'; errors: string[] }
+    | { status: 'unavailable' };
 
-export async function registerUser(formData: UserRegistrationFormData): Promise<RegisterResult | never> {
-    const result = userRegistrationSchema.safeParse(formData);
+export async function registerUser(
+    locale: string,
+    formData: UserRegistrationFormData,
+): Promise<RegisterResult> {
+    const validLocale = hasLocale(routing.locales, locale)
+        ? locale
+        : routing.defaultLocale;
+
+    const t = await getTranslations({
+        locale: validLocale,
+        namespace: 'Register.validation',
+    });
+
+    const schema = createUserRegistrationSchema((key) => t(key));
+    const result = schema.safeParse(formData);
 
     if (!result.success) {
         return {
-            errors: z.treeifyError(result.error).errors,
+            status: 'invalid',
+            errors: result.error.issues.map((issue) => issue.message),
         };
     }
 
-    const cookieStore = await cookies();
-
-    cookieStore.set('registration-success', 'true', {
-        maxAge: 10,
-        path: '/',
-    });
-
-    redirect('/register/success');
+    return { status: 'unavailable' };
 }
