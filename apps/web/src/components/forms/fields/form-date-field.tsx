@@ -3,7 +3,6 @@
 import { Calendar01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { format } from 'date-fns';
-import { enUS, es } from 'date-fns/locale';
 import { useLocale } from 'next-intl';
 import { useId } from 'react';
 import { Controller, type FieldValues } from 'react-hook-form';
@@ -18,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui';
+import { getDateFnsLocale } from '@/i18n/date-fns';
 
 import { BaseFormFieldProps } from './types';
 
@@ -66,7 +66,7 @@ export function FormDateField<T extends FieldValues>({
             <PopoverContent className='w-auto p-0' align='start'>
               <Calendar
                 mode='single'
-                locale={locale === 'es' ? es : enUS}
+                locale={getDateFnsLocale(locale)}
                 selected={field.value}
                 onSelect={field.onChange}
                 captionLayout='dropdown'

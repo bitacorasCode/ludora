@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { userRegistrationSchema } from "./user-registration";
+import esMessages from '@/messages/es.json';
+
+import { createUserRegistrationSchema } from "./user-registration";
+
+const userRegistrationSchema = createUserRegistrationSchema(
+    (key) => esMessages.Register.validation[key],
+);
 
 const validData = {
     nickname: "Juanito123",
@@ -8,6 +14,7 @@ const validData = {
     lastNames: "Pérez García",
     birthDate: new Date("1990-01-01"),
     email: "juan@example.com",
+    password: "contraseña123",
 };
 
 describe("userRegistrationSchema", () => {
@@ -22,7 +29,7 @@ describe("userRegistrationSchema", () => {
             nickname: "A",
         });
         expect(result.success).toBe(false);
-        expect(result.error?.issues[0].message).toBe("Nickname: mínimo 2 caracteres");
+        expect(result.error?.issues[0].message).toBe(esMessages.Register.validation.nicknameMin);
     });
 
     it("rejects with a short names field", () => {
@@ -31,7 +38,7 @@ describe("userRegistrationSchema", () => {
             names: "A",
         });
         expect(result.success).toBe(false);
-        expect(result.error?.issues[0].message).toBe("Nombres: mínimo 2 caracteres");
+        expect(result.error?.issues[0].message).toBe(esMessages.Register.validation.namesMin);
     });
 
     it("rejects with a short lastNames field", () => {
@@ -40,7 +47,7 @@ describe("userRegistrationSchema", () => {
             lastNames: "B",
         });
         expect(result.success).toBe(false);
-        expect(result.error?.issues[0].message).toBe("Apellidos: mínimo 2 caracteres");
+        expect(result.error?.issues[0].message).toBe(esMessages.Register.validation.lastNamesMin);
     });
 
     it("rejects with an invalid email", () => {
@@ -49,7 +56,7 @@ describe("userRegistrationSchema", () => {
             email: "not-an-email",
         });
         expect(result.success).toBe(false);
-        expect(result.error?.issues[0].message).toBe("Correo: correo inválido");
+        expect(result.error?.issues[0].message).toBe(esMessages.Register.validation.emailInvalid);
     });
 
     it("rejects with an empty names field", () => {
@@ -58,6 +65,24 @@ describe("userRegistrationSchema", () => {
             names: "",
         });
         expect(result.success).toBe(false);
-        expect(result.error?.issues[0].message).toBe("Nombres: mínimo 2 caracteres");
+        expect(result.error?.issues[0].message).toBe(esMessages.Register.validation.namesMin);
+    });
+
+    it("rejects without a birth date", () => {
+        const result = userRegistrationSchema.safeParse({
+            ...validData,
+            birthDate: undefined,
+        });
+        expect(result.success).toBe(false);
+        expect(result.error?.issues[0].message).toBe(esMessages.Register.validation.birthDateRequired);
+    });
+
+    it("rejects with a short password", () => {
+        const result = userRegistrationSchema.safeParse({
+            ...validData,
+            password: "short",
+        });
+        expect(result.success).toBe(false);
+        expect(result.error?.issues[0].message).toBe(esMessages.Register.validation.passwordMin);
     });
 });

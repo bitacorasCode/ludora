@@ -10,6 +10,7 @@ import { ThemeSwitch } from '../theme/theme-switch';
 const links = [
   { href: '/#catalog', label: 'games' },
   { href: '/#ranking', label: 'ranking' },
+  { href: '/register', label: 'register' },
 ] as const;
 
 export function Header() {
