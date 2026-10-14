@@ -23,13 +23,23 @@
         "eyebrow": "The platform for your games",
         "title": "A table for all your worlds.",
         "description": "Discover games, meet up with friends, and share new games in one place.",
-        "exploreLudora": "Explore Ludora",
-        "catalog": "Catalog",
-        "catalogTitle": "Games for every table",
-        "catalogEmptyTitle": "We’re preparing the catalog",
-        "catalogEmptyDescription": "You’ll find the games available on Ludora here soon.",
-        "community": "Community",
-        "rankingDescription": "Rankings will appear once there are games to share."
+        "exploreLudora": "Explore Ludora"
+    },
+    "Catalog": {
+        "eyebrow": "Explore Ludora",
+        "title": "Game catalog",
+        "description": "The Ludora catalog is empty for now. Soon you'll find games to explore here.",
+        "emptyTitle": "No games yet",
+        "emptyDescription": "We're preparing this space for the platform's first games.",
+        "backHome": "Back to home"
+    },
+    "Ranking": {
+        "eyebrow": "Community",
+        "title": "Ranking",
+        "description": "Game rankings will appear here once matches begin.",
+        "emptyTitle": "No rankings yet",
+        "emptyDescription": "No matches have been recorded yet. Come back when the community starts playing.",
+        "backHome": "Back to home"
     },
     "Metadata": {
         "title": "Ludora - The platform for your games",

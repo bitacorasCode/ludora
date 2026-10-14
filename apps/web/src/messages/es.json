@@ -23,13 +23,23 @@
         "eyebrow": "La plataforma para tus juegos",
         "title": "Una mesa para todos tus mundos.",
         "description": "Descubre juegos, reúne a tus amigos y comparte nuevas partidas desde un solo lugar.",
-        "exploreLudora": "Explorar Ludora",
-        "catalog": "Catálogo",
-        "catalogTitle": "Juegos para cada mesa",
-        "catalogEmptyTitle": "Estamos preparando el catálogo",
-        "catalogEmptyDescription": "Pronto encontrarás aquí los juegos disponibles en Ludora.",
-        "community": "Comunidad",
-        "rankingDescription": "Las clasificaciones aparecerán cuando haya partidas para compartir."
+        "exploreLudora": "Explorar Ludora"
+    },
+    "Catalog": {
+        "eyebrow": "Explora Ludora",
+        "title": "Catálogo de juegos",
+        "description": "El catálogo de Ludora aún está vacío. Pronto encontrarás aquí juegos para explorar.",
+        "emptyTitle": "Aún no hay juegos",
+        "emptyDescription": "Estamos preparando este espacio para los primeros juegos de la plataforma.",
+        "backHome": "Volver al inicio"
+    },
+    "Ranking": {
+        "eyebrow": "Comunidad",
+        "title": "Ranking",
+        "description": "Aquí aparecerán las clasificaciones de los juegos cuando comiencen las partidas.",
+        "emptyTitle": "Aún no hay clasificaciones",
+        "emptyDescription": "Todavía no se han registrado partidas. Vuelve cuando la comunidad empiece a jugar.",
+        "backHome": "Volver al inicio"
     },
     "Metadata": {
         "title": "Ludora - La plataforma para tus juegos",

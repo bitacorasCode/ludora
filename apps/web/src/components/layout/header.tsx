@@ -8,8 +8,8 @@ import { SideMenu, SideMenuClose } from '../overlays/side-menu';
 import { ThemeSwitch } from '../theme/theme-switch';
 
 const links = [
-  { href: '/#catalog', label: 'games' },
-  { href: '/#ranking', label: 'ranking' },
+  { href: '/games', label: 'games' },
+  { href: '/ranking', label: 'ranking' },
   { href: '/login', label: 'login' },
   { href: '/register', label: 'register' },
 ] as const;
