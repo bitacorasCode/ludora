@@ -1,30 +1,5 @@
-import { useTranslations } from 'next-intl';
-
-import { PageContainer } from '@/components/layout';
-import { PageHeading } from '@/components/typography';
-import { Button, Card, CardFooter, CardHeader } from '@/components/ui';
-import { Link } from '@/i18n/navigation';
+import { HomePageContent } from '@/features';
 
 export default function Home() {
-  const t = useTranslations('Home');
-
-  return (
-    <PageContainer>
-      <Card variant='hero'>
-        <CardHeader>
-          <PageHeading
-            eyebrow={t('eyebrow')}
-            title={t('title')}
-            description={t('description')}
-          />
-        </CardHeader>
-
-        <CardFooter>
-          <Button asChild size='lg'>
-            <Link href='/games'> {t('exploreLudora')} </Link>
-          </Button>
-        </CardFooter>
-      </Card>
-    </PageContainer>
-  );
+  return <HomePageContent />;
 }

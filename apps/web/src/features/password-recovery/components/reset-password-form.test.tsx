@@ -12,6 +12,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import esMessages from '@/messages/es.json';
 
 import { ResetPasswordForm } from './reset-password-form';
+import { ResetPasswordPageContent } from './reset-password-page-content';
 
 vi.mock('@/i18n/navigation', () => ({ Link: 'a' }));
 
@@ -43,7 +44,7 @@ describe('ResetPasswordForm integration', () => {
   it('renders a skip link and a link back to login', () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordForm />
+        <ResetPasswordPageContent />
       </NextIntlClientProvider>,
     );
 

@@ -13,6 +13,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import esMessages from '@/messages/es.json';
 
 import { LoginForm } from './login-form';
+import { LoginPageContent } from './login-page-content';
 
 vi.mock('@/i18n/navigation', () => ({ Link: 'a' }));
 
@@ -44,7 +45,7 @@ describe('LoginForm integration', () => {
   it('renders the skip link and account links', () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <LoginForm />
+        <LoginPageContent />
       </NextIntlClientProvider>,
     );
 

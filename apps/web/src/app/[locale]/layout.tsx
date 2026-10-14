@@ -1,33 +1,18 @@
 import '../globals.css';
 
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono, Noto_Sans } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 
 import { Header } from '@/components/layout';
 import { ThemeProvider } from '@/components/theme';
+import { geistMono, geistSans, notoSans } from '@/config/fonts';
 import { routing } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
-
-const notoSans = Noto_Sans({
-  subsets: ['latin'],
-  variable: '--font-noto-sans',
-});
-
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
 
 export async function generateMetadata({
   params,
@@ -36,7 +21,10 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: 'Metadata' });
 
   return {
-    title: t('title'),
+    title: {
+      default: t('title'),
+      template: '%s | Ludora',
+    },
     description: t('description'),
   };
 }

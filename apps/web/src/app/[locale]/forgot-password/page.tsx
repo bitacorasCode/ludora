@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
-import { RecoveryRequestForm } from '@/features';
+import { RecoveryRequestPageContent } from '@/features';
 
 export async function generateMetadata({
   params,
@@ -9,9 +9,9 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'PasswordRecovery.request' });
 
-  return { title: `${t('title')} | Ludora`, description: t('description') };
+  return { title: t('title'), description: t('description') };
 }
 
 export default function ForgotPasswordPage() {
-  return <RecoveryRequestForm />;
+  return <RecoveryRequestPageContent />;
 }

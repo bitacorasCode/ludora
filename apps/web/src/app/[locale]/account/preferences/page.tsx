@@ -10,7 +10,7 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: 'Preferences' });
 
   return {
-    title: `${t('title')} | Ludora`,
+    title: t('title'),
     description: t('description'),
   };
 }

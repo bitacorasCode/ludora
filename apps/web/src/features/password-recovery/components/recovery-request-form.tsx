@@ -2,22 +2,30 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { type ReactNode, useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { FeedbackAlert } from '@/components/feedback';
-import { FormPageCard, FormTextField } from '@/components/forms';
+import { FormTextField } from '@/components/forms';
 import { Button, FieldGroup } from '@/components/ui';
-import { Link } from '@/i18n/navigation';
 import {
   createRecoveryRequestSchema,
   type RecoveryRequestFormData,
 } from '@/lib/schemas';
 
-export function RecoveryRequestForm() {
+type RecoveryRequestFormProps = {
+  id?: string;
+  feedbackAction?: ReactNode;
+};
+
+export function RecoveryRequestForm({
+  id,
+  feedbackAction,
+}: RecoveryRequestFormProps) {
   const t = useTranslations('PasswordRecovery');
   const validation = useTranslations('PasswordRecovery.validation');
   const [submitted, setSubmitted] = useState(false);
+  const generatedId = useId();
   const form = useForm<RecoveryRequestFormData>({
     mode: 'onTouched',
     reValidateMode: 'onChange',
@@ -26,21 +34,13 @@ export function RecoveryRequestForm() {
   });
 
   return (
-    <FormPageCard
-      formId='recovery-request-form'
-      skipToForm={t('skipToForm')}
-      title={t('request.title')}
-      description={t('request.description')}
-      footer={
-        <div className='flex w-full flex-wrap items-center justify-between gap-2'>
-          <Button asChild variant='link'>
-            <Link href='/login'>{t('backToLogin')}</Link>
-          </Button>
-          <Button type='submit' form='recovery-request-form'>
-            {t('request.submit')}
-          </Button>
-        </div>
-      }
+    <form
+      id={id ?? generatedId}
+      aria-label={t('request.title')}
+      tabIndex={-1}
+      onSubmit={form.handleSubmit(() => setSubmitted(true))}
+      onChange={() => setSubmitted(false)}
+      noValidate
     >
       {submitted && (
         <div>
@@ -49,29 +49,24 @@ export function RecoveryRequestForm() {
             title={t('request.feedbackTitle')}
             message={t('request.feedbackMessage')}
           />
-          <Button asChild variant='link' className='px-0'>
-            <Link href='/reset-password'>{t('request.previewReset')}</Link>
-          </Button>
+          {feedbackAction}
         </div>
       )}
-      <form
-        id='recovery-request-form'
-        tabIndex={-1}
-        onSubmit={form.handleSubmit(() => setSubmitted(true))}
-        onChange={() => setSubmitted(false)}
-        noValidate
-      >
-        <FieldGroup>
-          <FormTextField
-            control={form.control}
-            name='email'
-            inputType='email'
-            autoComplete='email'
-            label={t('email')}
-            placeholder={t('emailPlaceholder')}
-          />
-        </FieldGroup>
-      </form>
-    </FormPageCard>
+      <FieldGroup>
+        <FormTextField
+          control={form.control}
+          name='email'
+          inputType='email'
+          autoComplete='email'
+          label={t('email')}
+          placeholder={t('emailPlaceholder')}
+        />
+        <div className='flex justify-end'>
+          <Button type='submit' disabled={form.formState.isSubmitting}>
+            {t('request.submit')}
+          </Button>
+        </div>
+      </FieldGroup>
+    </form>
   );
 }

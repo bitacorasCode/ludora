@@ -11,6 +11,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import esMessages from '@/messages/es.json';
 
 import { RecoveryRequestForm } from './recovery-request-form';
+import { RecoveryRequestPageContent } from './recovery-request-page-content';
 
 vi.mock('@/i18n/navigation', () => ({ Link: 'a' }));
 
@@ -42,7 +43,7 @@ describe('RecoveryRequestForm integration', () => {
   it('renders a skip link and a link back to login', () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <RecoveryRequestForm />
+        <RecoveryRequestPageContent />
       </NextIntlClientProvider>,
     );
 
@@ -53,7 +54,7 @@ describe('RecoveryRequestForm integration', () => {
   it('shows an email error and keeps the preview link hidden for invalid data', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <RecoveryRequestForm />
+        <RecoveryRequestPageContent />
       </NextIntlClientProvider>,
     );
 
@@ -69,7 +70,7 @@ describe('RecoveryRequestForm integration', () => {
   it('shows the preview link after a valid email and hides it when the email changes', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <RecoveryRequestForm />
+        <RecoveryRequestPageContent />
       </NextIntlClientProvider>,
     );
 

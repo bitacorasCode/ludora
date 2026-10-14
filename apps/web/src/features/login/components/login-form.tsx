@@ -2,19 +2,24 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { type ReactNode, useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { FeedbackAlert } from '@/components/feedback';
-import { FormPageCard, FormTextField } from '@/components/forms';
+import { FormTextField } from '@/components/forms';
 import { Button, FieldGroup } from '@/components/ui';
-import { Link } from '@/i18n/navigation';
 import { createLoginSchema, type LoginFormData } from '@/lib/schemas';
 
-export function LoginForm() {
+type LoginFormProps = {
+  id?: string;
+  passwordHelp?: ReactNode;
+};
+
+export function LoginForm({ id, passwordHelp }: LoginFormProps) {
   const t = useTranslations('Login');
   const validation = useTranslations('Login.validation');
   const [submitted, setSubmitted] = useState(false);
+  const generatedId = useId();
   const form = useForm<LoginFormData>({
     mode: 'onTouched',
     reValidateMode: 'onChange',
@@ -23,21 +28,13 @@ export function LoginForm() {
   });
 
   return (
-    <FormPageCard
-      formId='login-form'
-      skipToForm={t('skipToForm')}
-      title={t('title')}
-      description={t('description')}
-      footer={
-        <div className='flex w-full flex-wrap items-center justify-between gap-2'>
-          <Button asChild variant='link'>
-            <Link href='/register'>{t('register')}</Link>
-          </Button>
-          <Button type='submit' form='login-form'>
-            {t('submit')}
-          </Button>
-        </div>
-      }
+    <form
+      id={id ?? generatedId}
+      aria-label={t('title')}
+      tabIndex={-1}
+      onSubmit={form.handleSubmit(() => setSubmitted(true))}
+      onChange={() => setSubmitted(false)}
+      noValidate
     >
       {submitted && (
         <FeedbackAlert
@@ -46,37 +43,32 @@ export function LoginForm() {
           message={t('feedbackMessage')}
         />
       )}
-      <form
-        id='login-form'
-        tabIndex={-1}
-        onSubmit={form.handleSubmit(() => setSubmitted(true))}
-        onChange={() => setSubmitted(false)}
-        noValidate
-      >
-        <FieldGroup>
+      <FieldGroup>
+        <FormTextField
+          control={form.control}
+          name='email'
+          inputType='email'
+          autoComplete='email'
+          label={t('email')}
+          placeholder={t('emailPlaceholder')}
+        />
+        <div>
           <FormTextField
             control={form.control}
-            name='email'
-            inputType='email'
-            autoComplete='email'
-            label={t('email')}
-            placeholder={t('emailPlaceholder')}
+            name='password'
+            inputType='password'
+            autoComplete='current-password'
+            label={t('password')}
+            placeholder={t('passwordPlaceholder')}
           />
-          <div>
-            <FormTextField
-              control={form.control}
-              name='password'
-              inputType='password'
-              autoComplete='current-password'
-              label={t('password')}
-              placeholder={t('passwordPlaceholder')}
-            />
-            <Button asChild variant='link' className='mt-2 px-0'>
-              <Link href='/forgot-password'>{t('forgotPassword')}</Link>
-            </Button>
-          </div>
-        </FieldGroup>
-      </form>
-    </FormPageCard>
+          {passwordHelp}
+        </div>
+        <div className='flex justify-end'>
+          <Button type='submit' disabled={form.formState.isSubmitting}>
+            {t('submit')}
+          </Button>
+        </div>
+      </FieldGroup>
+    </form>
   );
 }

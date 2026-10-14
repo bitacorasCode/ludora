@@ -14,6 +14,7 @@ import esMessages from '@/messages/es.json';
 
 import { registerUser } from '../actions';
 import { RegisterForm } from './register-form';
+import { RegisterPageContent } from './register-page-content';
 
 vi.mock('../actions', () => ({ registerUser: vi.fn() }));
 vi.mock('@/i18n/navigation', () => ({ Link: 'a' }));
@@ -62,7 +63,7 @@ describe('RegisterForm integration', () => {
   it('renders a skip link to the form', () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <RegisterForm />
+        <RegisterPageContent />
       </NextIntlClientProvider>,
     );
 

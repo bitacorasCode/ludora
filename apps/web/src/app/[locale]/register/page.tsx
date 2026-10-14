@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
-import { RegisterForm } from '@/features';
+import { RegisterPageContent } from '@/features';
 
 export async function generateMetadata({
   params,
@@ -10,11 +10,11 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: 'Register' });
 
   return {
-    title: `${t('title')} | Ludora`,
+    title: t('title'),
     description: t('metadataDescription'),
   };
 }
 
 export default function RegisterPage() {
-  return <RegisterForm />;
+  return <RegisterPageContent />;
 }
