@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
-import { previewProfile, ProfilePageContent } from '@/features/profile';
+import { ProfilePageContent } from '@/features/profile';
 
 export async function generateMetadata({
   params,
@@ -16,5 +16,5 @@ export async function generateMetadata({
 }
 
 export default function AccountProfilePage() {
-  return <ProfilePageContent profile={previewProfile} />;
+  return <ProfilePageContent />;
 }

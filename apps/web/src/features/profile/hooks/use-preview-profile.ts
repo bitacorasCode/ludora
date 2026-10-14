@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 
-import type { Profile } from '../config';
+import { previewProfile } from '../config';
 import {
     getServerProfileSnapshot,
     getStoredProfile,
@@ -11,7 +11,7 @@ import {
     subscribeToProfile,
 } from '../storage';
 
-export function usePreviewProfile(initialProfile: Profile) {
+export function usePreviewProfile() {
     const storedProfile = useSyncExternalStore(
         subscribeToProfile,
         getStoredProfile,
@@ -22,7 +22,7 @@ export function usePreviewProfile(initialProfile: Profile) {
     }
 
     const preferences = readPreferences(storedProfile);
-    const profile = preferences ? { ...initialProfile, ...preferences } : initialProfile;
+    const profile = preferences ? { ...previewProfile, ...preferences } : previewProfile;
 
     return { profile, saveProfile: savePreferences };
 }

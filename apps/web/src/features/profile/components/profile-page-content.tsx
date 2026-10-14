@@ -5,21 +5,14 @@ import { useState } from 'react';
 
 import { PageHeading } from '@/components/typography';
 
-import type { Profile } from '../config';
 import { usePreviewProfile } from '../hooks/use-preview-profile';
 import type { ProfilePreferences } from '../schema';
 import { ProfileEditor } from './profile-editor';
 import { ProfileIdentity } from './profile-identity';
 
-type ProfilePageContentProps = {
-  profile: Profile;
-};
-
-export function ProfilePageContent({
-  profile: initialProfile,
-}: ProfilePageContentProps) {
+export function ProfilePageContent() {
   const t = useTranslations('Profile');
-  const { profile, saveProfile } = usePreviewProfile(initialProfile);
+  const { profile, saveProfile } = usePreviewProfile();
   const [isEditing, setIsEditing] = useState(false);
   const [wasSaved, setWasSaved] = useState(false);
 
