@@ -6,7 +6,7 @@ export function PageTitle({ className, ...props }: ComponentProps<'h1'>) {
   return (
     <h1
       className={cn(
-        'text-4xl font-semibold tracking-tight sm:text-6xl',
+        'font-heading text-4xl font-semibold tracking-tight text-balance sm:text-6xl',
         className,
       )}
       {...props}
@@ -17,7 +17,7 @@ export function PageTitle({ className, ...props }: ComponentProps<'h1'>) {
 export function SectionTitle({ className, ...props }: ComponentProps<'h2'>) {
   return (
     <h2
-      className={cn('text-2xl font-semibold tracking-tight', className)}
+      className={cn('font-heading text-2xl font-semibold tracking-tight sm:text-3xl', className)}
       {...props}
     />
   );
@@ -26,7 +26,7 @@ export function SectionTitle({ className, ...props }: ComponentProps<'h2'>) {
 export function SubsectionTitle({ className, ...props }: ComponentProps<'h3'>) {
   return (
     <h3
-      className={cn('text-lg font-semibold tracking-tight', className)}
+      className={cn('font-heading text-lg font-semibold tracking-tight', className)}
       {...props}
     />
   );
@@ -45,7 +45,7 @@ export function Eyebrow({ className, ...props }: ComponentProps<'p'>) {
   return (
     <p
       className={cn(
-        'text-sm font-medium uppercase tracking-[0.18em] text-primary',
+        'inline-flex items-center gap-2 font-heading text-sm font-semibold uppercase tracking-[0.16em] text-primary before:size-2 before:shrink-0 before:rounded-sm before:bg-highlight',
         className,
       )}
       {...props}

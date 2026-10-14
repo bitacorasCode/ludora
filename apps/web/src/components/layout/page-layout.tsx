@@ -6,7 +6,7 @@ export function PageContainer({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       className={cn(
-        'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 mt-4',
+        'mx-auto mt-8 w-full max-w-6xl px-4 sm:mt-10 sm:px-6 lg:px-8',
         className,
       )}
       {...props}

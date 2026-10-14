@@ -14,7 +14,10 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-const notoSans = Noto_Sans({ subsets: ['latin'], variable: '--font-sans' });
+const notoSans = Noto_Sans({
+  subsets: ['latin'],
+  variable: '--font-noto-sans',
+});
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

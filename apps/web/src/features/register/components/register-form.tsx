@@ -20,7 +20,7 @@ export function RegisterForm() {
   const t = useTranslations('Register');
 
   return (
-    <div className='mx-auto md:w-1/2 w-full px-4 py-6 sm:px-6 lg:px-8'>
+    <div className='mx-auto w-full max-w-xl px-4 py-10 sm:px-6 sm:py-16'>
       <a
         href='#register-form'
         className='sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg'

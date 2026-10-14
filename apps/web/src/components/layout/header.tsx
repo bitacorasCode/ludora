@@ -17,7 +17,7 @@ export function Header() {
   const t = useTranslations('Header');
 
   return (
-    <header className='sticky top-0 z-40 border-b bg-background/90 backdrop-blur'>
+    <header className='sticky top-0 z-40 border-b bg-card/90 backdrop-blur'>
       <nav
         aria-label={t('mainNavigation')}
         className='mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8'
@@ -36,7 +36,7 @@ export function Header() {
 
         <div className='hidden items-center gap-6 md:flex'>
           {links.map((link) => (
-            <Button asChild key={link.href} variant='link' size='sm'>
+            <Button asChild key={link.href} variant='ghost' size='sm'>
               <Link href={link.href}>{t(link.label)}</Link>
             </Button>
           ))}
@@ -57,7 +57,7 @@ export function Header() {
           {links.map((link) => (
             <SideMenuClose asChild key={link.href}>
               <div>
-                <Button asChild variant='link' size='sm'>
+                <Button asChild variant='ghost' size='sm'>
                   <Link href={link.href}>{t(link.label)}</Link>
                 </Button>
               </div>

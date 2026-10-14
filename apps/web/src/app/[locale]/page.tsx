@@ -52,7 +52,7 @@ export default function Home() {
           title='Ranking'
           titleId='ranking-title'
         />
-        <Card variant='hero'>
+        <Card>
           <CardHeader>
             <BodyText>{t('rankingDescription')}</BodyText>
           </CardHeader>

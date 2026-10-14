@@ -3,14 +3,14 @@ import { cn } from 'cn';
 import * as React from 'react';
 
 const cardVariants = cva(
-  'group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-4xl border border-border bg-card py-(--card-spacing) text-sm text-card-foreground [--card-spacing:--spacing(6)] data-[size=sm]:[--card-spacing:--spacing(4)] has-[>img:first-child]:pt-0 *:[img:first-child]:rounded-t-4xl *:[img:last-child]:rounded-b-4xl',
+  'group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-2xl border border-border bg-card py-(--card-spacing) text-sm text-card-foreground [--card-spacing:--spacing(6)] data-[size=sm]:[--card-spacing:--spacing(4)] has-[>img:first-child]:pt-0 *:[img:first-child]:rounded-t-2xl *:[img:last-child]:rounded-b-2xl',
   {
     variants: {
       variant: {
-        default: 'shadow-md ring-1 ring-foreground/5 dark:ring-foreground/10',
-        hero: '[--card-spacing:--spacing(8)] shadow-sm ring-1 ring-foreground/5 dark:ring-foreground/10 sm:[--card-spacing:--spacing(12)]',
+        default: 'shadow-sm',
+        hero: 'border-primary/20 bg-primary-soft shadow-sm [--card-spacing:--spacing(8)] sm:[--card-spacing:--spacing(12)]',
         empty:
-          '[--card-spacing:--spacing(8)] border-dashed bg-transparent shadow-none ring-0',
+          '[--card-spacing:--spacing(8)] border-dashed border-primary/35 bg-card/55 shadow-none',
       },
     },
     defaultVariants: {
@@ -46,7 +46,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot='card-header'
       className={cn(
-        'group/card-header @container/card-header grid auto-rows-min items-start gap-1.5 rounded-t-4xl px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)',
+        'group/card-header @container/card-header grid auto-rows-min items-start gap-1.5 rounded-t-2xl px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)',
         className,
       )}
       {...props}
@@ -58,7 +58,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot='card-title'
-      className={cn('font-heading text-base font-medium', className)}
+      className={cn('font-heading text-xl font-semibold tracking-tight', className)}
       {...props}
     />
   );
@@ -102,7 +102,7 @@ function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot='card-footer'
       className={cn(
-        'flex items-center rounded-b-4xl px-(--card-spacing) [.border-t]:pt-(--card-spacing)',
+        'flex items-center rounded-b-2xl px-(--card-spacing) [.border-t]:pt-(--card-spacing)',
         className,
       )}
       {...props}
