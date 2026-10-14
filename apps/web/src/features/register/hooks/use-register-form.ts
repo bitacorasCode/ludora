@@ -6,8 +6,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import {
-    createUserRegistrationSchema,
-    type UserRegistrationFormData,
+    createRegisterSchema,
+    type RegisterFormData,
 } from '@/lib/schemas';
 
 import { registerUser } from '../actions';
@@ -25,9 +25,9 @@ export default function useRegisterForm() {
 
     const locale = useLocale();
     const t = useTranslations('Register.validation');
-    const tFeedback = useTranslations('Register.feedback'); const schema = createUserRegistrationSchema((key) => t(key));
+    const tFeedback = useTranslations('Register.feedback'); const schema = createRegisterSchema((key) => t(key));
 
-    const form = useForm<UserRegistrationFormData>({
+    const form = useForm<RegisterFormData>({
         mode: 'onTouched',
         reValidateMode: 'onChange',
         resolver: zodResolver(schema),
@@ -36,7 +36,7 @@ export default function useRegisterForm() {
         },
     });
 
-    async function onSubmit(data: UserRegistrationFormData) {
+    async function onSubmit(data: RegisterFormData) {
         setSubmissionFeedback(null);
 
         try {

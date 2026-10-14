@@ -9,6 +9,7 @@
     },
     "Header": {
         "games": "Games",
+        "login": "Sign in",
         "register": "Register",
         "ranking": "Ranking",
         "exploreCatalog": "Explore catalog",
@@ -43,8 +44,10 @@
     },
     "Register": {
         "title": "Register",
+        "metadataDescription": "Explore the Ludora registration form. Account creation will be available soon.",
         "skipToForm": "Skip to form",
         "accountData": "Account details",
+        "signIn": "I already have an account",
         "fields": {
             "nickname": {
                 "label": "Username",
@@ -78,6 +81,55 @@
             "emailInvalid": "Enter a valid email address.",
             "passwordMin": "The password must be at least 8 characters long.",
             "confirmPasswordRequired": "Repeat your password.",
+            "passwordMismatch": "The passwords do not match."
+        }
+    },
+    "Login": {
+        "title": "Sign in",
+        "description": "Access your Ludora account when sign in becomes available.",
+        "skipToForm": "Skip to sign in form",
+        "email": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "password": "Password",
+        "passwordPlaceholder": "Enter your password",
+        "submit": "Sign in",
+        "forgotPassword": "Forgot your password?",
+        "register": "Create an account",
+        "feedbackTitle": "Sign in is not available yet",
+        "feedbackMessage": "The details are valid, but sign in is not available yet. Your credentials were not sent or saved.",
+        "validation": {
+            "emailInvalid": "Enter a valid email address.",
+            "passwordRequired": "Enter your password."
+        }
+    },
+    "PasswordRecovery": {
+        "skipToForm": "Skip to recovery form",
+        "email": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "password": "New password",
+        "passwordPlaceholder": "Create a new password",
+        "confirmPassword": "Confirm new password",
+        "confirmPasswordPlaceholder": "Repeat your new password",
+        "backToLogin": "Back to sign in",
+        "request": {
+            "title": "Recover your password",
+            "description": "Enter your email to preview how account recovery will work.",
+            "submit": "Continue",
+            "feedbackTitle": "Recovery is not available yet",
+            "feedbackMessage": "The email is valid, but recovery messages are not available yet. No email was sent.",
+            "previewReset": "View new password screen"
+        },
+        "reset": {
+            "title": "Create a new password",
+            "description": "Preview of the last recovery step. There is no recovery link or associated account yet.",
+            "submit": "Change password",
+            "feedbackTitle": "Password changes are not available yet",
+            "feedbackMessage": "The passwords match, but no password was changed. This screen is a preview."
+        },
+        "validation": {
+            "emailInvalid": "Enter a valid email address.",
+            "passwordMin": "The password must be at least 8 characters long.",
+            "confirmPasswordRequired": "Repeat your new password.",
             "passwordMismatch": "The passwords do not match."
         }
     }

@@ -10,6 +10,7 @@ import { ThemeSwitch } from '../theme/theme-switch';
 const links = [
   { href: '/#catalog', label: 'games' },
   { href: '/#ranking', label: 'ranking' },
+  { href: '/login', label: 'login' },
   { href: '/register', label: 'register' },
 ] as const;
 
@@ -34,7 +35,7 @@ export function Header() {
           </Link>
         </Button>
 
-        <div className='hidden items-center gap-6 md:flex'>
+        <div className='hidden items-center gap-6 lg:flex'>
           {links.map((link) => (
             <Button asChild key={link.href} variant='ghost' size='sm'>
               <Link href={link.href}>{t(link.label)}</Link>
@@ -46,7 +47,7 @@ export function Header() {
 
         <SideMenu
           trigger={
-            <Button variant='outline' size='sm' className='md:hidden'>
+            <Button variant='outline' size='sm' className='lg:hidden'>
               {t('menu')}
             </Button>
           }

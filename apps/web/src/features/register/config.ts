@@ -1,9 +1,9 @@
 import type { DefaultValues } from 'react-hook-form';
 
-import type { UserRegistrationFormData } from '@/lib/schemas';
+import type { RegisterFormData } from '@/lib/schemas';
 
 type RegisterField = {
-    name: keyof UserRegistrationFormData;
+    name: keyof RegisterFormData;
     inputType: 'text' | 'email' | 'password';
     autoComplete: string;
     defaultValue: string;
@@ -38,4 +38,4 @@ export const userFields = [
 
 export const userDefaultValues = Object.fromEntries(
     userFields.map(({ name, defaultValue }) => [name, defaultValue]),
-) as DefaultValues<UserRegistrationFormData>;
+) as DefaultValues<RegisterFormData>;

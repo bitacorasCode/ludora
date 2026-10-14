@@ -3,6 +3,7 @@ export {
     FormDateField,
     FormFileField,
     FormNumberField,
+    FormPageCard,
     FormSelectField,
     FormTextField,
 } from './forms';

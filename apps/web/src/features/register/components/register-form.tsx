@@ -3,13 +3,9 @@
 import { useTranslations } from 'next-intl';
 
 import { FeedbackAlert } from '@/components/feedback';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui';
+import { FormPageCard } from '@/components/forms';
+import { Button } from '@/components/ui';
+import { Link } from '@/i18n/navigation';
 
 import useRegisterForm from '../hooks/use-register-form';
 import RegisterFormActions from './register-form-actions';
@@ -20,44 +16,37 @@ export function RegisterForm() {
   const t = useTranslations('Register');
 
   return (
-    <div className='mx-auto w-full max-w-xl px-4 py-10 sm:px-6 sm:py-16'>
-      <a
-        href='#register-form'
-        className='sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg'
-      >
-        {t('skipToForm')}
-      </a>
-
-      <Card className='w-full'>
-        <CardHeader>
-          <CardTitle>
-            <h1>{t('title')}</h1>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {submissionFeedback && (
-            <FeedbackAlert
-              status={submissionFeedback.status}
-              title={submissionFeedback.title}
-              message={submissionFeedback.message}
-            />
-          )}
-          <form
-            id='register-form'
-            tabIndex={-1}
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-          >
-            <fieldset disabled={form.formState.isSubmitting}>
-              <legend className='sr-only'>{t('accountData')}</legend>
-              <RegisterFormData control={form.control} />
-            </fieldset>
-          </form>
-        </CardContent>
-        <CardFooter className='pt-0'>
+    <FormPageCard
+      formId='register-form'
+      skipToForm={t('skipToForm')}
+      title={t('title')}
+      footer={
+        <>
+          <Button asChild variant='link'>
+            <Link href='/login'>{t('signIn')}</Link>
+          </Button>
           <RegisterFormActions isSubmitting={form.formState.isSubmitting} />
-        </CardFooter>
-      </Card>
-    </div>
+        </>
+      }
+    >
+      {submissionFeedback && (
+        <FeedbackAlert
+          status={submissionFeedback.status}
+          title={submissionFeedback.title}
+          message={submissionFeedback.message}
+        />
+      )}
+      <form
+        id='register-form'
+        tabIndex={-1}
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+      >
+        <fieldset disabled={form.formState.isSubmitting}>
+          <legend className='sr-only'>{t('accountData')}</legend>
+          <RegisterFormData control={form.control} />
+        </fieldset>
+      </form>
+    </FormPageCard>
   );
 }

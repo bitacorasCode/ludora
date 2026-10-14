@@ -5,8 +5,8 @@ import { getTranslations } from 'next-intl/server';
 
 import { routing } from '@/i18n/routing';
 import {
-    createUserRegistrationSchema,
-    type UserRegistrationFormData,
+    createRegisterSchema,
+    type RegisterFormData,
 } from '@/lib/schemas';
 
 export type RegisterResult =
@@ -15,7 +15,7 @@ export type RegisterResult =
 
 export async function registerUser(
     locale: string,
-    formData: UserRegistrationFormData,
+    formData: RegisterFormData,
 ): Promise<RegisterResult> {
     const validLocale = hasLocale(routing.locales, locale)
         ? locale
@@ -26,7 +26,7 @@ export async function registerUser(
         namespace: 'Register.validation',
     });
 
-    const schema = createUserRegistrationSchema((key) => t(key));
+    const schema = createRegisterSchema((key) => t(key));
     const result = schema.safeParse(formData);
 
     if (!result.success) {

@@ -4,7 +4,7 @@ import esMessages from '@/messages/es.json';
 
 type ValidationKey = keyof typeof esMessages.Register.validation;
 
-export function createUserRegistrationSchema(
+export function createRegisterSchema(
     t: (key: ValidationKey) => string,
 ) {
     return z.object({
@@ -22,6 +22,6 @@ export function createUserRegistrationSchema(
     );
 }
 
-export type UserRegistrationFormData = z.infer<
-    ReturnType<typeof createUserRegistrationSchema>
+export type RegisterFormData = z.infer<
+    ReturnType<typeof createRegisterSchema>
 >;

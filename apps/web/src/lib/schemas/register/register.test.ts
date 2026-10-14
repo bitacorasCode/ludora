@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import esMessages from '@/messages/es.json';
 
-import { createUserRegistrationSchema } from "./user-registration";
+import { createRegisterSchema } from "./register";
 
-const userRegistrationSchema = createUserRegistrationSchema(
+const registerSchema = createRegisterSchema(
     (key) => esMessages.Register.validation[key],
 );
 
@@ -15,14 +15,14 @@ const validData = {
     confirmPassword: "contraseña123",
 };
 
-describe("userRegistrationSchema", () => {
+describe("registerSchema", () => {
     it("accepts with all valid fields", () => {
-        const result = userRegistrationSchema.safeParse(validData);
+        const result = registerSchema.safeParse(validData);
         expect(result.success).toBe(true);
     });
 
     it("rejects with a short nickname field", () => {
-        const result = userRegistrationSchema.safeParse({
+        const result = registerSchema.safeParse({
             ...validData,
             nickname: "A",
         });
@@ -31,7 +31,7 @@ describe("userRegistrationSchema", () => {
     });
 
     it("rejects with an invalid email", () => {
-        const result = userRegistrationSchema.safeParse({
+        const result = registerSchema.safeParse({
             ...validData,
             email: "not-an-email",
         });
@@ -40,7 +40,7 @@ describe("userRegistrationSchema", () => {
     });
 
     it("rejects with a short password", () => {
-        const result = userRegistrationSchema.safeParse({
+        const result = registerSchema.safeParse({
             ...validData,
             password: "short",
         });

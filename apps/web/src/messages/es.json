@@ -9,6 +9,7 @@
     },
     "Header": {
         "games": "Juegos",
+        "login": "Iniciar sesión",
         "register": "Registro",
         "ranking": "Ranking",
         "exploreCatalog": "Explorar catálogo",
@@ -43,8 +44,10 @@
     },
     "Register": {
         "title": "Registro",
+        "metadataDescription": "Conoce el formulario de registro de Ludora. La creación de cuentas estará disponible próximamente.",
         "skipToForm": "Saltar al formulario",
         "accountData": "Datos de la cuenta",
+        "signIn": "Ya tengo una cuenta",
         "fields": {
             "nickname": {
                 "label": "Nombre de usuario",
@@ -78,6 +81,55 @@
             "emailInvalid": "Introduce un correo electrónico válido.",
             "passwordMin": "La contraseña debe tener al menos 8 caracteres.",
             "confirmPasswordRequired": "Repite la contraseña.",
+            "passwordMismatch": "Las contraseñas no coinciden."
+        }
+    },
+    "Login": {
+        "title": "Iniciar sesión",
+        "description": "Accede a tu cuenta de Ludora cuando el inicio de sesión esté disponible.",
+        "skipToForm": "Saltar al formulario de acceso",
+        "email": "Correo electrónico",
+        "emailPlaceholder": "tu@ejemplo.com",
+        "password": "Contraseña",
+        "passwordPlaceholder": "Introduce tu contraseña",
+        "submit": "Iniciar sesión",
+        "forgotPassword": "¿Olvidaste tu contraseña?",
+        "register": "Crear una cuenta",
+        "feedbackTitle": "Inicio de sesión aún no disponible",
+        "feedbackMessage": "Los datos son válidos, pero aún no es posible iniciar sesión. No se han enviado ni guardado tus credenciales.",
+        "validation": {
+            "emailInvalid": "Introduce un correo electrónico válido.",
+            "passwordRequired": "Introduce tu contraseña."
+        }
+    },
+    "PasswordRecovery": {
+        "skipToForm": "Saltar al formulario de recuperación",
+        "email": "Correo electrónico",
+        "emailPlaceholder": "tu@ejemplo.com",
+        "password": "Contraseña nueva",
+        "passwordPlaceholder": "Crea una contraseña nueva",
+        "confirmPassword": "Confirmar contraseña nueva",
+        "confirmPasswordPlaceholder": "Repite la contraseña nueva",
+        "backToLogin": "Volver a iniciar sesión",
+        "request": {
+            "title": "Recuperar contraseña",
+            "description": "Escribe tu correo para ver cómo funcionará la recuperación de tu cuenta.",
+            "submit": "Continuar",
+            "feedbackTitle": "Recuperación aún no disponible",
+            "feedbackMessage": "El correo es válido, pero todavía no enviamos mensajes de recuperación. No se ha enviado ningún correo.",
+            "previewReset": "Ver pantalla de nueva contraseña"
+        },
+        "reset": {
+            "title": "Crear una contraseña nueva",
+            "description": "Vista previa del último paso de recuperación. Todavía no hay un enlace de recuperación ni una cuenta asociada.",
+            "submit": "Cambiar contraseña",
+            "feedbackTitle": "Cambio de contraseña aún no disponible",
+            "feedbackMessage": "Las contraseñas coinciden, pero no se ha cambiado ninguna contraseña. Esta pantalla es una vista previa."
+        },
+        "validation": {
+            "emailInvalid": "Introduce un correo electrónico válido.",
+            "passwordMin": "La contraseña debe tener al menos 8 caracteres.",
+            "confirmPasswordRequired": "Repite la contraseña nueva.",
             "passwordMismatch": "Las contraseñas no coinciden."
         }
     }

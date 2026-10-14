@@ -5,3 +5,4 @@ export {
   FormSelectField,
   FormTextField,
 } from './fields';
+export { FormPageCard } from './form-page-card';

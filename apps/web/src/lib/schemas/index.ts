@@ -1,2 +1,10 @@
-export type { UserRegistrationFormData } from './user-registration/user-registration';
-export { createUserRegistrationSchema } from './user-registration/user-registration';
+export {
+    createLoginSchema,
+    createPasswordResetSchema,
+    createRecoveryRequestSchema,
+    type LoginFormData,
+    type PasswordResetFormData,
+    type RecoveryRequestFormData,
+} from './auth/auth';
+export type { RegisterFormData } from './register/register';
+export { createRegisterSchema } from './register/register';

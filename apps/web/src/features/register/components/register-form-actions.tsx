@@ -16,7 +16,7 @@ export default function RegisterFormActions({
   const t = useTranslations('Register');
 
   return (
-    <Field orientation='horizontal' className='flex w-full justify-end'>
+    <Field orientation='horizontal' className='ml-auto flex w-auto justify-end'>
       <Button disabled={isSubmitting} type='submit' form={formId}>
         {isSubmitting && <Spinner />}
         {isSubmitting ? t('actions.submitting') : t('actions.submit')}

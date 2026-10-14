@@ -5,12 +5,12 @@ import type { Control } from 'react-hook-form';
 
 import { FormTextField } from '@/components/forms';
 import { CardDescription, FieldGroup } from '@/components/ui';
-import type { UserRegistrationFormData } from '@/lib/schemas';
+import type { RegisterFormData } from '@/lib/schemas';
 
 import { userFields } from '../config';
 
 type RegisterFormDataProps = {
-  control: Control<UserRegistrationFormData>;
+  control: Control<RegisterFormData>;
 };
 
 export default function RegisterFormData({ control }: RegisterFormDataProps) {
