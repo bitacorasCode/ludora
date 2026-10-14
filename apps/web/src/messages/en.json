@@ -10,7 +10,8 @@
     "Header": {
         "games": "Games",
         "login": "Sign in",
-        "profile": "Profile",
+        "account": "My account",
+        "preferences": "Preferences",
         "register": "Register",
         "ranking": "Ranking",
         "exploreCatalog": "Explore catalog",
@@ -41,6 +42,21 @@
         "emptyTitle": "No rankings yet",
         "emptyDescription": "No matches have been recorded yet. Come back when the community starts playing.",
         "backHome": "Back to home"
+    },
+    "Account": {
+        "title": "My account",
+        "navigationLabel": "Account sections",
+        "profile": "Profile",
+        "preferences": "Preferences"
+    },
+    "Preferences": {
+        "eyebrow": "Ludora your way",
+        "title": "Preferences",
+        "description": "Choose how you want to view and use Ludora. Changes apply automatically and are remembered in this browser.",
+        "appearanceTitle": "Appearance",
+        "appearanceDescription": "Turn dark mode on or off.",
+        "languageTitle": "Platform language",
+        "languageDescription": "Choose the language for text and navigation."
     },
     "Profile": {
         "eyebrow": "Your account",

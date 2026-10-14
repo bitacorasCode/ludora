@@ -3,7 +3,6 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-import { PageContainer, PageSection } from '@/components/layout';
 import { PageHeading } from '@/components/typography';
 
 import type { Profile } from '../config';
@@ -31,33 +30,31 @@ export function ProfilePageContent({
   }
 
   return (
-    <PageContainer>
-      <PageSection aria-label={t('title')}>
-        <PageHeading
-          eyebrow={t('eyebrow')}
-          title={t('title')}
-          description={t('description')}
-        />
+    <>
+      <PageHeading
+        eyebrow={t('eyebrow')}
+        title={t('title')}
+        description={t('description')}
+      />
 
-        <ProfileIdentity
+      <ProfileIdentity
+        profile={profile}
+        isEditing={isEditing}
+        onEdit={() => {
+          setWasSaved(false);
+          setIsEditing(true);
+        }}
+      />
+
+      {isEditing && profile && (
+        <ProfileEditor
           profile={profile}
-          isEditing={isEditing}
-          onEdit={() => {
-            setWasSaved(false);
-            setIsEditing(true);
-          }}
+          onSave={handleSave}
+          onCancel={() => setIsEditing(false)}
         />
+      )}
 
-        {isEditing && profile && (
-          <ProfileEditor
-            profile={profile}
-            onSave={handleSave}
-            onCancel={() => setIsEditing(false)}
-          />
-        )}
-
-        {wasSaved && <p role='status'>{t('saved')}</p>}
-      </PageSection>
-    </PageContainer>
+      {wasSaved && <p role='status'>{t('saved')}</p>}
+    </>
   );
 }

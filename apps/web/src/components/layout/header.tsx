@@ -4,13 +4,12 @@ import { Button } from '@/components/ui';
 import { isLoggedIn } from '@/config/auth';
 import { Link } from '@/i18n/navigation';
 
-import { LocaleSwitcher } from '../language/locale-switcher';
 import { SideMenu, SideMenuClose } from '../overlays/side-menu';
-import { ThemeSwitch } from '../theme/theme-switch';
 
 const accountLinks = isLoggedIn
-  ? ([{ href: '/profile', label: 'profile' }] as const)
+  ? ([{ href: '/account/profile', label: 'account' }] as const)
   : ([
+      { href: '/preferences', label: 'preferences' },
       { href: '/login', label: 'login' },
       { href: '/register', label: 'register' },
     ] as const);
@@ -48,8 +47,6 @@ export function Header() {
               <Link href={link.href}>{t(link.label)}</Link>
             </Button>
           ))}
-          <ThemeSwitch />
-          <LocaleSwitcher />
         </div>
 
         <SideMenu
@@ -71,8 +68,6 @@ export function Header() {
               </div>
             </SideMenuClose>
           ))}
-          <ThemeSwitch showLabel />
-          <LocaleSwitcher />
         </SideMenu>
       </nav>
     </header>

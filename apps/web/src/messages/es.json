@@ -10,7 +10,8 @@
     "Header": {
         "games": "Juegos",
         "login": "Iniciar sesión",
-        "profile": "Perfil",
+        "account": "Mi cuenta",
+        "preferences": "Preferencias",
         "register": "Registro",
         "ranking": "Ranking",
         "exploreCatalog": "Explorar catálogo",
@@ -41,6 +42,21 @@
         "emptyTitle": "Aún no hay clasificaciones",
         "emptyDescription": "Todavía no se han registrado partidas. Vuelve cuando la comunidad empiece a jugar.",
         "backHome": "Volver al inicio"
+    },
+    "Account": {
+        "title": "Mi cuenta",
+        "navigationLabel": "Secciones de mi cuenta",
+        "profile": "Perfil",
+        "preferences": "Preferencias"
+    },
+    "Preferences": {
+        "eyebrow": "Ludora a tu manera",
+        "title": "Preferencias",
+        "description": "Elige cómo quieres ver y usar Ludora. Los cambios se aplican automáticamente y se recuerdan en este navegador.",
+        "appearanceTitle": "Apariencia",
+        "appearanceDescription": "Activa o desactiva el modo oscuro.",
+        "languageTitle": "Idioma de la plataforma",
+        "languageDescription": "Elige el idioma de los textos y de la navegación."
     },
     "Profile": {
         "eyebrow": "Tu cuenta",
