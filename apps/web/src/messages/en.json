@@ -10,6 +10,7 @@
     "Header": {
         "games": "Games",
         "login": "Sign in",
+        "profile": "Profile",
         "register": "Register",
         "ranking": "Ranking",
         "exploreCatalog": "Explore catalog",
@@ -40,6 +41,12 @@
         "emptyTitle": "No rankings yet",
         "emptyDescription": "No matches have been recorded yet. Come back when the community starts playing.",
         "backHome": "Back to home"
+    },
+    "Profile": {
+        "eyebrow": "Your account",
+        "title": "My profile",
+        "description": "Your identity on Ludora.",
+        "emptyBio": "You haven't added a biography yet."
     },
     "Metadata": {
         "title": "Ludora - The platform for your games",

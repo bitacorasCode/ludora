@@ -1,17 +1,24 @@
 import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui';
+import { isLoggedIn } from '@/config/auth';
 import { Link } from '@/i18n/navigation';
 
 import { LocaleSwitcher } from '../language/locale-switcher';
 import { SideMenu, SideMenuClose } from '../overlays/side-menu';
 import { ThemeSwitch } from '../theme/theme-switch';
 
+const accountLinks = isLoggedIn
+  ? ([{ href: '/profile', label: 'profile' }] as const)
+  : ([
+      { href: '/login', label: 'login' },
+      { href: '/register', label: 'register' },
+    ] as const);
+
 const links = [
   { href: '/games', label: 'games' },
   { href: '/ranking', label: 'ranking' },
-  { href: '/login', label: 'login' },
-  { href: '/register', label: 'register' },
+  ...accountLinks,
 ] as const;
 
 export function Header() {

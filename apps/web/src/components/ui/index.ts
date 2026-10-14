@@ -1,4 +1,5 @@
 export { Alert, AlertAction, AlertDescription, AlertTitle } from './alert';
+export { Avatar, AvatarFallback, AvatarImage } from './avatar';
 export { Button, buttonVariants } from './button';
 export { Calendar, CalendarDayButton } from './calendar';
 export {

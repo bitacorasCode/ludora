@@ -10,6 +10,7 @@
     "Header": {
         "games": "Juegos",
         "login": "Iniciar sesión",
+        "profile": "Perfil",
         "register": "Registro",
         "ranking": "Ranking",
         "exploreCatalog": "Explorar catálogo",
@@ -40,6 +41,12 @@
         "emptyTitle": "Aún no hay clasificaciones",
         "emptyDescription": "Todavía no se han registrado partidas. Vuelve cuando la comunidad empiece a jugar.",
         "backHome": "Volver al inicio"
+    },
+    "Profile": {
+        "eyebrow": "Tu cuenta",
+        "title": "Mi perfil",
+        "description": "Tu identidad dentro de Ludora.",
+        "emptyBio": "Todavía no agregaste una biografía."
     },
     "Metadata": {
         "title": "Ludora - La plataforma para tus juegos",
