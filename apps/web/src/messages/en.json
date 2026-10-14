@@ -47,7 +47,19 @@
         "title": "My account",
         "navigationLabel": "Account sections",
         "profile": "Profile",
+        "settings": "Account",
         "preferences": "Preferences"
+    },
+    "UserSettings": {
+        "eyebrow": "Access and privacy",
+        "title": "Account",
+        "description": "View your private email address and Ludora access options.",
+        "emailTitle": "Email address",
+        "emailDescription": "Your email is private and is not shown on your visible profile.",
+        "previewEmail": "Example email address for this preview.",
+        "passwordTitle": "Password",
+        "changePassword": "Change password",
+        "passwordUnavailable": "This option will be available when you can sign in to your account."
     },
     "Preferences": {
         "eyebrow": "Ludora your way",

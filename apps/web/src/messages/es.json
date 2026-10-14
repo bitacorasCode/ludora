@@ -47,7 +47,19 @@
         "title": "Mi cuenta",
         "navigationLabel": "Secciones de mi cuenta",
         "profile": "Perfil",
+        "settings": "Cuenta",
         "preferences": "Preferencias"
+    },
+    "UserSettings": {
+        "eyebrow": "Acceso y privacidad",
+        "title": "Cuenta",
+        "description": "Consulta tu correo privado y las opciones de acceso a Ludora.",
+        "emailTitle": "Correo electrónico",
+        "emailDescription": "Tu correo es privado y no se muestra en el perfil visible.",
+        "previewEmail": "Correo de ejemplo para esta vista previa.",
+        "passwordTitle": "Contraseña",
+        "changePassword": "Cambiar contraseña",
+        "passwordUnavailable": "Esta opción estará disponible cuando puedas iniciar sesión en tu cuenta."
     },
     "Preferences": {
         "eyebrow": "Ludora a tu manera",

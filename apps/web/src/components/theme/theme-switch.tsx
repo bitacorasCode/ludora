@@ -6,7 +6,7 @@ import { useId, useSyncExternalStore } from 'react';
 
 import { Switch } from '@/components/ui';
 
-export function ThemeSwitch({ showLabel = false }: { showLabel?: boolean }) {
+export function ThemeSwitch() {
   const { resolvedTheme, setTheme } = useTheme();
   const t = useTranslations('ThemeSwitch');
   const id = useId();
@@ -34,7 +34,6 @@ export function ThemeSwitch({ showLabel = false }: { showLabel?: boolean }) {
         disabled={!mounted}
         onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
       />
-      {showLabel && <label htmlFor={id}>{t('label')}</label>}
     </div>
   );
 }
