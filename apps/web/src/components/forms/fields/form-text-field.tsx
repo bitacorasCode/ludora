@@ -1,8 +1,12 @@
 'use client';
 
-import { useId } from 'react';
+import { EyeIcon, EyeOffIcon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { useTranslations } from 'next-intl';
+import { useId, useState } from 'react';
 import { Controller, type FieldValues } from 'react-hook-form';
 
+import { Button } from '../../ui/button';
 import { Field, FieldError, FieldLabel } from '../../ui/field';
 import { Input } from '../../ui/input';
 import { BaseFormFieldProps } from './types';
@@ -21,8 +25,11 @@ export function FormTextField<T extends FieldValues>({
   inputType = 'text',
   autoComplete,
 }: Props<T>) {
+  const t = useTranslations('FormTextField');
   const id = useId();
   const errorId = `${id}-error`;
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const showVisibilityToggle = inputType === 'password';
 
   return (
     <Controller
@@ -32,15 +39,38 @@ export function FormTextField<T extends FieldValues>({
         <Field data-invalid={fieldState.invalid}>
           <FieldLabel htmlFor={id}>{label}</FieldLabel>
 
-          <Input
-            {...field}
-            id={id}
-            type={inputType}
-            autoComplete={autoComplete}
-            placeholder={placeholder}
-            aria-invalid={fieldState.invalid}
-            aria-describedby={fieldState.error ? errorId : undefined}
-          />
+          <div className='relative'>
+            <Input
+              {...field}
+              id={id}
+              type={
+                inputType === 'password' && passwordVisible ? 'text' : inputType
+              }
+              autoComplete={autoComplete}
+              placeholder={placeholder}
+              className={showVisibilityToggle ? 'pr-10' : undefined}
+              aria-invalid={fieldState.invalid}
+              aria-describedby={fieldState.error ? errorId : undefined}
+            />
+            {showVisibilityToggle && (
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon'
+                className='absolute inset-y-0 right-0 my-auto rounded-l-none'
+                aria-label={`${passwordVisible ? t('hide') : t('show')}: ${label}`}
+                aria-controls={id}
+                aria-pressed={passwordVisible}
+                onClick={() => setPasswordVisible((visible) => !visible)}
+              >
+                <HugeiconsIcon
+                  icon={passwordVisible ? EyeOffIcon : EyeIcon}
+                  strokeWidth={2}
+                  aria-hidden='true'
+                />
+              </Button>
+            )}
+          </div>
           {fieldState.error && (
             <FieldError id={errorId} errors={[fieldState.error]} />
           )}

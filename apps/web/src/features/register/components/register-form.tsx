@@ -49,10 +49,8 @@ export function RegisterForm() {
             noValidate
           >
             <fieldset disabled={form.formState.isSubmitting}>
-              <legend className='sr-only'>{t('personalData')}</legend>
-              <div className='grid gap-8 lg:grid-cols-2'>
-                <RegisterFormData control={form.control} />
-              </div>
+              <legend className='sr-only'>{t('accountData')}</legend>
+              <RegisterFormData control={form.control} />
             </fieldset>
           </form>
         </CardContent>

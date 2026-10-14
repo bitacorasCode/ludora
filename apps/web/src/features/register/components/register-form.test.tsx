@@ -61,14 +61,6 @@ describe('RegisterForm integration', () => {
       target: { value: 'A' },
     });
 
-    fireEvent.change(screen.getByPlaceholderText('Juan'), {
-      target: { value: 'Juan' },
-    });
-
-    fireEvent.change(screen.getByPlaceholderText('Pérez'), {
-      target: { value: 'Pérez' },
-    });
-
     fireEvent.change(screen.getByPlaceholderText('juan.perez@ejemplo.com'), {
       target: { value: 'correo-inválido' },
     });
@@ -87,7 +79,7 @@ describe('RegisterForm integration', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(esMessages.Register.validation.birthDateRequired),
+        screen.getByText(esMessages.Register.validation.confirmPasswordRequired),
       ).toBeTruthy();
     });
   });

@@ -37,26 +37,18 @@
     "ThemeSwitch": {
         "label": "Dark mode"
     },
+    "FormTextField": {
+        "show": "Show",
+        "hide": "Hide"
+    },
     "Register": {
         "title": "Register",
         "skipToForm": "Skip to form",
-        "personalData": "Personal information",
+        "accountData": "Account details",
         "fields": {
             "nickname": {
                 "label": "Username",
                 "placeholder": "player123"
-            },
-            "names": {
-                "label": "First name",
-                "placeholder": "Alex"
-            },
-            "lastNames": {
-                "label": "Last name",
-                "placeholder": "Smith"
-            },
-            "birthDate": {
-                "label": "Date of birth",
-                "placeholder": "Select a date"
             },
             "email": {
                 "label": "Email address",
@@ -65,6 +57,10 @@
             "password": {
                 "label": "Password",
                 "placeholder": "Create a password"
+            },
+            "confirmPassword": {
+                "label": "Confirm password",
+                "placeholder": "Repeat your password"
             }
         },
         "actions": {
@@ -79,11 +75,10 @@
         },
         "validation": {
             "nicknameMin": "The username must be at least 2 characters long.",
-            "namesMin": "The first name must be at least 2 characters long.",
-            "lastNamesMin": "The last name must be at least 2 characters long.",
-            "birthDateRequired": "Select a valid date of birth.",
             "emailInvalid": "Enter a valid email address.",
-            "passwordMin": "The password must be at least 8 characters long."
+            "passwordMin": "The password must be at least 8 characters long.",
+            "confirmPasswordRequired": "Repeat your password.",
+            "passwordMismatch": "The passwords do not match."
         }
     }
 }

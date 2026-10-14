@@ -9,12 +9,17 @@ export function createUserRegistrationSchema(
 ) {
     return z.object({
         nickname: z.string().min(2, t('nicknameMin')),
-        names: z.string().min(2, t('namesMin')),
-        lastNames: z.string().min(2, t('lastNamesMin')),
-        birthDate: z.date({ error: t('birthDateRequired') }),
         email: z.email(t('emailInvalid')),
         password: z.string().min(8, t('passwordMin')),
-    });
+        confirmPassword: z.string().min(1, t('confirmPasswordRequired')),
+    }).refine(
+        ({ password, confirmPassword }) =>
+            confirmPassword.length === 0 || password === confirmPassword,
+        {
+            path: ['confirmPassword'],
+            message: t('passwordMismatch'),
+        },
+    );
 }
 
 export type UserRegistrationFormData = z.infer<
