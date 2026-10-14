@@ -46,7 +46,25 @@
         "eyebrow": "Tu cuenta",
         "title": "Mi perfil",
         "description": "Tu identidad dentro de Ludora.",
-        "emptyBio": "Todavía no agregaste una biografía."
+        "emptyBio": "Todavía no agregaste una biografía.",
+        "edit": "Editar perfil",
+        "avatarLabel": "Elige un avatar",
+        "useInitial": "Usar mi inicial",
+        "avatars": {
+            "comet": "Cometa",
+            "planet": "Planeta",
+            "fox": "Zorro",
+            "castle": "Castillo",
+            "clover": "Trébol",
+            "die": "Dado"
+        },
+        "bioLabel": "Biografía",
+        "bioPlaceholder": "Cuéntanos algo sobre ti…",
+        "bioCounter": "{count}/{max} caracteres",
+        "save": "Guardar cambios",
+        "cancel": "Cancelar",
+        "saved": "Perfil actualizado en este navegador.",
+        "saveError": "No se pudieron guardar los cambios. Inténtalo de nuevo."
     },
     "Metadata": {
         "title": "Ludora - La plataforma para tus juegos",

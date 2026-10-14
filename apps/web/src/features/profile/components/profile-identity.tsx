@@ -1,51 +1,51 @@
 import { useTranslations } from 'next-intl';
 
-import { PageContainer, PageSection } from '@/components/layout';
-import { BodyText, PageHeading, SectionTitle } from '@/components/typography';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  Card,
-  CardContent,
-} from '@/components/ui';
+import { BodyText, SectionTitle } from '@/components/typography';
+import { Button, Card, CardContent } from '@/components/ui';
 
 import type { Profile } from '../config';
+import { ProfileAvatar } from './profile-avatar';
 
 type ProfileIdentityProps = {
   profile: Profile;
+  isEditing: boolean;
+  onEdit: () => void;
 };
 
-export function ProfileIdentity({ profile }: ProfileIdentityProps) {
+export function ProfileIdentity({
+  profile,
+  isEditing,
+  onEdit,
+}: ProfileIdentityProps) {
   const t = useTranslations('Profile');
-  const initial = profile.nickname.trim().charAt(0).toLocaleUpperCase() || '?';
 
   return (
-    <PageContainer>
-      <PageSection aria-label={t('title')}>
-        <PageHeading
-          eyebrow={t('eyebrow')}
-          title={t('title')}
-          description={t('description')}
+    <Card>
+      <CardContent className='flex flex-col items-start gap-5 sm:flex-row sm:items-center'>
+        <ProfileAvatar
+          nickname={profile.nickname}
+          avatarPresetId={profile.avatarPresetId}
+          size='lg'
         />
-
-        <Card>
-          <CardContent className='flex flex-col items-start gap-5 sm:flex-row sm:items-center'>
-            <Avatar size='lg' aria-hidden='true'>
-              {profile.avatarUrl && (
-                <AvatarImage src={profile.avatarUrl} alt='' />
-              )}
-              <AvatarFallback>{initial}</AvatarFallback>
-            </Avatar>
-            <div className='min-w-0 space-y-2'>
-              <SectionTitle className='break-words'>
-                {profile.nickname}
-              </SectionTitle>
-              <BodyText>{profile.bio?.trim() || t('emptyBio')}</BodyText>
-            </div>
-          </CardContent>
-        </Card>
-      </PageSection>
-    </PageContainer>
+        <div className='min-w-0 flex-1 space-y-2'>
+          <SectionTitle className='break-words'>
+            {profile.nickname}
+          </SectionTitle>
+          <BodyText className='whitespace-pre-wrap break-words'>
+            {profile.bio?.trim() || t('emptyBio')}
+          </BodyText>
+        </div>
+        {!isEditing && (
+          <Button
+            type='button'
+            variant='outline'
+            className='self-start sm:self-center'
+            onClick={onEdit}
+          >
+            {t('edit')}
+          </Button>
+        )}
+      </CardContent>
+    </Card>
   );
 }

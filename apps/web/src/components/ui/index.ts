@@ -59,3 +59,4 @@ export {
 } from './sheet';
 export { Spinner } from './spinner';
 export { Switch } from './switch';
+export { Textarea } from './textarea';
