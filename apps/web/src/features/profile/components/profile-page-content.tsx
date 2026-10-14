@@ -48,7 +48,7 @@ export function ProfilePageContent({
           }}
         />
 
-        {isEditing && (
+        {isEditing && profile && (
           <ProfileEditor
             profile={profile}
             onSave={handleSave}

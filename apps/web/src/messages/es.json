@@ -46,6 +46,7 @@
         "eyebrow": "Tu cuenta",
         "title": "Mi perfil",
         "description": "Tu identidad dentro de Ludora.",
+        "loading": "Cargando perfil",
         "emptyBio": "Todavía no agregaste una biografía.",
         "edit": "Editar perfil",
         "avatarLabel": "Elige un avatar",

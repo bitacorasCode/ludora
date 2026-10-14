@@ -57,6 +57,7 @@ export {
     SheetTitle,
     SheetTrigger,
 } from './sheet';
+export { Skeleton } from './skeleton';
 export { Spinner } from './spinner';
 export { Switch } from './switch';
 export { Textarea } from './textarea';

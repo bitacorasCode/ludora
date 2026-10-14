@@ -46,6 +46,7 @@
         "eyebrow": "Your account",
         "title": "My profile",
         "description": "Your identity on Ludora.",
+        "loading": "Loading profile",
         "emptyBio": "You haven't added a biography yet.",
         "edit": "Edit profile",
         "avatarLabel": "Choose an avatar",
