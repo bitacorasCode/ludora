@@ -47,4 +47,22 @@ describe("registerSchema", () => {
         expect(result.success).toBe(false);
         expect(result.error?.issues[0].message).toBe(esMessages.Register.validation.passwordMin);
     });
+
+    it("rejects when the password confirmation is empty", () => {
+        const result = registerSchema.safeParse({
+            ...validData,
+            confirmPassword: "",
+        });
+        expect(result.success).toBe(false);
+        expect(result.error?.issues[0].message).toBe(esMessages.Register.validation.confirmPasswordRequired);
+    });
+
+    it("rejects when the passwords do not match", () => {
+        const result = registerSchema.safeParse({
+            ...validData,
+            confirmPassword: "otraContraseña123",
+        });
+        expect(result.success).toBe(false);
+        expect(result.error?.issues[0].message).toBe(esMessages.Register.validation.passwordMismatch);
+    });
 });
