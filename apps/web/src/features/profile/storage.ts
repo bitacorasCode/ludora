@@ -1,4 +1,4 @@
-import { createLocalStorageStore } from '@/lib/storage/local-storage';
+import { createLocalStorageStore } from '@/lib/storage';
 
 import { type ProfilePreferences, profilePreferencesSchema } from './schema';
 

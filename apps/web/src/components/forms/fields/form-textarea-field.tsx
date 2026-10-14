@@ -3,8 +3,8 @@
 import { useId } from 'react';
 import { Controller, type FieldValues } from 'react-hook-form';
 
-import { Field, FieldError, FieldLabel } from '../../ui/field';
-import { Textarea } from '../../ui/textarea';
+import { Field, FieldError, FieldLabel, Textarea } from '@/components/ui';
+
 import type { BaseFormFieldProps } from './types';
 
 type Props<T extends FieldValues> = BaseFormFieldProps<T> & {

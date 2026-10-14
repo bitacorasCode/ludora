@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
-import { PreferencesPageContent } from '@/features';
+import { PreferencesPageContent } from '@/features/preferences';
 
 export async function generateMetadata({
   params,

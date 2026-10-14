@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 
 import { PageContainer, PageSection } from '@/components/layout';
 import { isLoggedIn } from '@/config/auth';
-import { PreferencesPageContent } from '@/features';
+import { PreferencesPageContent } from '@/features/preferences';
 import { redirect } from '@/i18n/navigation';
 
 export async function generateMetadata({

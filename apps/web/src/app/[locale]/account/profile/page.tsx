@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
-import { ProfilePageContent } from '@/features';
-import { previewProfile } from '@/features/profile/config';
+import { previewProfile, ProfilePageContent } from '@/features/profile';
 
 export async function generateMetadata({
   params,

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
-import { RegisterPageContent } from '@/features';
+import { RegisterPageContent } from '@/features/register';
 
 export async function generateMetadata({
   params,

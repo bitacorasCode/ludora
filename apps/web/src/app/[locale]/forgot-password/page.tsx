@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
-import { RecoveryRequestPageContent } from '@/features';
+import { RecoveryRequestPageContent } from '@/features/password-recovery';
 
 export async function generateMetadata({
   params,

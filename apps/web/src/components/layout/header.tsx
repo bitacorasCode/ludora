@@ -1,10 +1,9 @@
 import { useTranslations } from 'next-intl';
 
+import { SideMenu, SideMenuClose } from '@/components/overlays';
 import { Button } from '@/components/ui';
 import { isLoggedIn } from '@/config/auth';
 import { Link } from '@/i18n/navigation';
-
-import { SideMenu, SideMenuClose } from '../overlays/side-menu';
 
 const accountLinks = isLoggedIn
   ? ([{ href: '/account/profile', label: 'account' }] as const)

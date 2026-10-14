@@ -7,7 +7,7 @@ import { FormTextareaField } from '@/components/forms';
 import { Button, Card, CardContent } from '@/components/ui';
 
 import type { Profile } from '../config';
-import { useProfileForm } from '../hooks';
+import { useProfileForm } from '../hooks/use-profile-form';
 import { BIO_MAX_LENGTH, type ProfilePreferences } from '../schema';
 import { AvatarPicker } from './avatar-picker';
 

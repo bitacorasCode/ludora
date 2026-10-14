@@ -1,9 +1,7 @@
-export {
-  FormDateField,
-  FormFileField,
-  FormNumberField,
-  FormSelectField,
-  FormTextareaField,
-  FormTextField,
-} from './fields';
+export { FormDateField } from './fields/form-date-field';
+export { FormFileField } from './fields/form-file-field';
+export { FormNumberField } from './fields/form-number-field';
+export { FormSelectField } from './fields/form-select-field';
+export { FormTextField } from './fields/form-text-field';
+export { FormTextareaField } from './fields/form-textarea-field';
 export { FormPageCard } from './form-page-card';

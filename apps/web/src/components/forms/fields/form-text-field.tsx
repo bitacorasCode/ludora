@@ -6,10 +6,9 @@ import { useTranslations } from 'next-intl';
 import { useId, useState } from 'react';
 import { Controller, type FieldValues } from 'react-hook-form';
 
-import { Button } from '../../ui/button';
-import { Field, FieldError, FieldLabel } from '../../ui/field';
-import { Input } from '../../ui/input';
-import { BaseFormFieldProps } from './types';
+import { Button, Field, FieldError, FieldLabel, Input } from '@/components/ui';
+
+import type { BaseFormFieldProps } from './types';
 
 type Props<T extends FieldValues> = BaseFormFieldProps<T> & {
   placeholder?: string;

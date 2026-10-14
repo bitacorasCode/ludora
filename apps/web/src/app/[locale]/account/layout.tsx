@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 import { isLoggedIn } from '@/config/auth';
-import { AccountShell } from '@/features/account/components';
+import { AccountShell } from '@/features/account';
 import { redirect } from '@/i18n/navigation';
 
 export const metadata: Metadata = {

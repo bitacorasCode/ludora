@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
-import { GamesPageContent } from '@/features';
+import { GamesPageContent } from '@/features/games';
 
 export async function generateMetadata({
   params,

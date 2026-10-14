@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { PageHeading } from '@/components/typography';
 
 import type { Profile } from '../config';
-import { usePreviewProfile } from '../hooks';
+import { usePreviewProfile } from '../hooks/use-preview-profile';
 import type { ProfilePreferences } from '../schema';
 import { ProfileEditor } from './profile-editor';
 import { ProfileIdentity } from './profile-identity';
