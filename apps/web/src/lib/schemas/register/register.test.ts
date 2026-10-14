@@ -21,6 +21,23 @@ describe("registerSchema", () => {
         expect(result.success).toBe(true);
     });
 
+    it("accepts a nickname with exactly two characters", () => {
+        const result = registerSchema.safeParse({
+            ...validData,
+            nickname: "AB",
+        });
+        expect(result.success).toBe(true);
+    });
+
+    it("accepts a password with exactly eight characters", () => {
+        const result = registerSchema.safeParse({
+            ...validData,
+            password: "clave123",
+            confirmPassword: "clave123",
+        });
+        expect(result.success).toBe(true);
+    });
+
     it("rejects with a short nickname field", () => {
         const result = registerSchema.safeParse({
             ...validData,
@@ -64,5 +81,13 @@ describe("registerSchema", () => {
         });
         expect(result.success).toBe(false);
         expect(result.error?.issues[0].message).toBe(esMessages.Register.validation.passwordMismatch);
+        expect(result.error?.issues[0].path).toEqual(["confirmPassword"]);
+    });
+
+    it("rejects when a required field is missing", () => {
+        const { email: _email, ...withoutEmail } = validData;
+        const result = registerSchema.safeParse(withoutEmail);
+        expect(result.success).toBe(false);
+        expect(result.error?.issues[0].path).toEqual(["email"]);
     });
 });
