@@ -1,10 +1,11 @@
 import { useTranslations } from 'next-intl';
 
-import { LocaleSwitcher } from '@/components/language';
 import { ItemList, type ItemListEntry } from '@/components/lists';
-import { ThemeSwitch } from '@/components/theme';
 import { PageHeading } from '@/components/typography';
 import { Card, CardContent } from '@/components/ui';
+
+import { LocaleSwitcher } from './locale-switcher';
+import { ThemeSwitch } from './theme-switch';
 
 export function PreferencesPageContent() {
   const t = useTranslations('Preferences');
