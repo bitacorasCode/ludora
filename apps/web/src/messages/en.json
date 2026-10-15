@@ -9,6 +9,12 @@
         "backHome": "Back to home",
         "exploreGames": "Explore games"
     },
+    "RouteError": {
+        "title": "We couldn't load this section",
+        "description": "Please try again. If the problem continues, you can return to the home page.",
+        "retry": "Try again",
+        "backHome": "Back to home"
+    },
     "LocaleSwitcher": {
         "label": "Language",
         "es": "Spanish",

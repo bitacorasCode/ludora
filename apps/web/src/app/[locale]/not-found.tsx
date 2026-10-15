@@ -1,30 +1,13 @@
-import { useTranslations } from 'next-intl';
+import { hasLocale, useLocale } from 'next-intl';
 
-import { PageContainer, PageSection } from '@/components/layout';
-import { PageHeading } from '@/components/typography';
-import { Button } from '@/components/ui';
-import { Link } from '@/i18n/navigation';
+import { NotFoundPageContent } from '@/features/not-found';
+import { routing } from '@/i18n/routing';
 
 export default function NotFound() {
-  const t = useTranslations('NotFound');
+  const locale = useLocale();
+  const resolvedLocale = hasLocale(routing.locales, locale)
+    ? locale
+    : routing.defaultLocale;
 
-  return (
-    <PageContainer>
-      <PageSection aria-label={t('title')}>
-        <PageHeading
-          eyebrow={t('eyebrow')}
-          title={t('title')}
-          description={t('description')}
-        />
-        <div className='flex flex-col gap-3 sm:flex-row'>
-          <Button asChild size='lg'>
-            <Link href='/'>{t('backHome')}</Link>
-          </Button>
-          <Button asChild variant='outline' size='lg'>
-            <Link href='/games'>{t('exploreGames')}</Link>
-          </Button>
-        </div>
-      </PageSection>
-    </PageContainer>
-  );
+  return <NotFoundPageContent locale={resolvedLocale} />;
 }

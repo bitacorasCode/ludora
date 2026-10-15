@@ -9,6 +9,12 @@
         "backHome": "Volver al inicio",
         "exploreGames": "Explorar juegos"
     },
+    "RouteError": {
+        "title": "No pudimos cargar esta sección",
+        "description": "Inténtalo de nuevo. Si el problema continúa, puedes volver al inicio.",
+        "retry": "Reintentar",
+        "backHome": "Volver al inicio"
+    },
     "LocaleSwitcher": {
         "label": "Idioma",
         "es": "Español",

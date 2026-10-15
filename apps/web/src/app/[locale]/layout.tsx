@@ -1,7 +1,8 @@
 import '../globals.css';
 
 import type { Metadata } from 'next';
-import { NextIntlClientProvider } from 'next-intl';
+import { notFound } from 'next/navigation';
+import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 
 import { Header } from '@/components/layout';
@@ -18,6 +19,11 @@ export async function generateMetadata({
   params,
 }: LayoutProps<'/[locale]'>): Promise<Metadata> {
   const { locale } = await params;
+
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
+  }
+
   const t = await getTranslations({ locale, namespace: 'Metadata' });
 
   return {
@@ -34,6 +40,11 @@ export default async function RootLayout({
   params,
 }: LayoutProps<'/[locale]'>) {
   const { locale } = await params;
+
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
+  }
+
   const t = await getTranslations({ locale, namespace: 'Layout' });
 
   return (
