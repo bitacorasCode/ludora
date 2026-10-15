@@ -48,7 +48,27 @@
         "navigationLabel": "Secciones de mi cuenta",
         "profile": "Perfil",
         "settings": "Cuenta",
-        "preferences": "Preferencias"
+        "preferences": "Preferencias",
+        "activity": "Actividad"
+    },
+    "Activity": {
+        "eyebrow": "Tu recorrido en Ludora",
+        "title": "Actividad",
+        "description": "Consulta tus partidas recientes y tu participación en las clasificaciones.",
+        "matches": {
+            "title": "Partidas recientes",
+            "description": "Consulta las partidas que has jugado y sus resultados.",
+            "emptyTitle": "Todavía no hay partidas para mostrar",
+            "emptyDescription": "Cuando juegues en Ludora, encontrarás aquí tus partidas recientes.",
+            "exploreGames": "Explorar juegos"
+        },
+        "rankings": {
+            "title": "Mis clasificaciones",
+            "description": "Consulta tu posición en las clasificaciones de los juegos en los que participas.",
+            "emptyTitle": "Todavía no participas en ninguna clasificación",
+            "emptyDescription": "Tus posiciones aparecerán aquí cuando participes en juegos con clasificación.",
+            "viewRankings": "Ver clasificaciones"
+        }
     },
     "UserSettings": {
         "eyebrow": "Acceso y privacidad",

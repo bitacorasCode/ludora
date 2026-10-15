@@ -60,11 +60,9 @@ export function Header() {
         >
           {links.map((link) => (
             <SideMenuClose asChild key={link.href}>
-              <div>
-                <Button asChild variant='ghost' size='sm'>
-                  <Link href={link.href}>{t(link.label)}</Link>
-                </Button>
-              </div>
+              <Button asChild variant='ghost' size='sm' className='justify-start'>
+                <Link href={link.href}>{t(link.label)}</Link>
+              </Button>
             </SideMenuClose>
           ))}
         </SideMenu>

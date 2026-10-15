@@ -5,6 +5,7 @@ import { SectionNavigation } from '@/components/navigation';
 const links = [
   { href: '/account/profile', label: 'profile' },
   { href: '/account/settings', label: 'settings' },
+  { href: '/account/activity', label: 'activity' },
   { href: '/account/preferences', label: 'preferences' },
 ] as const;
 

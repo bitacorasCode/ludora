@@ -48,7 +48,27 @@
         "navigationLabel": "Account sections",
         "profile": "Profile",
         "settings": "Account",
-        "preferences": "Preferences"
+        "preferences": "Preferences",
+        "activity": "Activity"
+    },
+    "Activity": {
+        "eyebrow": "Your journey on Ludora",
+        "title": "Activity",
+        "description": "View your recent matches and participation in rankings.",
+        "matches": {
+            "title": "Recent matches",
+            "description": "View the matches you have played and their results.",
+            "emptyTitle": "No matches to show yet",
+            "emptyDescription": "When you play on Ludora, your recent matches will appear here.",
+            "exploreGames": "Explore games"
+        },
+        "rankings": {
+            "title": "My rankings",
+            "description": "View your position in rankings for the games you take part in.",
+            "emptyTitle": "You are not in any rankings yet",
+            "emptyDescription": "Your positions will appear here when you take part in games with rankings.",
+            "viewRankings": "View rankings"
+        }
     },
     "UserSettings": {
         "eyebrow": "Access and privacy",
