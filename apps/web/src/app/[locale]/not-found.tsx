@@ -1,30 +1,30 @@
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui';
+import { PageContainer, PageSection } from '@/components/layout';
+import { PageHeading } from '@/components/typography';
+import { Button } from '@/components/ui';
+import { Link } from '@/i18n/navigation';
 
 export default function NotFound() {
+  const t = useTranslations('NotFound');
+
   return (
-    <main className='flex min-h-screen items-center justify-center bg-background px-4 py-8 sm:px-6 lg:px-8'>
-      <Card className='w-full max-w-lg text-center'>
-        <CardHeader>
-          <CardTitle>Página no encontrada</CardTitle>
-          <CardDescription>
-            La ruta que intentaste abrir no existe o fue removida.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <PageContainer>
+      <PageSection aria-label={t('title')}>
+        <PageHeading
+          eyebrow={t('eyebrow')}
+          title={t('title')}
+          description={t('description')}
+        />
+        <div className='flex flex-col gap-3 sm:flex-row'>
           <Button asChild size='lg'>
-            <Link href='/'>Volver al inicio</Link>
+            <Link href='/'>{t('backHome')}</Link>
           </Button>
-        </CardContent>
-      </Card>
-    </main>
+          <Button asChild variant='outline' size='lg'>
+            <Link href='/games'>{t('exploreGames')}</Link>
+          </Button>
+        </div>
+      </PageSection>
+    </PageContainer>
   );
 }

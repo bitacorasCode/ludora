@@ -2,6 +2,13 @@
     "Layout": {
         "skipToContent": "Skip to content"
     },
+    "NotFound": {
+        "eyebrow": "Error 404",
+        "title": "Page not found",
+        "description": "The page you are looking for does not exist or has moved. You can return to the home page or explore Ludora's games.",
+        "backHome": "Back to home",
+        "exploreGames": "Explore games"
+    },
     "LocaleSwitcher": {
         "label": "Language",
         "es": "Spanish",
