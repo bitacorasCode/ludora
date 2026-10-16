@@ -36,7 +36,7 @@ test.describe('Profile persistence', () => {
     await page
       .getByLabel(esMessages.Profile.bioLabel)
       .fill('Mi perfil persistido');
-    await page.getByRole('button', { name: esMessages.Profile.save }).click();
+    await page.getByRole('button', { name: esMessages.Common.actions.saveChanges }).click();
     await expect(page.getByRole('status')).toHaveText(esMessages.Profile.saved);
     await expect(
       otherTab.getByText('Mi perfil persistido', { exact: true }),
@@ -58,7 +58,7 @@ test.describe('Profile persistence', () => {
     await page
       .getByLabel(esMessages.Profile.bioLabel)
       .fill('Cambio descartado');
-    await page.getByRole('button', { name: esMessages.Profile.cancel }).click();
+    await page.getByRole('button', { name: esMessages.Common.actions.cancel }).click();
     await expect(page.getByText(esMessages.Profile.emptyBio)).toBeVisible();
     expect(
       await page.evaluate(() => localStorage.getItem('ludora:preview-profile')),

@@ -41,7 +41,7 @@ describe('RouteError integration', () => {
     );
     expect(retry).not.toHaveBeenCalled();
     fireEvent.click(
-      screen.getByRole('button', { name: esMessages.RouteError.retry }),
+      screen.getByRole('button', { name: esMessages.Common.actions.retry }),
     );
     expect(retry).toHaveBeenCalledOnce();
   });
@@ -54,7 +54,7 @@ describe('RouteError integration', () => {
     );
     expect(
       screen
-        .getByRole('link', { name: esMessages.RouteError.backHome })
+        .getByRole('link', { name: esMessages.Common.actions.backHome })
         .getAttribute('href'),
     ).toBe('/es');
   });
@@ -69,13 +69,13 @@ describe('RouteError integration', () => {
     );
     await user.tab();
     expect(document.activeElement).toBe(
-      screen.getByRole('button', { name: esMessages.RouteError.retry }),
+      screen.getByRole('button', { name: esMessages.Common.actions.retry }),
     );
     await user.keyboard('{Enter}');
     expect(retry).toHaveBeenCalledOnce();
     await user.tab();
     expect(document.activeElement).toBe(
-      screen.getByRole('link', { name: esMessages.RouteError.backHome }),
+      screen.getByRole('link', { name: esMessages.Common.actions.backHome }),
     );
   });
 });

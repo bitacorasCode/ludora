@@ -1,4 +1,16 @@
 {
+    "Common": {
+        "actions": {
+            "continue": "Continue",
+            "cancel": "Cancel",
+            "saveChanges": "Save changes",
+            "retry": "Try again",
+            "backHome": "Back to home"
+        },
+        "status": {
+            "validating": "Validating..."
+        }
+    },
     "Layout": {
         "skipToContent": "Skip to content"
     },
@@ -6,14 +18,11 @@
         "eyebrow": "Error 404",
         "title": "Page not found",
         "description": "The page you are looking for does not exist or has moved. You can return to the home page or explore Ludora's games.",
-        "backHome": "Back to home",
         "exploreGames": "Explore games"
     },
     "RouteError": {
         "title": "We couldn't load this section",
-        "description": "Please try again. If the problem continues, you can return to the home page.",
-        "retry": "Try again",
-        "backHome": "Back to home"
+        "description": "Please try again. If the problem continues, you can return to the home page."
     },
     "LocaleSwitcher": {
         "label": "Language",
@@ -45,16 +54,14 @@
         "title": "Game catalog",
         "description": "The Ludora catalog is empty for now. Soon you'll find games to explore here.",
         "emptyTitle": "No games yet",
-        "emptyDescription": "We're preparing this space for the platform's first games.",
-        "backHome": "Back to home"
+        "emptyDescription": "We're preparing this space for the platform's first games."
     },
     "Ranking": {
         "eyebrow": "Community",
         "title": "Ranking",
         "description": "Game rankings will appear here once matches begin.",
         "emptyTitle": "No rankings yet",
-        "emptyDescription": "No matches have been recorded yet. Come back when the community starts playing.",
-        "backHome": "Back to home"
+        "emptyDescription": "No matches have been recorded yet. Come back when the community starts playing."
     },
     "Account": {
         "title": "My account",
@@ -125,8 +132,6 @@
         "bioLabel": "Biography",
         "bioPlaceholder": "Tell us a little about yourself…",
         "bioCounter": "{count}/{max} characters",
-        "save": "Save changes",
-        "cancel": "Cancel",
         "saved": "Profile updated in this browser.",
         "saveError": "Your changes could not be saved. Please try again."
     },
@@ -165,10 +170,6 @@
                 "placeholder": "Repeat your password"
             }
         },
-        "actions": {
-            "submit": "Continue",
-            "submitting": "Validating..."
-        },
         "feedback": {
             "title": "Registration is not available yet",
             "unavailable": "The form passed validation, but account creation is not available yet. Your details were not saved.",
@@ -192,7 +193,6 @@
         "password": "Password",
         "passwordPlaceholder": "Enter your password",
         "submit": "Sign in",
-        "submitting": "Validating...",
         "forgotPassword": "Forgot your password?",
         "register": "Create an account",
         "feedbackTitle": "Sign in is not available yet",
@@ -214,8 +214,6 @@
         "request": {
             "title": "Recover your password",
             "description": "Enter your email to preview how account recovery will work.",
-            "submit": "Continue",
-            "submitting": "Validating...",
             "feedbackTitle": "Recovery is not available yet",
             "feedbackMessage": "The email is valid, but recovery messages are not available yet. No email was sent.",
             "previewReset": "View new password screen"
@@ -224,7 +222,6 @@
             "title": "Create a new password",
             "description": "Preview of the last recovery step. There is no recovery link or associated account yet.",
             "submit": "Change password",
-            "submitting": "Validating...",
             "feedbackTitle": "Password changes are not available yet",
             "feedbackMessage": "The passwords match, but no password was changed. This screen is a preview."
         },

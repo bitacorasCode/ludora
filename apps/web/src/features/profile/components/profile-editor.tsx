@@ -23,6 +23,7 @@ export function ProfileEditor({
   onCancel,
 }: ProfileEditorProps) {
   const t = useTranslations('Profile');
+  const common = useTranslations('Common');
   const { form, onSubmit, saveError } = useProfileForm(profile, onSave);
 
   return (
@@ -55,9 +56,9 @@ export function ProfileEditor({
             {saveError && <p role='alert'>{t('saveError')}</p>}
 
             <div className='flex flex-wrap gap-3'>
-              <Button type='submit'>{t('save')}</Button>
+              <Button type='submit'>{common('actions.saveChanges')}</Button>
               <Button type='button' variant='outline' onClick={onCancel}>
-                {t('cancel')}
+                {common('actions.cancel')}
               </Button>
             </div>
           </fieldset>

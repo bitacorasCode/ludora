@@ -9,6 +9,7 @@ import { Link } from '@/i18n/navigation';
 
 export default function RouteError({ retry }: { retry: () => void }) {
   const t = useTranslations('RouteError');
+  const common = useTranslations('Common');
 
   return (
     <PageContainer>
@@ -18,12 +19,12 @@ export default function RouteError({ retry }: { retry: () => void }) {
           description={t('description')}
           primaryAction={
             <Button type='button' onClick={retry}>
-              {t('retry')}
+              {common('actions.retry')}
             </Button>
           }
           secondaryAction={
             <Button asChild variant='outline'>
-              <Link href='/'>{t('backHome')}</Link>
+              <Link href='/'>{common('actions.backHome')}</Link>
             </Button>
           }
         />

@@ -90,7 +90,7 @@ test.describe('Platform navigation', () => {
     await expect(page.locator('header')).toHaveCount(0);
     await expect(page.locator('main')).toHaveCount(1);
     await page
-      .getByRole('link', { name: enMessages.NotFound.backHome })
+      .getByRole('link', { name: enMessages.Common.actions.backHome })
       .click();
     await expect(page).toHaveURL('/en');
   });

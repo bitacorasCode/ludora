@@ -79,7 +79,7 @@ describe('ProfilePageContent integration', () => {
       screen.getByRole('radio', { name: esMessages.Profile.avatars.fox }),
     );
     fireEvent.click(
-      screen.getByRole('button', { name: esMessages.Profile.save }),
+      screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
     );
     expect(await screen.findByText(esMessages.Profile.saved)).toBeTruthy();
     expect(screen.getByText('Mi nueva biografía')).toBeTruthy();
@@ -116,7 +116,7 @@ describe('ProfilePageContent integration', () => {
       target: { value: 'Cambio descartado' },
     });
     fireEvent.click(
-      screen.getByRole('button', { name: esMessages.Profile.cancel }),
+      screen.getByRole('button', { name: esMessages.Common.actions.cancel }),
     );
     expect(screen.getByText('Biografía original')).toBeTruthy();
     expect(screen.queryByText('Cambio descartado')).toBeNull();
@@ -139,7 +139,7 @@ describe('ProfilePageContent integration', () => {
       throw new Error('Storage full');
     });
     fireEvent.click(
-      screen.getByRole('button', { name: esMessages.Profile.save }),
+      screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
     );
     expect(await screen.findByText(esMessages.Profile.saveError)).toBeTruthy();
     expect(

@@ -23,6 +23,7 @@ const formId = 'reset-password-form';
 
 export function ResetPasswordPageContent() {
   const t = useTranslations('PasswordRecovery');
+  const common = useTranslations('Common');
   const validation = useTranslations('PasswordRecovery.validation');
 
   const [submitted, setSubmitted] = useState(false);
@@ -83,7 +84,7 @@ export function ResetPasswordPageContent() {
             <SubmitButton
               isSubmitting={form.formState.isSubmitting}
               mainText={t('reset.submit')}
-              submittingText={t('reset.submitting')}
+              submittingText={common('status.validating')}
             />
           </FormActions>
         </FieldGroup>

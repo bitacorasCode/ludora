@@ -15,6 +15,7 @@ const formId = 'register-form';
 export function RegisterPageContent() {
   const { form, submissionFeedback, onSubmit } = useRegisterForm();
   const t = useTranslations('Register');
+  const common = useTranslations('Common');
 
   return (
     <FormPageCard
@@ -48,8 +49,8 @@ export function RegisterPageContent() {
           >
             <SubmitButton
               isSubmitting={form.formState.isSubmitting}
-              mainText={t('actions.submit')}
-              submittingText={t('actions.submitting')}
+              mainText={common('actions.continue')}
+              submittingText={common('status.validating')}
             />
           </FormActions>
         </fieldset>

@@ -12,7 +12,10 @@ type NotFoundPageContentProps = {
 };
 
 export async function NotFoundPageContent({ locale }: NotFoundPageContentProps) {
-  const t = await getTranslations({ locale, namespace: 'NotFound' });
+  const [t, common] = await Promise.all([
+    getTranslations({ locale, namespace: 'NotFound' }),
+    getTranslations({ locale, namespace: 'Common' }),
+  ]);
 
   return (
     <PageContainer>
@@ -25,7 +28,7 @@ export async function NotFoundPageContent({ locale }: NotFoundPageContentProps) 
         <div className='flex flex-col gap-3 sm:flex-row'>
           <Button asChild size='lg'>
             <Link href={getPathname({ locale, href: '/' })}>
-              {t('backHome')}
+              {common('actions.backHome')}
             </Link>
           </Button>
           <Button asChild variant='outline' size='lg'>

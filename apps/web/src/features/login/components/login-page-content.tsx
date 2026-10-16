@@ -20,6 +20,7 @@ const formId = 'login-form';
 
 export function LoginPageContent() {
   const t = useTranslations('Login');
+  const common = useTranslations('Common');
   const validation = useTranslations('Login.validation');
 
   const [submitted, setSubmitted] = useState(false);
@@ -85,7 +86,7 @@ export function LoginPageContent() {
             <SubmitButton
               isSubmitting={form.formState.isSubmitting}
               mainText={t('submit')}
-              submittingText={t('submitting')}
+              submittingText={common('status.validating')}
             />
           </FormActions>
         </FieldGroup>

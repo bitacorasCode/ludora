@@ -66,7 +66,7 @@ describe('ProfileEditor integration', () => {
       target: { value: '  Otra biografía  ' },
     });
     fireEvent.click(
-      screen.getByRole('button', { name: esMessages.Profile.save }),
+      screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
     );
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledExactlyOnceWith({
@@ -90,7 +90,7 @@ describe('ProfileEditor integration', () => {
       target: { value: '   ' },
     });
     fireEvent.click(
-      screen.getByRole('button', { name: esMessages.Profile.save }),
+      screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
     );
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledExactlyOnceWith({
@@ -111,7 +111,7 @@ describe('ProfileEditor integration', () => {
       target: { value: 'a'.repeat(BIO_MAX_LENGTH + 1) },
     });
     fireEvent.click(
-      screen.getByRole('button', { name: esMessages.Profile.save }),
+      screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
     );
     expect(await screen.findByRole('alert')).toBeTruthy();
     expect(onSave).not.toHaveBeenCalled();
@@ -132,12 +132,12 @@ describe('ProfileEditor integration', () => {
     ) as HTMLTextAreaElement;
     fireEvent.change(bio, { target: { value: 'Mi cambio' } });
     fireEvent.click(
-      screen.getByRole('button', { name: esMessages.Profile.save }),
+      screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
     );
     expect(await screen.findByText(esMessages.Profile.saveError)).toBeTruthy();
     expect(bio.value).toBe('Mi cambio');
     fireEvent.click(
-      screen.getByRole('button', { name: esMessages.Profile.save }),
+      screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
     );
     await waitFor(() =>
       expect(screen.queryByText(esMessages.Profile.saveError)).toBeNull(),
@@ -158,7 +158,7 @@ describe('ProfileEditor integration', () => {
         <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
       </NextIntlClientProvider>,
     );
-    const save = screen.getByRole('button', { name: esMessages.Profile.save });
+    const save = screen.getByRole('button', { name: esMessages.Common.actions.saveChanges });
     fireEvent.click(save);
     await waitFor(() => expect(onSave).toHaveBeenCalledOnce());
     expect(save.matches(':disabled')).toBe(true);
@@ -167,7 +167,7 @@ describe('ProfileEditor integration', () => {
     ).toBe(true);
     expect(
       screen
-        .getByRole('button', { name: esMessages.Profile.cancel })
+        .getByRole('button', { name: esMessages.Common.actions.cancel })
         .matches(':disabled'),
     ).toBe(true);
     finishSave();
@@ -183,7 +183,7 @@ describe('ProfileEditor integration', () => {
       </NextIntlClientProvider>,
     );
     fireEvent.click(
-      screen.getByRole('button', { name: esMessages.Profile.cancel }),
+      screen.getByRole('button', { name: esMessages.Common.actions.cancel }),
     );
     expect(onCancel).toHaveBeenCalledOnce();
     expect(onSave).not.toHaveBeenCalled();

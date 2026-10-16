@@ -39,12 +39,12 @@ describe('ErrorState', () => {
         title={esMessages.RouteError.title}
         description={esMessages.RouteError.description}
         primaryAction={
-          <Button type='button'>{esMessages.RouteError.retry}</Button>
+          <Button type='button'>{esMessages.Common.actions.retry}</Button>
         }
       />,
     );
     expect(
-      screen.getByRole('button', { name: esMessages.RouteError.retry }),
+      screen.getByRole('button', { name: esMessages.Common.actions.retry }),
     ).toBeTruthy();
     expect(screen.queryByRole('link')).toBeNull();
   });
@@ -55,12 +55,12 @@ describe('ErrorState', () => {
         title={esMessages.RouteError.title}
         description={esMessages.RouteError.description}
         secondaryAction={
-          <Link href='/es'>{esMessages.RouteError.backHome}</Link>
+          <Link href='/es'>{esMessages.Common.actions.backHome}</Link>
         }
       />,
     );
     expect(
-      screen.getByRole('link', { name: esMessages.RouteError.backHome }),
+      screen.getByRole('link', { name: esMessages.Common.actions.backHome }),
     ).toBeTruthy();
     expect(screen.queryByRole('button')).toBeNull();
   });
@@ -71,10 +71,10 @@ describe('ErrorState', () => {
         title={esMessages.RouteError.title}
         description={esMessages.RouteError.description}
         primaryAction={
-          <Button type='button'>{esMessages.RouteError.retry}</Button>
+          <Button type='button'>{esMessages.Common.actions.retry}</Button>
         }
         secondaryAction={
-          <Link href='/es'>{esMessages.RouteError.backHome}</Link>
+          <Link href='/es'>{esMessages.Common.actions.backHome}</Link>
         }
       />,
     );

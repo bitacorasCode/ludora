@@ -1,4 +1,16 @@
 {
+    "Common": {
+        "actions": {
+            "continue": "Continuar",
+            "cancel": "Cancelar",
+            "saveChanges": "Guardar cambios",
+            "retry": "Reintentar",
+            "backHome": "Volver al inicio"
+        },
+        "status": {
+            "validating": "Validando..."
+        }
+    },
     "Layout": {
         "skipToContent": "Saltar al contenido"
     },
@@ -6,14 +18,11 @@
         "eyebrow": "Error 404",
         "title": "Página no encontrada",
         "description": "La página que buscas no existe o cambió de dirección. Puedes volver al inicio o explorar los juegos de Ludora.",
-        "backHome": "Volver al inicio",
         "exploreGames": "Explorar juegos"
     },
     "RouteError": {
         "title": "No pudimos cargar esta sección",
-        "description": "Inténtalo de nuevo. Si el problema continúa, puedes volver al inicio.",
-        "retry": "Reintentar",
-        "backHome": "Volver al inicio"
+        "description": "Inténtalo de nuevo. Si el problema continúa, puedes volver al inicio."
     },
     "LocaleSwitcher": {
         "label": "Idioma",
@@ -45,16 +54,14 @@
         "title": "Catálogo de juegos",
         "description": "El catálogo de Ludora aún está vacío. Pronto encontrarás aquí juegos para explorar.",
         "emptyTitle": "Aún no hay juegos",
-        "emptyDescription": "Estamos preparando este espacio para los primeros juegos de la plataforma.",
-        "backHome": "Volver al inicio"
+        "emptyDescription": "Estamos preparando este espacio para los primeros juegos de la plataforma."
     },
     "Ranking": {
         "eyebrow": "Comunidad",
         "title": "Ranking",
         "description": "Aquí aparecerán las clasificaciones de los juegos cuando comiencen las partidas.",
         "emptyTitle": "Aún no hay clasificaciones",
-        "emptyDescription": "Todavía no se han registrado partidas. Vuelve cuando la comunidad empiece a jugar.",
-        "backHome": "Volver al inicio"
+        "emptyDescription": "Todavía no se han registrado partidas. Vuelve cuando la comunidad empiece a jugar."
     },
     "Account": {
         "title": "Mi cuenta",
@@ -125,8 +132,6 @@
         "bioLabel": "Biografía",
         "bioPlaceholder": "Cuéntanos algo sobre ti…",
         "bioCounter": "{count}/{max} caracteres",
-        "save": "Guardar cambios",
-        "cancel": "Cancelar",
         "saved": "Perfil actualizado en este navegador.",
         "saveError": "No se pudieron guardar los cambios. Inténtalo de nuevo."
     },
@@ -165,10 +170,6 @@
                 "placeholder": "Repite la contraseña"
             }
         },
-        "actions": {
-            "submit": "Continuar",
-            "submitting": "Validando..."
-        },
         "feedback": {
             "title": "Registro todavía no disponible",
             "unavailable": "El formulario pasó la validación, pero aún no podemos crear cuentas. Tus datos no se guardaron.",
@@ -192,7 +193,6 @@
         "password": "Contraseña",
         "passwordPlaceholder": "Introduce tu contraseña",
         "submit": "Iniciar sesión",
-        "submitting": "Validando...",
         "forgotPassword": "¿Olvidaste tu contraseña?",
         "register": "Crear una cuenta",
         "feedbackTitle": "Inicio de sesión aún no disponible",
@@ -214,8 +214,6 @@
         "request": {
             "title": "Recuperar contraseña",
             "description": "Escribe tu correo para ver cómo funcionará la recuperación de tu cuenta.",
-            "submit": "Continuar",
-            "submitting": "Validando...",
             "feedbackTitle": "Recuperación aún no disponible",
             "feedbackMessage": "El correo es válido, pero todavía no enviamos mensajes de recuperación. No se ha enviado ningún correo.",
             "previewReset": "Ver pantalla de nueva contraseña"
@@ -224,7 +222,6 @@
             "title": "Crear una contraseña nueva",
             "description": "Vista previa del último paso de recuperación. Todavía no hay un enlace de recuperación ni una cuenta asociada.",
             "submit": "Cambiar contraseña",
-            "submitting": "Validando...",
             "feedbackTitle": "Cambio de contraseña aún no disponible",
             "feedbackMessage": "Las contraseñas coinciden, pero no se ha cambiado ninguna contraseña. Esta pantalla es una vista previa."
         },

@@ -8,6 +8,7 @@ import { Link } from '@/i18n/navigation';
 
 export function RankingPageContent() {
   const t = useTranslations('Ranking');
+  const common = useTranslations('Common');
 
   return (
     <PageContainer>
@@ -22,7 +23,7 @@ export function RankingPageContent() {
           description={t('emptyDescription')}
           action={
             <Button asChild variant='outline'>
-              <Link href='/'>{t('backHome')}</Link>
+              <Link href='/'>{common('actions.backHome')}</Link>
             </Button>
           }
         />

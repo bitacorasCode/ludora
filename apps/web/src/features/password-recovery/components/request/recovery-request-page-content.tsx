@@ -23,6 +23,7 @@ const formId = 'recovery-request-form';
 
 export function RecoveryRequestPageContent() {
   const t = useTranslations('PasswordRecovery');
+  const common = useTranslations('Common');
   const validation = useTranslations('PasswordRecovery.validation');
 
   const [submitted, setSubmitted] = useState(false);
@@ -81,8 +82,8 @@ export function RecoveryRequestPageContent() {
           >
             <SubmitButton
               isSubmitting={form.formState.isSubmitting}
-              mainText={t('request.submit')}
-              submittingText={t('request.submitting')}
+              mainText={common('actions.continue')}
+              submittingText={common('status.validating')}
             />
           </FormActions>
         </FieldGroup>

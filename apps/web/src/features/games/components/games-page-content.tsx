@@ -8,6 +8,7 @@ import { Link } from '@/i18n/navigation';
 
 export function GamesPageContent() {
   const t = useTranslations('Catalog');
+  const common = useTranslations('Common');
 
   return (
     <PageContainer>
@@ -22,7 +23,7 @@ export function GamesPageContent() {
           description={t('emptyDescription')}
           action={
             <Button asChild variant='outline'>
-              <Link href='/'>{t('backHome')}</Link>
+              <Link href='/'>{common('actions.backHome')}</Link>
             </Button>
           }
         />
