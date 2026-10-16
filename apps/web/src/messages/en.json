@@ -66,6 +66,7 @@
         "activity": "Activity"
     },
     "Activity": {
+        "loading": "Loading activity",
         "eyebrow": "Your journey on Ludora",
         "title": "Activity",
         "description": "View your recent matches and participation in rankings.",
