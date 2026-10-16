@@ -1,0 +1,15 @@
+{
+  "name": "@ludora/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./index.mjs",
+  "dependencies": {
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-simple-import-sort": "^14.0.0",
+    "eslint-plugin-unused-imports": "^4.4.1"
+  },
+  "peerDependencies": {
+    "eslint": "^9.0.0"
+  }
+}

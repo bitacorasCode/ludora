@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "lint:fix": "eslint --fix"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -31,6 +32,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@ludora/eslint-config": "workspace:*",
     "@playwright/test": "^1.64.1",
     "@tailwindcss/turbopack": "^4",
     "@testing-library/dom": "^10.4.2",
@@ -44,9 +46,6 @@
     "@vitest/coverage-v8": "5.0.4",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-simple-import-sort": "^14.0.0",
-    "eslint-plugin-unused-imports": "^4.4.1",
     "jest-axe": "^11.0.0",
     "jsdom": "^30.1.2",
     "tailwindcss": "^4",
