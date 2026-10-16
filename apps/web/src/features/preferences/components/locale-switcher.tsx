@@ -31,10 +31,10 @@ export function LocaleSwitcher() {
       return;
     }
 
-    const hash = window.location.hash;
+    const { search, hash } = window.location;
 
     startTransition(() => {
-      router.replace(`${pathname}${hash}`, { locale: value as Locale });
+      router.replace(`${pathname}${search}${hash}`, { locale: value as Locale });
     });
   }
 
