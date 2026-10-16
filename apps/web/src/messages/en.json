@@ -192,6 +192,7 @@
         "password": "Password",
         "passwordPlaceholder": "Enter your password",
         "submit": "Sign in",
+        "submitting": "Validating...",
         "forgotPassword": "Forgot your password?",
         "register": "Create an account",
         "feedbackTitle": "Sign in is not available yet",
@@ -214,6 +215,7 @@
             "title": "Recover your password",
             "description": "Enter your email to preview how account recovery will work.",
             "submit": "Continue",
+            "submitting": "Validating...",
             "feedbackTitle": "Recovery is not available yet",
             "feedbackMessage": "The email is valid, but recovery messages are not available yet. No email was sent.",
             "previewReset": "View new password screen"
@@ -222,6 +224,7 @@
             "title": "Create a new password",
             "description": "Preview of the last recovery step. There is no recovery link or associated account yet.",
             "submit": "Change password",
+            "submitting": "Validating...",
             "feedbackTitle": "Password changes are not available yet",
             "feedbackMessage": "The passwords match, but no password was changed. This screen is a preview."
         },

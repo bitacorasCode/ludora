@@ -15,7 +15,7 @@ type FormPageCardProps = {
   title: string;
   description?: string;
   children: ReactNode;
-  footer: ReactNode;
+  footer?: ReactNode;
 };
 
 export function FormPageCard({
@@ -42,7 +42,9 @@ export function FormPageCard({
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
         <CardContent>{children}</CardContent>
-        <CardFooter className='flex flex-wrap gap-3 pt-0'>{footer}</CardFooter>
+        {footer && (
+          <CardFooter className='flex flex-wrap gap-3 pt-0'>{footer}</CardFooter>
+        )}
       </Card>
     </div>
   );

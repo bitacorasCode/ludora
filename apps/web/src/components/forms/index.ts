@@ -4,4 +4,6 @@ export { FormNumberField } from './fields/form-number-field';
 export { FormSelectField } from './fields/form-select-field';
 export { FormTextField } from './fields/form-text-field';
 export { FormTextareaField } from './fields/form-textarea-field';
+export { FormActions } from './form-actions';
 export { FormPageCard } from './form-page-card';
+export { SubmitButton } from './submit-button';

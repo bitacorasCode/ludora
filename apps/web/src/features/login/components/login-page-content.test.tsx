@@ -12,7 +12,6 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import esMessages from '@/messages/es.json';
 
-import { LoginForm } from './login-form';
 import { LoginPageContent } from './login-page-content';
 
 vi.mock('@/i18n/navigation', () => ({ Link: 'a' }));
@@ -29,11 +28,11 @@ afterEach(() => {
   cleanup();
 });
 
-describe('LoginForm integration', () => {
+describe('LoginPageContent integration', () => {
   it('didnt have accessibility violations', async () => {
     const { container } = render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <LoginForm />
+        <LoginPageContent />
       </NextIntlClientProvider>,
     );
 
@@ -57,7 +56,7 @@ describe('LoginForm integration', () => {
   it('shows email and password errors when submitting invalid fields', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <LoginForm />
+        <LoginPageContent />
       </NextIntlClientProvider>,
     );
 
@@ -73,7 +72,7 @@ describe('LoginForm integration', () => {
   it('removes the email error after correcting the field', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <LoginForm />
+        <LoginPageContent />
       </NextIntlClientProvider>,
     );
 
@@ -96,7 +95,7 @@ describe('LoginForm integration', () => {
     const user = userEvent.setup();
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <LoginForm />
+        <LoginPageContent />
       </NextIntlClientProvider>,
     );
 

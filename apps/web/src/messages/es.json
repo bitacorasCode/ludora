@@ -192,6 +192,7 @@
         "password": "Contraseña",
         "passwordPlaceholder": "Introduce tu contraseña",
         "submit": "Iniciar sesión",
+        "submitting": "Validando...",
         "forgotPassword": "¿Olvidaste tu contraseña?",
         "register": "Crear una cuenta",
         "feedbackTitle": "Inicio de sesión aún no disponible",
@@ -214,6 +215,7 @@
             "title": "Recuperar contraseña",
             "description": "Escribe tu correo para ver cómo funcionará la recuperación de tu cuenta.",
             "submit": "Continuar",
+            "submitting": "Validando...",
             "feedbackTitle": "Recuperación aún no disponible",
             "feedbackMessage": "El correo es válido, pero todavía no enviamos mensajes de recuperación. No se ha enviado ningún correo.",
             "previewReset": "Ver pantalla de nueva contraseña"
@@ -222,6 +224,7 @@
             "title": "Crear una contraseña nueva",
             "description": "Vista previa del último paso de recuperación. Todavía no hay un enlace de recuperación ni una cuenta asociada.",
             "submit": "Cambiar contraseña",
+            "submitting": "Validando...",
             "feedbackTitle": "Cambio de contraseña aún no disponible",
             "feedbackMessage": "Las contraseñas coinciden, pero no se ha cambiado ninguna contraseña. Esta pantalla es una vista previa."
         },

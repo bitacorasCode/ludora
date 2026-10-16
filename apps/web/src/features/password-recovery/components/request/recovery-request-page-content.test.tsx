@@ -10,7 +10,6 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import esMessages from '@/messages/es.json';
 
-import { RecoveryRequestForm } from './recovery-request-form';
 import { RecoveryRequestPageContent } from './recovery-request-page-content';
 
 vi.mock('@/i18n/navigation', () => ({ Link: 'a' }));
@@ -27,11 +26,11 @@ afterEach(() => {
   cleanup();
 });
 
-describe('RecoveryRequestForm integration', () => {
+describe('RecoveryRequestPageContent integration', () => {
   it('didnt have accessibility violations', async () => {
     const { container } = render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <RecoveryRequestForm />
+        <RecoveryRequestPageContent />
       </NextIntlClientProvider>,
     );
 

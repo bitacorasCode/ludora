@@ -11,7 +11,6 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import esMessages from '@/messages/es.json';
 
-import { ResetPasswordForm } from './reset-password-form';
 import { ResetPasswordPageContent } from './reset-password-page-content';
 
 vi.mock('@/i18n/navigation', () => ({ Link: 'a' }));
@@ -28,11 +27,11 @@ afterEach(() => {
   cleanup();
 });
 
-describe('ResetPasswordForm integration', () => {
+describe('ResetPasswordPageContent integration', () => {
   it('didnt have accessibility violations', async () => {
     const { container } = render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordForm />
+        <ResetPasswordPageContent />
       </NextIntlClientProvider>,
     );
 
@@ -55,7 +54,7 @@ describe('ResetPasswordForm integration', () => {
   it('shows errors for a short password and empty confirmation', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordForm />
+        <ResetPasswordPageContent />
       </NextIntlClientProvider>,
     );
 
@@ -71,7 +70,7 @@ describe('ResetPasswordForm integration', () => {
   it('shows the mismatch error on the confirmation field', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordForm />
+        <ResetPasswordPageContent />
       </NextIntlClientProvider>,
     );
 
@@ -91,7 +90,7 @@ describe('ResetPasswordForm integration', () => {
     const user = userEvent.setup();
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordForm />
+        <ResetPasswordPageContent />
       </NextIntlClientProvider>,
     );
 

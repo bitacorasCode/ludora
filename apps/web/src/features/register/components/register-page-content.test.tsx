@@ -13,7 +13,6 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import esMessages from '@/messages/es.json';
 
 import { registerUser } from '../actions';
-import { RegisterForm } from './register-form';
 import { RegisterPageContent } from './register-page-content';
 
 vi.mock('../actions', () => ({ registerUser: vi.fn() }));
@@ -47,11 +46,11 @@ function fillValidRegisterForm() {
   });
 }
 
-describe('RegisterForm integration', () => {
+describe('RegisterPageContent integration', () => {
   it('didnt have accessibility violations', async () => {
     const { container } = render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <RegisterForm />
+        <RegisterPageContent />
       </NextIntlClientProvider>,
     );
 
@@ -75,7 +74,7 @@ describe('RegisterForm integration', () => {
   it('show specific errors when trying to save with invalid fields', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <RegisterForm />
+        <RegisterPageContent />
       </NextIntlClientProvider>,
     );
 
@@ -111,7 +110,7 @@ describe('RegisterForm integration', () => {
   it('shows the mismatch error on the confirmation field', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <RegisterForm />
+        <RegisterPageContent />
       </NextIntlClientProvider>,
     );
 
@@ -134,7 +133,7 @@ describe('RegisterForm integration', () => {
 
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <RegisterForm />
+        <RegisterPageContent />
       </NextIntlClientProvider>,
     );
 
@@ -150,7 +149,7 @@ describe('RegisterForm integration', () => {
 
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <RegisterForm />
+        <RegisterPageContent />
       </NextIntlClientProvider>,
     );
 
@@ -165,7 +164,7 @@ describe('RegisterForm integration', () => {
     const user = userEvent.setup();
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <RegisterForm />
+        <RegisterPageContent />
       </NextIntlClientProvider>,
     );
 
