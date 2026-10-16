@@ -58,6 +58,7 @@
     },
     "Account": {
         "title": "My account",
+        "loading": "Loading account",
         "navigationLabel": "Account sections",
         "profile": "Profile",
         "settings": "Account",
