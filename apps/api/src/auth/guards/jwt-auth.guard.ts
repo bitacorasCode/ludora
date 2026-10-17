@@ -7,6 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { z } from 'zod';
 
+import { AUTH_ERRORS } from '../constants/auth-errors.js';
 import type { AuthenticatedRequest } from '../types/authenticated-request.js';
 
 const tokenPayloadSchema = z.object({
@@ -27,7 +28,11 @@ export class JwtAuthGuard implements CanActivate {
             ?.match(/^Bearer (\S+)$/i)?.[1];
 
         if (!token) {
-            throw new UnauthorizedException('Authentication required.');
+            const { message, errorCode } = AUTH_ERRORS.authenticationRequired;
+
+            throw new UnauthorizedException(message, {
+                errorCode,
+            });
         }
 
         let payload: unknown;
@@ -35,13 +40,21 @@ export class JwtAuthGuard implements CanActivate {
         try {
             payload = await this.jwtService.verifyAsync(token);
         } catch {
-            throw new UnauthorizedException('Invalid or expired token.');
+            const { message, errorCode } = AUTH_ERRORS.invalidToken;
+
+            throw new UnauthorizedException(message, {
+                errorCode
+            });
         }
 
         const result = tokenPayloadSchema.safeParse(payload);
 
         if (!result.success) {
-            throw new UnauthorizedException('Invalid token payload.');
+            const { message, errorCode } = AUTH_ERRORS.invalidTokenPayload;
+
+            throw new UnauthorizedException(message, {
+                errorCode,
+            });
         }
 
         request.auth = {

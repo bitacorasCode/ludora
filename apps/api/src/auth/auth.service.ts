@@ -1,8 +1,8 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { Prisma } from '../generated/prisma/client.js';
 import { UsersService } from '../users/users.service.js';
+import { AUTH_ERRORS } from './constants/auth-errors.js';
 import { LoginDto } from './dto/login.dto.js';
 import type { RegisterDto } from './dto/register.dto.js';
 import { PasswordService } from './password.service.js';
@@ -18,26 +18,13 @@ export class AuthService {
     async register(data: RegisterDto) {
         const passwordHash = await this.passwordService.hash(data.password);
 
-        try {
-            const user = await this.usersService.create({
-                nickname: data.nickname,
-                email: data.email,
-                passwordHash,
-            });
+        const user = await this.usersService.create({
+            nickname: data.nickname,
+            email: data.email,
+            passwordHash,
+        });
 
-            return { user };
-        } catch (error) {
-            if (
-                error instanceof Prisma.PrismaClientKnownRequestError &&
-                error.code === 'P2002'
-            ) {
-                throw new ConflictException(
-                    'Email or nickname already in use.',
-                );
-            }
-
-            throw error;
-        }
+        return { user };
     }
 
     async login(data: LoginDto) {
@@ -55,7 +42,11 @@ export class AuthService {
         }
 
         if (!user || !isPasswordValid) {
-            throw new UnauthorizedException('Invalid credentials.');
+            const { message, errorCode } = AUTH_ERRORS.invalidCredentials;
+
+            throw new UnauthorizedException(message, {
+                errorCode,
+            });
         }
 
         const accessToken = await this.jwtService.signAsync({
@@ -71,5 +62,19 @@ export class AuthService {
                 createdAt: user.createdAt,
             },
         };
+    }
+
+    async getCurrentUser(userId: string) {
+        const user = await this.usersService.findById(userId);
+
+        if (!user) {
+            const { message, errorCode } = AUTH_ERRORS.authenticationRequired;
+
+            throw new UnauthorizedException(message, {
+                errorCode,
+            });
+        }
+
+        return { user };
     }
 }
