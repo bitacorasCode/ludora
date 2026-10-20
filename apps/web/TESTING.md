@@ -23,6 +23,8 @@ La cobertura corresponde a Vitest. Los flujos ejecutados por Playwright se infor
 - Preferencias: selección del tema, idioma y conservación de query string y hash.
 - Navegación: enlaces según sesión, sección activa y decisiones de acceso y redirección.
 - Registro: validación de la Server Action e idioma utilizado para traducir los errores.
+- Autenticación: acciones de login y logout, estado pendiente, errores traducidos, cookies y consulta del usuario actual.
+- Cliente HTTP: token por petición, cabeceras reservadas, fallos de red, respuestas inválidas y política HTTP/HTTPS.
 - Componentes compartidos: alertas, estados de error, listas y textarea accesible.
 
 Las pruebas de guardas invocan la función de servidor y comprueban su decisión de redirección. El renderizado de rutas asíncronas se comprueba en navegador.
@@ -44,16 +46,23 @@ También puede usarse Chrome instalado en el equipo:
 PLAYWRIGHT_CHANNEL=chrome pnpm --filter web test:e2e
 ```
 
-Playwright inicia y detiene dos servidores Next.js propios:
+Para ejecutar estos flujos deben estar disponibles PostgreSQL y la configuración local de `apps/api/.env` (`DATABASE_URL` y `JWT_SECRET`). Desde la raíz, levanta PostgreSQL con `docker compose up -d` y aplica las migraciones de la API si aún no lo hiciste.
 
-| Proyecto | Puerto | Sesión simulada |
-| --- | --- | --- |
-| `signed-in` | 3100 | Usuario con sesión |
-| `guest` | 3101 | Invitado |
+Playwright utiliza:
 
-`LUDORA_E2E_MODE` selecciona un fixture de `e2e/fixtures/` mediante un alias de Turbopack y un directorio de compilación independiente en `.next-e2e/`. Así cada proyecto tiene una sesión reproducible y se puede probar acceso público y privado. El servidor de desarrollo habitual utiliza `src/config/auth.ts` y `.next/`.
+| Servicio           | Puerto | Uso                                                                      |
+| ------------------ | ------ | ------------------------------------------------------------------------ |
+| API Nest           | 3001   | Reutiliza la API local si está activa; en otro caso la inicia.           |
+| Proxy de pruebas   | 3102   | Reenvía las peticiones a Nest y permite simular demoras o desconexiones. |
+| Next.js de pruebas | 3100   | Usa el directorio independiente `.next-e2e/`.                            |
 
-Los escenarios comprueban navegación móvil y Escape, sección activa, acceso de invitados, detección y cookie del idioma, persistencia del tema, páginas 404 y guardado del perfil entre recargas y pestañas. Cada test utiliza un contexto de navegador con sus propias cookies y storage.
+Los proyectos `signed-in` y `guest` comparten ese servidor Next. Las sesiones son cookies con JWT emitidos por la API real; no hay aliases de autenticación ni booleanos de acceso.
+
+Cada worker crea una cuenta temporal mediante `/auth/register`, con un correo `e2e-<uuid>@example.test`. La elimina al terminar usando una consulta parametrizada que exige su identificador y correo exactos. El helper `apps/api/test/fixtures/auth-fixture.mjs` también genera un token ya caducado para comprobar que Nest lo rechaza; lee la configuración local sin imprimir secretos. Estas pruebas están diseñadas para la base local de desarrollo.
+
+Los escenarios comprueban login correcto e incorrecto, cookie HttpOnly, persistencia tras recargar, logout sin recarga completa, acceso tras cerrar sesión, redirecciones de invitado, expiración real del JWT y fallos de conexión. También mantienen los escenarios de navegación móvil, idioma, tema, páginas 404 y perfil entre pestañas. Cada test utiliza cookies y storage independientes.
+
+Las desconexiones se provocan solo en el proxy de pruebas: no se detiene ni modifica la API del desarrollador. El modo normal del proxy se restaura al terminar cada test.
 
 El servidor utilizado es `next dev`. Las comprobaciones de Next sobre `instant` pueden mostrar avisos de desarrollo al ejecutar redirecciones o `notFound()`. Para una validación final de publicación conviene repetir los flujos contra una compilación de producción.
 

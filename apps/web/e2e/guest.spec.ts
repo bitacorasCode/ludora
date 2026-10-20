@@ -1,6 +1,5 @@
-import { expect, test } from '@playwright/test';
-
 import esMessages from '../src/messages/es.json';
+import { expect, test } from './fixtures/auth';
 
 test.describe('Guest access', () => {
   test('redirects protected account routes to login with the current locale', async ({

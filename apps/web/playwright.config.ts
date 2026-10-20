@@ -1,7 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = 'http://localhost:3100';
-const guestURL = 'http://localhost:3101';
 
 export default defineConfig({
   testDir: './e2e',
@@ -17,29 +16,26 @@ export default defineConfig({
     channel: process.env.PLAYWRIGHT_CHANNEL,
   },
   projects: [
-    {
-      name: 'signed-in',
-      testIgnore: '**/guest.spec.ts',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'guest',
-      testMatch: '**/guest.spec.ts',
-      use: { ...devices['Desktop Chrome'], baseURL: guestURL },
-    },
+    { name: 'signed-in', testIgnore: ['**/guest.spec.ts', '**/auth.spec.ts'], use: { ...devices['Desktop Chrome'] } },
+    { name: 'guest', testMatch: ['**/guest.spec.ts', '**/auth.spec.ts'], use: { ...devices['Desktop Chrome'] } },
   ],
   webServer: [
     {
-      command: 'pnpm dev --port 3100',
-      url: baseURL,
-      env: { LUDORA_E2E_MODE: 'signed-in' },
-      reuseExistingServer: false,
+      command: 'pnpm --filter api start:dev',
+      url: 'http://localhost:3001',
+      reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },
     {
-      command: 'pnpm dev --port 3101',
-      url: guestURL,
-      env: { LUDORA_E2E_MODE: 'guest' },
+      command: 'node e2e/fixtures/api-proxy.mjs',
+      url: 'http://127.0.0.1:3102/__health',
+      reuseExistingServer: false,
+      timeout: 30_000,
+    },
+    {
+      command: 'pnpm dev --port 3100',
+      url: baseURL,
+      env: { LUDORA_E2E: '1', API_URL: 'http://127.0.0.1:3102' },
       reuseExistingServer: false,
       timeout: 120_000,
     },

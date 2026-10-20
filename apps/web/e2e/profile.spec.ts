@@ -1,6 +1,5 @@
-import { expect, test } from '@playwright/test';
-
 import esMessages from '../src/messages/es.json';
+import { expect, test } from './fixtures/auth';
 
 test.describe('Profile persistence', () => {
   test('saves preferences across reloads and synchronizes another tab', async ({
@@ -36,7 +35,9 @@ test.describe('Profile persistence', () => {
     await page
       .getByLabel(esMessages.Profile.bioLabel)
       .fill('Mi perfil persistido');
-    await page.getByRole('button', { name: esMessages.Common.actions.saveChanges }).click();
+    await page
+      .getByRole('button', { name: esMessages.Common.actions.saveChanges })
+      .click();
     await expect(page.getByRole('status')).toHaveText(esMessages.Profile.saved);
     await expect(
       otherTab.getByText('Mi perfil persistido', { exact: true }),
@@ -58,7 +59,9 @@ test.describe('Profile persistence', () => {
     await page
       .getByLabel(esMessages.Profile.bioLabel)
       .fill('Cambio descartado');
-    await page.getByRole('button', { name: esMessages.Common.actions.cancel }).click();
+    await page
+      .getByRole('button', { name: esMessages.Common.actions.cancel })
+      .click();
     await expect(page.getByText(esMessages.Profile.emptyBio)).toBeVisible();
     expect(
       await page.evaluate(() => localStorage.getItem('ludora:preview-profile')),

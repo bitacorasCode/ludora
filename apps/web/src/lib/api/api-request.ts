@@ -7,6 +7,7 @@ import {
     OPERATION_STATUS,
 } from '@/lib/actions';
 
+import { getApiBaseUrl } from './config';
 import { API_ERROR_CODES, API_TIMEOUT_MS } from './constants';
 
 const apiErrorSchema = z.object({
@@ -14,21 +15,7 @@ const apiErrorSchema = z.object({
 });
 
 function resolveApiUrl(path: string): URL | null {
-    const { API_URL } = process.env;
-
-    if (!API_URL) {
-        throw new Error('Missing API_URL environment variable.');
-    }
-
-    const baseUrl = new URL(API_URL);
-
-    if (
-        !['http:', 'https:'].includes(baseUrl.protocol)
-        || baseUrl.username
-        || baseUrl.password
-    ) {
-        throw new Error('API_URL must be an HTTP(S) URL without credentials.');
-    }
+    const baseUrl = getApiBaseUrl();
 
     if (!path.startsWith('/') || path.startsWith('//') || path.includes('\\')) {
         return null;

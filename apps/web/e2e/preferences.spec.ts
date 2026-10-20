@@ -1,10 +1,8 @@
-import { expect, test } from '@playwright/test';
-
 import enMessages from '../src/messages/en.json';
 import esMessages from '../src/messages/es.json';
-import { isLoggedIn } from './fixtures/auth-signed-in';
+import { expect, test } from './fixtures/auth';
 
-const preferencesPath = isLoggedIn ? '/account/preferences' : '/preferences';
+const preferencesPath = '/account/preferences';
 
 test.describe('User preferences', () => {
   test.use({ locale: 'es-CL', colorScheme: 'light' });

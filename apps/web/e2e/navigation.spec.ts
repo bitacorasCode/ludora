@@ -1,8 +1,6 @@
-import { expect, test } from '@playwright/test';
-
 import enMessages from '../src/messages/en.json';
 import esMessages from '../src/messages/es.json';
-import { isLoggedIn } from './fixtures/auth-signed-in';
+import { expect, test } from './fixtures/auth';
 
 test.describe('Platform navigation', () => {
   test('closes the mobile menu after navigating and restores focus on Escape', async ({
@@ -38,27 +36,23 @@ test.describe('Platform navigation', () => {
     page,
   }) => {
     await page.goto('/es/preferences');
-    await expect(page).toHaveURL(
-      isLoggedIn ? '/es/account/preferences' : '/es/preferences',
-    );
-    if (isLoggedIn) {
-      const navigation = page.getByRole('navigation', {
-        name: esMessages.Account.navigationLabel,
-      });
-      await expect(
-        navigation.getByRole('link', { name: esMessages.Account.preferences }),
-      ).toHaveAttribute('aria-current', 'page');
-      await navigation
-        .getByRole('link', { name: esMessages.Account.activity })
-        .click();
-      await expect(page).toHaveURL('/es/account/activity');
-      await expect(
-        navigation.getByRole('link', { name: esMessages.Account.activity }),
-      ).toHaveAttribute('aria-current', 'page');
-      await expect(
-        navigation.getByRole('link', { name: esMessages.Account.preferences }),
-      ).not.toHaveAttribute('aria-current');
-    }
+    await expect(page).toHaveURL('/es/account/preferences');
+    const navigation = page.getByRole('navigation', {
+      name: esMessages.Account.navigationLabel,
+    });
+    await expect(
+      navigation.getByRole('link', { name: esMessages.Account.preferences }),
+    ).toHaveAttribute('aria-current', 'page');
+    await navigation
+      .getByRole('link', { name: esMessages.Account.activity })
+      .click();
+    await expect(page).toHaveURL('/es/account/activity');
+    await expect(
+      navigation.getByRole('link', { name: esMessages.Account.activity }),
+    ).toHaveAttribute('aria-current', 'page');
+    await expect(
+      navigation.getByRole('link', { name: esMessages.Account.preferences }),
+    ).not.toHaveAttribute('aria-current');
   });
 
   test('preserves the locale and layout on localized missing routes', async ({
