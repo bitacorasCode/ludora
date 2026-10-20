@@ -1,11 +1,11 @@
 import { useTranslations } from 'next-intl';
 
-import { ContentSkeleton } from '@/components/feedback';
 import { BodyText, SectionTitle } from '@/components/typography';
 import { Button, Card, CardContent } from '@/components/ui';
 
 import type { Profile } from '../config';
 import { ProfileAvatar } from './profile-avatar';
+import { ProfileSkeleton } from './profile-skeleton';
 
 type ProfileIdentityProps = {
   profile: Profile | null;
@@ -21,16 +21,7 @@ export function ProfileIdentity({
   const t = useTranslations('Profile');
 
   if (!profile) {
-    return (
-      <ContentSkeleton
-        variant='row'
-        withAvatar
-        withAction
-        size='lg'
-        withCard
-        label={t('loading')}
-      />
-    );
+    return <ProfileSkeleton />;
   }
 
   return (

@@ -20,3 +20,7 @@ export const API_ERROR_CODES = {
     invalidRequest: 'API_INVALID_REQUEST',
     authenticationRequired: 'AUTHENTICATION_REQUIRED',
 } as const;
+
+export const HTTP_STATUS = {
+    unauthorized: 401,
+} as const;

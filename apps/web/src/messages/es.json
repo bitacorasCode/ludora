@@ -160,6 +160,7 @@
         "eyebrow": "Ludora a tu manera",
         "languageDescription": "Elige el idioma de los textos y de la navegación.",
         "languageTitle": "Idioma de la plataforma",
+        "loading": "Cargando preferencias",
         "title": "Preferencias"
     },
     "Profile": {
@@ -243,6 +244,7 @@
         "emailDescription": "Tu correo es privado y no se muestra en el perfil visible.",
         "emailTitle": "Correo electrónico",
         "eyebrow": "Acceso y privacidad",
+        "loading": "Cargando ajustes de cuenta",
         "passwordTitle": "Contraseña",
         "passwordUnavailable": "Esta opción estará disponible cuando puedas iniciar sesión en tu cuenta.",
         "previewEmail": "Correo de ejemplo para esta vista previa.",

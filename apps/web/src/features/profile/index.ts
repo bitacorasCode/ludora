@@ -1,1 +1,2 @@
 export { ProfilePageContent } from './components/profile-page-content';
+export { ProfileSkeleton } from './components/profile-skeleton';

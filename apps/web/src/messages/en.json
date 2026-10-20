@@ -160,6 +160,7 @@
         "eyebrow": "Ludora your way",
         "languageDescription": "Choose the language for text and navigation.",
         "languageTitle": "Platform language",
+        "loading": "Loading preferences",
         "title": "Preferences"
     },
     "Profile": {
@@ -243,6 +244,7 @@
         "emailDescription": "Your email is private and is not shown on your visible profile.",
         "emailTitle": "Email address",
         "eyebrow": "Access and privacy",
+        "loading": "Loading account settings",
         "passwordTitle": "Password",
         "passwordUnavailable": "This option will be available when you can sign in to your account.",
         "previewEmail": "Example email address for this preview.",
