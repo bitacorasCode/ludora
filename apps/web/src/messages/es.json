@@ -1,235 +1,251 @@
 {
+    "Account": {
+        "activity": "Actividad",
+        "loading": "Cargando cuenta",
+        "navigationLabel": "Secciones de mi cuenta",
+        "preferences": "Preferencias",
+        "profile": "Perfil",
+        "settings": "Cuenta",
+        "title": "Mi cuenta"
+    },
+    "Activity": {
+        "description": "Consulta tus partidas recientes y tu participación en las clasificaciones.",
+        "eyebrow": "Tu recorrido en Ludora",
+        "loading": "Cargando actividad",
+        "matches": {
+            "description": "Consulta las partidas que has jugado y sus resultados.",
+            "emptyDescription": "Cuando juegues en Ludora, encontrarás aquí tus partidas recientes.",
+            "emptyTitle": "Todavía no hay partidas para mostrar",
+            "exploreGames": "Explorar juegos",
+            "title": "Partidas recientes"
+        },
+        "rankings": {
+            "description": "Consulta tu posición en las clasificaciones de los juegos en los que participas.",
+            "emptyDescription": "Tus posiciones aparecerán aquí cuando participes en juegos con clasificación.",
+            "emptyTitle": "Todavía no participas en ninguna clasificación",
+            "title": "Mis clasificaciones",
+            "viewRankings": "Ver clasificaciones"
+        },
+        "title": "Actividad"
+    },
+    "Catalog": {
+        "description": "El catálogo de Ludora aún está vacío. Pronto encontrarás aquí juegos para explorar.",
+        "emptyDescription": "Estamos preparando este espacio para los primeros juegos de la plataforma.",
+        "emptyTitle": "Aún no hay juegos",
+        "eyebrow": "Explora Ludora",
+        "title": "Catálogo de juegos"
+    },
     "Common": {
         "actions": {
-            "continue": "Continuar",
+            "backHome": "Volver al inicio",
             "cancel": "Cancelar",
-            "saveChanges": "Guardar cambios",
+            "continue": "Continuar",
             "retry": "Reintentar",
-            "backHome": "Volver al inicio"
+            "saveChanges": "Guardar cambios"
+        },
+        "errors": {
+            "ACTION_VALIDATION_FAILED": "Revisa los datos del formulario.",
+            "API_INVALID_REQUEST": "No pudimos procesar la solicitud.",
+            "API_INVALID_RESPONSE": "Recibimos una respuesta inesperada. Inténtalo de nuevo.",
+            "API_REQUEST_FAILED": "No pudimos completar la solicitud.",
+            "API_UNAVAILABLE": "No pudimos conectar con el servicio. Inténtalo de nuevo.",
+            "AUTHENTICATION_REQUIRED": "Inicia sesión para continuar.",
+            "unknown": "No pudimos completar la operación. Inténtalo de nuevo."
         },
         "status": {
             "validating": "Validando..."
         }
     },
+    "FormTextField": {
+        "hide": "Ocultar",
+        "show": "Mostrar"
+    },
+    "Header": {
+        "account": "Mi cuenta",
+        "exploreCatalog": "Explorar catálogo",
+        "games": "Juegos",
+        "login": "Iniciar sesión",
+        "mainNavigation": "Navegación principal",
+        "menu": "Menú",
+        "menuDescription": "Accede a las secciones de la plataforma.",
+        "menuTitle": "Menú de Ludora",
+        "mobileNavigation": "Navegación móvil",
+        "preferences": "Preferencias",
+        "ranking": "Ranking",
+        "register": "Registro"
+    },
+    "Home": {
+        "description": "Descubre juegos, reúne a tus amigos y comparte nuevas partidas desde un solo lugar.",
+        "exploreLudora": "Explorar Ludora",
+        "eyebrow": "La plataforma para tus juegos",
+        "title": "Una mesa para todos tus mundos."
+    },
     "Layout": {
         "skipToContent": "Saltar al contenido"
     },
-    "NotFound": {
-        "eyebrow": "Error 404",
-        "title": "Página no encontrada",
-        "description": "La página que buscas no existe o cambió de dirección. Puedes volver al inicio o explorar los juegos de Ludora.",
-        "exploreGames": "Explorar juegos"
-    },
-    "RouteError": {
-        "title": "No pudimos cargar esta sección",
-        "description": "Inténtalo de nuevo. Si el problema continúa, puedes volver al inicio."
-    },
     "LocaleSwitcher": {
-        "label": "Idioma",
+        "en": "Ingles",
         "es": "Español",
-        "en": "Ingles"
-    },
-    "Header": {
-        "games": "Juegos",
-        "login": "Iniciar sesión",
-        "account": "Mi cuenta",
-        "preferences": "Preferencias",
-        "register": "Registro",
-        "ranking": "Ranking",
-        "exploreCatalog": "Explorar catálogo",
-        "menu": "Menú",
-        "menuTitle": "Menú de Ludora",
-        "menuDescription": "Accede a las secciones de la plataforma.",
-        "mainNavigation": "Navegación principal",
-        "mobileNavigation": "Navegación móvil"
-    },
-    "Home": {
-        "eyebrow": "La plataforma para tus juegos",
-        "title": "Una mesa para todos tus mundos.",
-        "description": "Descubre juegos, reúne a tus amigos y comparte nuevas partidas desde un solo lugar.",
-        "exploreLudora": "Explorar Ludora"
-    },
-    "Catalog": {
-        "eyebrow": "Explora Ludora",
-        "title": "Catálogo de juegos",
-        "description": "El catálogo de Ludora aún está vacío. Pronto encontrarás aquí juegos para explorar.",
-        "emptyTitle": "Aún no hay juegos",
-        "emptyDescription": "Estamos preparando este espacio para los primeros juegos de la plataforma."
-    },
-    "Ranking": {
-        "eyebrow": "Comunidad",
-        "title": "Ranking",
-        "description": "Aquí aparecerán las clasificaciones de los juegos cuando comiencen las partidas.",
-        "emptyTitle": "Aún no hay clasificaciones",
-        "emptyDescription": "Todavía no se han registrado partidas. Vuelve cuando la comunidad empiece a jugar."
-    },
-    "Account": {
-        "title": "Mi cuenta",
-        "loading": "Cargando cuenta",
-        "navigationLabel": "Secciones de mi cuenta",
-        "profile": "Perfil",
-        "settings": "Cuenta",
-        "preferences": "Preferencias",
-        "activity": "Actividad"
-    },
-    "Activity": {
-        "loading": "Cargando actividad",
-        "eyebrow": "Tu recorrido en Ludora",
-        "title": "Actividad",
-        "description": "Consulta tus partidas recientes y tu participación en las clasificaciones.",
-        "matches": {
-            "title": "Partidas recientes",
-            "description": "Consulta las partidas que has jugado y sus resultados.",
-            "emptyTitle": "Todavía no hay partidas para mostrar",
-            "emptyDescription": "Cuando juegues en Ludora, encontrarás aquí tus partidas recientes.",
-            "exploreGames": "Explorar juegos"
-        },
-        "rankings": {
-            "title": "Mis clasificaciones",
-            "description": "Consulta tu posición en las clasificaciones de los juegos en los que participas.",
-            "emptyTitle": "Todavía no participas en ninguna clasificación",
-            "emptyDescription": "Tus posiciones aparecerán aquí cuando participes en juegos con clasificación.",
-            "viewRankings": "Ver clasificaciones"
-        }
-    },
-    "UserSettings": {
-        "eyebrow": "Acceso y privacidad",
-        "title": "Cuenta",
-        "description": "Consulta tu correo privado y las opciones de acceso a Ludora.",
-        "emailTitle": "Correo electrónico",
-        "emailDescription": "Tu correo es privado y no se muestra en el perfil visible.",
-        "previewEmail": "Correo de ejemplo para esta vista previa.",
-        "passwordTitle": "Contraseña",
-        "changePassword": "Cambiar contraseña",
-        "passwordUnavailable": "Esta opción estará disponible cuando puedas iniciar sesión en tu cuenta."
-    },
-    "Preferences": {
-        "eyebrow": "Ludora a tu manera",
-        "title": "Preferencias",
-        "description": "Elige cómo quieres ver y usar Ludora. Los cambios se aplican automáticamente y se recuerdan en este navegador.",
-        "appearanceTitle": "Apariencia",
-        "appearanceDescription": "Activa o desactiva el modo oscuro.",
-        "languageTitle": "Idioma de la plataforma",
-        "languageDescription": "Elige el idioma de los textos y de la navegación."
-    },
-    "Profile": {
-        "eyebrow": "Tu cuenta",
-        "title": "Mi perfil",
-        "description": "Tu identidad dentro de Ludora.",
-        "loading": "Cargando perfil",
-        "emptyBio": "Todavía no agregaste una biografía.",
-        "edit": "Editar perfil",
-        "avatarLabel": "Elige un avatar",
-        "useInitial": "Usar mi inicial",
-        "avatars": {
-            "comet": "Cometa",
-            "planet": "Planeta",
-            "fox": "Zorro",
-            "castle": "Castillo",
-            "clover": "Trébol",
-            "die": "Dado"
-        },
-        "bioLabel": "Biografía",
-        "bioPlaceholder": "Cuéntanos algo sobre ti…",
-        "bioCounter": "{count}/{max} caracteres",
-        "saved": "Perfil actualizado en este navegador.",
-        "saveError": "No se pudieron guardar los cambios. Inténtalo de nuevo."
-    },
-    "Metadata": {
-        "title": "Ludora - La plataforma para tus juegos",
-        "description": "Descubre juegos, reúne a tus amigos y comparte nuevas partidas desde un solo lugar."
-    },
-    "ThemeSwitch": {
-        "label": "Modo oscuro"
-    },
-    "FormTextField": {
-        "show": "Mostrar",
-        "hide": "Ocultar"
-    },
-    "Register": {
-        "title": "Registro",
-        "metadataDescription": "Conoce el formulario de registro de Ludora. La creación de cuentas estará disponible próximamente.",
-        "skipToForm": "Saltar al formulario",
-        "accountData": "Datos de la cuenta",
-        "signIn": "Ya tengo una cuenta",
-        "fields": {
-            "nickname": {
-                "label": "Nombre de usuario",
-                "placeholder": "Juanito123"
-            },
-            "email": {
-                "label": "Correo electrónico",
-                "placeholder": "juan.perez@ejemplo.com"
-            },
-            "password": {
-                "label": "Contraseña",
-                "placeholder": "Crea una contraseña"
-            },
-            "confirmPassword": {
-                "label": "Confirmar contraseña",
-                "placeholder": "Repite la contraseña"
-            }
-        },
-        "feedback": {
-            "title": "Registro todavía no disponible",
-            "unavailable": "El formulario pasó la validación, pero aún no podemos crear cuentas. Tus datos no se guardaron.",
-            "errorTitle": "Algo salió mal",
-            "unexpectedError": "No pudimos procesar el formulario. Inténtalo de nuevo."
-        },
-        "validation": {
-            "nicknameMin": "El nombre de usuario debe tener al menos 2 caracteres.",
-            "emailInvalid": "Introduce un correo electrónico válido.",
-            "passwordMin": "La contraseña debe tener al menos 8 caracteres.",
-            "confirmPasswordRequired": "Repite la contraseña.",
-            "passwordMismatch": "Las contraseñas no coinciden."
-        }
+        "label": "Idioma"
     },
     "Login": {
-        "title": "Iniciar sesión",
-        "description": "Accede a tu cuenta de Ludora cuando el inicio de sesión esté disponible.",
-        "skipToForm": "Saltar al formulario de acceso",
+        "description": "Accede a tu cuenta de Ludora con tu correo y contraseña.",
         "email": "Correo electrónico",
         "emailPlaceholder": "tu@ejemplo.com",
+        "errors": {
+            "AUTH_INVALID_CREDENTIALS": "El correo o la contraseña son incorrectos."
+        },
+        "feedback": {
+            "errorTitle": "No pudimos iniciar sesión",
+            "successMessage": "Has iniciado sesión correctamente.",
+            "successTitle": "Sesión iniciada"
+        },
+        "forgotPassword": "¿Olvidaste tu contraseña?",
         "password": "Contraseña",
         "passwordPlaceholder": "Introduce tu contraseña",
-        "submit": "Iniciar sesión",
-        "forgotPassword": "¿Olvidaste tu contraseña?",
         "register": "Crear una cuenta",
-        "feedbackTitle": "Inicio de sesión aún no disponible",
-        "feedbackMessage": "Los datos son válidos, pero aún no es posible iniciar sesión. No se han enviado ni guardado tus credenciales.",
+        "skipToForm": "Saltar al formulario de acceso",
+        "submit": "Iniciar sesión",
+        "submitting": "Iniciando sesión...",
+        "title": "Iniciar sesión",
         "validation": {
             "emailInvalid": "Introduce un correo electrónico válido.",
             "passwordRequired": "Introduce tu contraseña."
         }
     },
+    "Metadata": {
+        "description": "Descubre juegos, reúne a tus amigos y comparte nuevas partidas desde un solo lugar.",
+        "title": "Ludora - La plataforma para tus juegos"
+    },
+    "NotFound": {
+        "description": "La página que buscas no existe o cambió de dirección. Puedes volver al inicio o explorar los juegos de Ludora.",
+        "exploreGames": "Explorar juegos",
+        "eyebrow": "Error 404",
+        "title": "Página no encontrada"
+    },
     "PasswordRecovery": {
-        "skipToForm": "Saltar al formulario de recuperación",
+        "backToLogin": "Volver a iniciar sesión",
+        "confirmPassword": "Confirmar contraseña nueva",
+        "confirmPasswordPlaceholder": "Repite la contraseña nueva",
         "email": "Correo electrónico",
         "emailPlaceholder": "tu@ejemplo.com",
         "password": "Contraseña nueva",
         "passwordPlaceholder": "Crea una contraseña nueva",
-        "confirmPassword": "Confirmar contraseña nueva",
-        "confirmPasswordPlaceholder": "Repite la contraseña nueva",
-        "backToLogin": "Volver a iniciar sesión",
         "request": {
-            "title": "Recuperar contraseña",
             "description": "Escribe tu correo para ver cómo funcionará la recuperación de tu cuenta.",
-            "feedbackTitle": "Recuperación aún no disponible",
             "feedbackMessage": "El correo es válido, pero todavía no enviamos mensajes de recuperación. No se ha enviado ningún correo.",
-            "previewReset": "Ver pantalla de nueva contraseña"
+            "feedbackTitle": "Recuperación aún no disponible",
+            "previewReset": "Ver pantalla de nueva contraseña",
+            "title": "Recuperar contraseña"
         },
         "reset": {
-            "title": "Crear una contraseña nueva",
             "description": "Vista previa del último paso de recuperación. Todavía no hay un enlace de recuperación ni una cuenta asociada.",
-            "submit": "Cambiar contraseña",
+            "feedbackMessage": "Las contraseñas coinciden, pero no se ha cambiado ninguna contraseña. Esta pantalla es una vista previa.",
             "feedbackTitle": "Cambio de contraseña aún no disponible",
-            "feedbackMessage": "Las contraseñas coinciden, pero no se ha cambiado ninguna contraseña. Esta pantalla es una vista previa."
+            "submit": "Cambiar contraseña",
+            "title": "Crear una contraseña nueva"
         },
+        "skipToForm": "Saltar al formulario de recuperación",
         "validation": {
+            "confirmPasswordRequired": "Repite la contraseña nueva.",
             "emailInvalid": "Introduce un correo electrónico válido.",
             "passwordMin": "La contraseña debe tener al menos 8 caracteres.",
-            "confirmPasswordRequired": "Repite la contraseña nueva.",
             "passwordMismatch": "Las contraseñas no coinciden."
         }
+    },
+    "Preferences": {
+        "appearanceDescription": "Activa o desactiva el modo oscuro.",
+        "appearanceTitle": "Apariencia",
+        "description": "Elige cómo quieres ver y usar Ludora. Los cambios se aplican automáticamente y se recuerdan en este navegador.",
+        "eyebrow": "Ludora a tu manera",
+        "languageDescription": "Elige el idioma de los textos y de la navegación.",
+        "languageTitle": "Idioma de la plataforma",
+        "title": "Preferencias"
+    },
+    "Profile": {
+        "avatarLabel": "Elige un avatar",
+        "avatars": {
+            "castle": "Castillo",
+            "clover": "Trébol",
+            "comet": "Cometa",
+            "die": "Dado",
+            "fox": "Zorro",
+            "planet": "Planeta"
+        },
+        "bioCounter": "{count}/{max} caracteres",
+        "bioLabel": "Biografía",
+        "bioPlaceholder": "Cuéntanos algo sobre ti…",
+        "description": "Tu identidad dentro de Ludora.",
+        "edit": "Editar perfil",
+        "emptyBio": "Todavía no agregaste una biografía.",
+        "eyebrow": "Tu cuenta",
+        "loading": "Cargando perfil",
+        "saveError": "No se pudieron guardar los cambios. Inténtalo de nuevo.",
+        "saved": "Perfil actualizado en este navegador.",
+        "title": "Mi perfil",
+        "useInitial": "Usar mi inicial"
+    },
+    "Ranking": {
+        "description": "Aquí aparecerán las clasificaciones de los juegos cuando comiencen las partidas.",
+        "emptyDescription": "Todavía no se han registrado partidas. Vuelve cuando la comunidad empiece a jugar.",
+        "emptyTitle": "Aún no hay clasificaciones",
+        "eyebrow": "Comunidad",
+        "title": "Ranking"
+    },
+    "Register": {
+        "accountData": "Datos de la cuenta",
+        "feedback": {
+            "errorTitle": "Algo salió mal",
+            "title": "Registro todavía no disponible",
+            "unavailable": "El formulario pasó la validación, pero aún no podemos crear cuentas. Tus datos no se guardaron.",
+            "unexpectedError": "No pudimos procesar el formulario. Inténtalo de nuevo."
+        },
+        "fields": {
+            "confirmPassword": {
+                "label": "Confirmar contraseña",
+                "placeholder": "Repite la contraseña"
+            },
+            "email": {
+                "label": "Correo electrónico",
+                "placeholder": "juan.perez@ejemplo.com"
+            },
+            "nickname": {
+                "label": "Nombre de usuario",
+                "placeholder": "Juanito123"
+            },
+            "password": {
+                "label": "Contraseña",
+                "placeholder": "Crea una contraseña"
+            }
+        },
+        "metadataDescription": "Conoce el formulario de registro de Ludora. La creación de cuentas estará disponible próximamente.",
+        "signIn": "Ya tengo una cuenta",
+        "skipToForm": "Saltar al formulario",
+        "title": "Registro",
+        "validation": {
+            "confirmPasswordRequired": "Repite la contraseña.",
+            "emailInvalid": "Introduce un correo electrónico válido.",
+            "nicknameMin": "El nombre de usuario debe tener al menos 2 caracteres.",
+            "passwordMin": "La contraseña debe tener al menos 8 caracteres.",
+            "passwordMismatch": "Las contraseñas no coinciden."
+        }
+    },
+    "RouteError": {
+        "description": "Inténtalo de nuevo. Si el problema continúa, puedes volver al inicio.",
+        "title": "No pudimos cargar esta sección"
+    },
+    "ThemeSwitch": {
+        "label": "Modo oscuro"
+    },
+    "UserSettings": {
+        "changePassword": "Cambiar contraseña",
+        "description": "Consulta tu correo privado y las opciones de acceso a Ludora.",
+        "emailDescription": "Tu correo es privado y no se muestra en el perfil visible.",
+        "emailTitle": "Correo electrónico",
+        "eyebrow": "Acceso y privacidad",
+        "passwordTitle": "Contraseña",
+        "passwordUnavailable": "Esta opción estará disponible cuando puedas iniciar sesión en tu cuenta.",
+        "previewEmail": "Correo de ejemplo para esta vista previa.",
+        "title": "Cuenta"
     }
 }

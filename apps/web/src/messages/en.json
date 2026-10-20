@@ -1,235 +1,251 @@
 {
+    "Account": {
+        "activity": "Activity",
+        "loading": "Loading account",
+        "navigationLabel": "Account sections",
+        "preferences": "Preferences",
+        "profile": "Profile",
+        "settings": "Account",
+        "title": "My account"
+    },
+    "Activity": {
+        "description": "View your recent matches and participation in rankings.",
+        "eyebrow": "Your journey on Ludora",
+        "loading": "Loading activity",
+        "matches": {
+            "description": "View the matches you have played and their results.",
+            "emptyDescription": "When you play on Ludora, your recent matches will appear here.",
+            "emptyTitle": "No matches to show yet",
+            "exploreGames": "Explore games",
+            "title": "Recent matches"
+        },
+        "rankings": {
+            "description": "View your position in rankings for the games you take part in.",
+            "emptyDescription": "Your positions will appear here when you take part in games with rankings.",
+            "emptyTitle": "You are not in any rankings yet",
+            "title": "My rankings",
+            "viewRankings": "View rankings"
+        },
+        "title": "Activity"
+    },
+    "Catalog": {
+        "description": "The Ludora catalog is empty for now. Soon you'll find games to explore here.",
+        "emptyDescription": "We're preparing this space for the platform's first games.",
+        "emptyTitle": "No games yet",
+        "eyebrow": "Explore Ludora",
+        "title": "Game catalog"
+    },
     "Common": {
         "actions": {
-            "continue": "Continue",
+            "backHome": "Back to home",
             "cancel": "Cancel",
-            "saveChanges": "Save changes",
+            "continue": "Continue",
             "retry": "Try again",
-            "backHome": "Back to home"
+            "saveChanges": "Save changes"
+        },
+        "errors": {
+            "ACTION_VALIDATION_FAILED": "Check the form details.",
+            "API_INVALID_REQUEST": "We couldn't process the request.",
+            "API_INVALID_RESPONSE": "We received an unexpected response. Please try again.",
+            "API_REQUEST_FAILED": "We couldn't complete the request.",
+            "API_UNAVAILABLE": "We couldn't connect to the service. Please try again.",
+            "AUTHENTICATION_REQUIRED": "Sign in to continue.",
+            "unknown": "We couldn't complete the operation. Please try again."
         },
         "status": {
             "validating": "Validating..."
         }
     },
+    "FormTextField": {
+        "hide": "Hide",
+        "show": "Show"
+    },
+    "Header": {
+        "account": "My account",
+        "exploreCatalog": "Explore catalog",
+        "games": "Games",
+        "login": "Sign in",
+        "mainNavigation": "Main navigation",
+        "menu": "Menu",
+        "menuDescription": "Browse the platform sections.",
+        "menuTitle": "Ludora menu",
+        "mobileNavigation": "Mobile navigation",
+        "preferences": "Preferences",
+        "ranking": "Ranking",
+        "register": "Register"
+    },
+    "Home": {
+        "description": "Discover games, meet up with friends, and share new games in one place.",
+        "exploreLudora": "Explore Ludora",
+        "eyebrow": "The platform for your games",
+        "title": "A table for all your worlds."
+    },
     "Layout": {
         "skipToContent": "Skip to content"
     },
-    "NotFound": {
-        "eyebrow": "Error 404",
-        "title": "Page not found",
-        "description": "The page you are looking for does not exist or has moved. You can return to the home page or explore Ludora's games.",
-        "exploreGames": "Explore games"
-    },
-    "RouteError": {
-        "title": "We couldn't load this section",
-        "description": "Please try again. If the problem continues, you can return to the home page."
-    },
     "LocaleSwitcher": {
-        "label": "Language",
+        "en": "English",
         "es": "Spanish",
-        "en": "English"
-    },
-    "Header": {
-        "games": "Games",
-        "login": "Sign in",
-        "account": "My account",
-        "preferences": "Preferences",
-        "register": "Register",
-        "ranking": "Ranking",
-        "exploreCatalog": "Explore catalog",
-        "menu": "Menu",
-        "menuTitle": "Ludora menu",
-        "menuDescription": "Browse the platform sections.",
-        "mainNavigation": "Main navigation",
-        "mobileNavigation": "Mobile navigation"
-    },
-    "Home": {
-        "eyebrow": "The platform for your games",
-        "title": "A table for all your worlds.",
-        "description": "Discover games, meet up with friends, and share new games in one place.",
-        "exploreLudora": "Explore Ludora"
-    },
-    "Catalog": {
-        "eyebrow": "Explore Ludora",
-        "title": "Game catalog",
-        "description": "The Ludora catalog is empty for now. Soon you'll find games to explore here.",
-        "emptyTitle": "No games yet",
-        "emptyDescription": "We're preparing this space for the platform's first games."
-    },
-    "Ranking": {
-        "eyebrow": "Community",
-        "title": "Ranking",
-        "description": "Game rankings will appear here once matches begin.",
-        "emptyTitle": "No rankings yet",
-        "emptyDescription": "No matches have been recorded yet. Come back when the community starts playing."
-    },
-    "Account": {
-        "title": "My account",
-        "loading": "Loading account",
-        "navigationLabel": "Account sections",
-        "profile": "Profile",
-        "settings": "Account",
-        "preferences": "Preferences",
-        "activity": "Activity"
-    },
-    "Activity": {
-        "loading": "Loading activity",
-        "eyebrow": "Your journey on Ludora",
-        "title": "Activity",
-        "description": "View your recent matches and participation in rankings.",
-        "matches": {
-            "title": "Recent matches",
-            "description": "View the matches you have played and their results.",
-            "emptyTitle": "No matches to show yet",
-            "emptyDescription": "When you play on Ludora, your recent matches will appear here.",
-            "exploreGames": "Explore games"
-        },
-        "rankings": {
-            "title": "My rankings",
-            "description": "View your position in rankings for the games you take part in.",
-            "emptyTitle": "You are not in any rankings yet",
-            "emptyDescription": "Your positions will appear here when you take part in games with rankings.",
-            "viewRankings": "View rankings"
-        }
-    },
-    "UserSettings": {
-        "eyebrow": "Access and privacy",
-        "title": "Account",
-        "description": "View your private email address and Ludora access options.",
-        "emailTitle": "Email address",
-        "emailDescription": "Your email is private and is not shown on your visible profile.",
-        "previewEmail": "Example email address for this preview.",
-        "passwordTitle": "Password",
-        "changePassword": "Change password",
-        "passwordUnavailable": "This option will be available when you can sign in to your account."
-    },
-    "Preferences": {
-        "eyebrow": "Ludora your way",
-        "title": "Preferences",
-        "description": "Choose how you want to view and use Ludora. Changes apply automatically and are remembered in this browser.",
-        "appearanceTitle": "Appearance",
-        "appearanceDescription": "Turn dark mode on or off.",
-        "languageTitle": "Platform language",
-        "languageDescription": "Choose the language for text and navigation."
-    },
-    "Profile": {
-        "eyebrow": "Your account",
-        "title": "My profile",
-        "description": "Your identity on Ludora.",
-        "loading": "Loading profile",
-        "emptyBio": "You haven't added a biography yet.",
-        "edit": "Edit profile",
-        "avatarLabel": "Choose an avatar",
-        "useInitial": "Use my initial",
-        "avatars": {
-            "comet": "Comet",
-            "planet": "Planet",
-            "fox": "Fox",
-            "castle": "Castle",
-            "clover": "Clover",
-            "die": "Die"
-        },
-        "bioLabel": "Biography",
-        "bioPlaceholder": "Tell us a little about yourself…",
-        "bioCounter": "{count}/{max} characters",
-        "saved": "Profile updated in this browser.",
-        "saveError": "Your changes could not be saved. Please try again."
-    },
-    "Metadata": {
-        "title": "Ludora - The platform for your games",
-        "description": "Discover games, meet up with friends, and share new games in one place."
-    },
-    "ThemeSwitch": {
-        "label": "Dark mode"
-    },
-    "FormTextField": {
-        "show": "Show",
-        "hide": "Hide"
-    },
-    "Register": {
-        "title": "Register",
-        "metadataDescription": "Explore the Ludora registration form. Account creation will be available soon.",
-        "skipToForm": "Skip to form",
-        "accountData": "Account details",
-        "signIn": "I already have an account",
-        "fields": {
-            "nickname": {
-                "label": "Username",
-                "placeholder": "player123"
-            },
-            "email": {
-                "label": "Email address",
-                "placeholder": "alex@example.com"
-            },
-            "password": {
-                "label": "Password",
-                "placeholder": "Create a password"
-            },
-            "confirmPassword": {
-                "label": "Confirm password",
-                "placeholder": "Repeat your password"
-            }
-        },
-        "feedback": {
-            "title": "Registration is not available yet",
-            "unavailable": "The form passed validation, but account creation is not available yet. Your details were not saved.",
-            "errorTitle": "Something went wrong",
-            "unexpectedError": "We couldn't process the form. Please try again."
-        },
-        "validation": {
-            "nicknameMin": "The username must be at least 2 characters long.",
-            "emailInvalid": "Enter a valid email address.",
-            "passwordMin": "The password must be at least 8 characters long.",
-            "confirmPasswordRequired": "Repeat your password.",
-            "passwordMismatch": "The passwords do not match."
-        }
+        "label": "Language"
     },
     "Login": {
-        "title": "Sign in",
-        "description": "Access your Ludora account when sign in becomes available.",
-        "skipToForm": "Skip to sign in form",
+        "description": "Access your Ludora account with your email and password.",
         "email": "Email address",
         "emailPlaceholder": "you@example.com",
+        "errors": {
+            "AUTH_INVALID_CREDENTIALS": "The email or password is incorrect."
+        },
+        "feedback": {
+            "errorTitle": "We couldn't sign you in",
+            "successMessage": "You have signed in successfully.",
+            "successTitle": "Signed in"
+        },
+        "forgotPassword": "Forgot your password?",
         "password": "Password",
         "passwordPlaceholder": "Enter your password",
-        "submit": "Sign in",
-        "forgotPassword": "Forgot your password?",
         "register": "Create an account",
-        "feedbackTitle": "Sign in is not available yet",
-        "feedbackMessage": "The details are valid, but sign in is not available yet. Your credentials were not sent or saved.",
+        "skipToForm": "Skip to sign in form",
+        "submit": "Sign in",
+        "submitting": "Signing in...",
+        "title": "Sign in",
         "validation": {
             "emailInvalid": "Enter a valid email address.",
             "passwordRequired": "Enter your password."
         }
     },
+    "Metadata": {
+        "description": "Discover games, meet up with friends, and share new games in one place.",
+        "title": "Ludora - The platform for your games"
+    },
+    "NotFound": {
+        "description": "The page you are looking for does not exist or has moved. You can return to the home page or explore Ludora's games.",
+        "exploreGames": "Explore games",
+        "eyebrow": "Error 404",
+        "title": "Page not found"
+    },
     "PasswordRecovery": {
-        "skipToForm": "Skip to recovery form",
+        "backToLogin": "Back to sign in",
+        "confirmPassword": "Confirm new password",
+        "confirmPasswordPlaceholder": "Repeat your new password",
         "email": "Email address",
         "emailPlaceholder": "you@example.com",
         "password": "New password",
         "passwordPlaceholder": "Create a new password",
-        "confirmPassword": "Confirm new password",
-        "confirmPasswordPlaceholder": "Repeat your new password",
-        "backToLogin": "Back to sign in",
         "request": {
-            "title": "Recover your password",
             "description": "Enter your email to preview how account recovery will work.",
-            "feedbackTitle": "Recovery is not available yet",
             "feedbackMessage": "The email is valid, but recovery messages are not available yet. No email was sent.",
-            "previewReset": "View new password screen"
+            "feedbackTitle": "Recovery is not available yet",
+            "previewReset": "View new password screen",
+            "title": "Recover your password"
         },
         "reset": {
-            "title": "Create a new password",
             "description": "Preview of the last recovery step. There is no recovery link or associated account yet.",
-            "submit": "Change password",
+            "feedbackMessage": "The passwords match, but no password was changed. This screen is a preview.",
             "feedbackTitle": "Password changes are not available yet",
-            "feedbackMessage": "The passwords match, but no password was changed. This screen is a preview."
+            "submit": "Change password",
+            "title": "Create a new password"
         },
+        "skipToForm": "Skip to recovery form",
         "validation": {
+            "confirmPasswordRequired": "Repeat your new password.",
             "emailInvalid": "Enter a valid email address.",
             "passwordMin": "The password must be at least 8 characters long.",
-            "confirmPasswordRequired": "Repeat your new password.",
             "passwordMismatch": "The passwords do not match."
         }
+    },
+    "Preferences": {
+        "appearanceDescription": "Turn dark mode on or off.",
+        "appearanceTitle": "Appearance",
+        "description": "Choose how you want to view and use Ludora. Changes apply automatically and are remembered in this browser.",
+        "eyebrow": "Ludora your way",
+        "languageDescription": "Choose the language for text and navigation.",
+        "languageTitle": "Platform language",
+        "title": "Preferences"
+    },
+    "Profile": {
+        "avatarLabel": "Choose an avatar",
+        "avatars": {
+            "castle": "Castle",
+            "clover": "Clover",
+            "comet": "Comet",
+            "die": "Die",
+            "fox": "Fox",
+            "planet": "Planet"
+        },
+        "bioCounter": "{count}/{max} characters",
+        "bioLabel": "Biography",
+        "bioPlaceholder": "Tell us a little about yourself…",
+        "description": "Your identity on Ludora.",
+        "edit": "Edit profile",
+        "emptyBio": "You haven't added a biography yet.",
+        "eyebrow": "Your account",
+        "loading": "Loading profile",
+        "saveError": "Your changes could not be saved. Please try again.",
+        "saved": "Profile updated in this browser.",
+        "title": "My profile",
+        "useInitial": "Use my initial"
+    },
+    "Ranking": {
+        "description": "Game rankings will appear here once matches begin.",
+        "emptyDescription": "No matches have been recorded yet. Come back when the community starts playing.",
+        "emptyTitle": "No rankings yet",
+        "eyebrow": "Community",
+        "title": "Ranking"
+    },
+    "Register": {
+        "accountData": "Account details",
+        "feedback": {
+            "errorTitle": "Something went wrong",
+            "title": "Registration is not available yet",
+            "unavailable": "The form passed validation, but account creation is not available yet. Your details were not saved.",
+            "unexpectedError": "We couldn't process the form. Please try again."
+        },
+        "fields": {
+            "confirmPassword": {
+                "label": "Confirm password",
+                "placeholder": "Repeat your password"
+            },
+            "email": {
+                "label": "Email address",
+                "placeholder": "alex@example.com"
+            },
+            "nickname": {
+                "label": "Username",
+                "placeholder": "player123"
+            },
+            "password": {
+                "label": "Password",
+                "placeholder": "Create a password"
+            }
+        },
+        "metadataDescription": "Explore the Ludora registration form. Account creation will be available soon.",
+        "signIn": "I already have an account",
+        "skipToForm": "Skip to form",
+        "title": "Register",
+        "validation": {
+            "confirmPasswordRequired": "Repeat your password.",
+            "emailInvalid": "Enter a valid email address.",
+            "nicknameMin": "The username must be at least 2 characters long.",
+            "passwordMin": "The password must be at least 8 characters long.",
+            "passwordMismatch": "The passwords do not match."
+        }
+    },
+    "RouteError": {
+        "description": "Please try again. If the problem continues, you can return to the home page.",
+        "title": "We couldn't load this section"
+    },
+    "ThemeSwitch": {
+        "label": "Dark mode"
+    },
+    "UserSettings": {
+        "changePassword": "Change password",
+        "description": "View your private email address and Ludora access options.",
+        "emailDescription": "Your email is private and is not shown on your visible profile.",
+        "emailTitle": "Email address",
+        "eyebrow": "Access and privacy",
+        "passwordTitle": "Password",
+        "passwordUnavailable": "This option will be available when you can sign in to your account.",
+        "previewEmail": "Example email address for this preview.",
+        "title": "Account"
     }
 }

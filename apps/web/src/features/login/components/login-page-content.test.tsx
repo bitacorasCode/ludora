@@ -16,6 +16,13 @@ import { LoginPageContent } from './login-page-content';
 
 vi.mock('@/i18n/navigation', () => ({ Link: 'a' }));
 
+vi.mock('../actions', () => ({
+  loginUser: vi.fn().mockResolvedValue({
+    status: 'success',
+    data: null,
+  }),
+}));
+
 expect.extend(toHaveNoViolations);
 
 beforeAll(() => {
@@ -48,9 +55,21 @@ describe('LoginPageContent integration', () => {
       </NextIntlClientProvider>,
     );
 
-    expect(screen.getByRole('link', { name: esMessages.Login.skipToForm }).getAttribute('href')).toBe('#login-form');
-    expect(screen.getByRole('link', { name: esMessages.Login.register }).getAttribute('href')).toContain('/register');
-    expect(screen.getByRole('link', { name: esMessages.Login.forgotPassword }).getAttribute('href')).toContain('/forgot-password');
+    expect(
+      screen
+        .getByRole('link', { name: esMessages.Login.skipToForm })
+        .getAttribute('href'),
+    ).toBe('#login-form');
+    expect(
+      screen
+        .getByRole('link', { name: esMessages.Login.register })
+        .getAttribute('href'),
+    ).toContain('/register');
+    expect(
+      screen
+        .getByRole('link', { name: esMessages.Login.forgotPassword })
+        .getAttribute('href'),
+    ).toContain('/forgot-password');
   });
 
   it('shows email and password errors when submitting invalid fields', async () => {
@@ -65,8 +84,12 @@ describe('LoginPageContent integration', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
 
-    expect(await screen.findByText(esMessages.Login.validation.emailInvalid)).toBeTruthy();
-    expect(screen.getByText(esMessages.Login.validation.passwordRequired)).toBeTruthy();
+    expect(
+      await screen.findByText(esMessages.Login.validation.emailInvalid),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(esMessages.Login.validation.passwordRequired),
+    ).toBeTruthy();
   });
 
   it('removes the email error after correcting the field', async () => {
@@ -80,14 +103,18 @@ describe('LoginPageContent integration', () => {
       target: { value: 'not-an-email' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
-    expect(await screen.findByText(esMessages.Login.validation.emailInvalid)).toBeTruthy();
+    expect(
+      await screen.findByText(esMessages.Login.validation.emailInvalid),
+    ).toBeTruthy();
 
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
       target: { value: 'juan@example.com' },
     });
 
     await waitFor(() => {
-      expect(screen.queryByText(esMessages.Login.validation.emailInvalid)).toBeNull();
+      expect(
+        screen.queryByText(esMessages.Login.validation.emailInvalid),
+      ).toBeNull();
     });
   });
 
@@ -109,6 +136,10 @@ describe('LoginPageContent integration', () => {
 
     await user.keyboard('{Enter}');
     expect(password.getAttribute('type')).toBe('text');
-    expect(screen.getByRole('button', { name: 'Ocultar: Contraseña' }).getAttribute('aria-pressed')).toBe('true');
+    expect(
+      screen
+        .getByRole('button', { name: 'Ocultar: Contraseña' })
+        .getAttribute('aria-pressed'),
+    ).toBe('true');
   });
 });
