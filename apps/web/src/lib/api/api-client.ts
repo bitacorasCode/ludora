@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { type ActionResult, OPERATION_STATUS } from '@/lib/actions';
-import { getSessionToken } from '@/lib/auth';
+import { getSessionToken } from '@/lib/session';
 
 import { apiRequest } from './api-request';
 import {

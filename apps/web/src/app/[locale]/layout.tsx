@@ -5,12 +5,12 @@ import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 
-import { Header } from '@/components/layout';
 import { geistMono, geistSans, notoSans } from '@/config/fonts';
 import { routing } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 
 import { ThemeProvider } from '../_providers/theme-provider';
+import { Header } from './_components/header';
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

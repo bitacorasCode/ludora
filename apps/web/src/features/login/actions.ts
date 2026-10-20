@@ -11,8 +11,8 @@ import {
     OPERATION_STATUS,
 } from '@/lib/actions';
 import { API_ERROR_CODES, publicApi } from '@/lib/api';
-import { createSession } from '@/lib/auth';
 import { createLoginSchema } from '@/lib/schemas';
+import { createSession } from '@/lib/session';
 
 const LOGIN_ENDPOINT = '/auth/login';
 

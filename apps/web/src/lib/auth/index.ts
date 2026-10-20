@@ -1,10 +1,6 @@
-export {
-    getCurrentUser,
-    type CurrentUser,
-} from './get-current-user';
+import 'server-only';
 
 export {
-    createSession,
-    deleteSession,
-    getSessionToken,
-} from './session';
+    type CurrentUser,
+    getCurrentUser,
+} from './get-current-user';

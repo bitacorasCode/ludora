@@ -1,26 +1,24 @@
-import { useTranslations } from 'next-intl';
+import 'server-only';
 
-import { SideMenu, SideMenuClose } from '@/components/overlays';
-import { Button } from '@/components/ui';
-import { isLoggedIn } from '@/config/auth';
+import { useTranslations } from 'next-intl';
+import { Suspense } from 'react';
+
+import { SideMenu } from '@/components/overlays';
+import { Button, Skeleton } from '@/components/ui';
 import { Link } from '@/i18n/navigation';
 
-const accountLinks = isLoggedIn
-  ? ([{ href: '/account/profile', label: 'account' }] as const)
-  : ([
-      { href: '/preferences', label: 'preferences' },
-      { href: '/login', label: 'login' },
-      { href: '/register', label: 'register' },
-    ] as const);
-
-const links = [
-  { href: '/games', label: 'games' },
-  { href: '/ranking', label: 'ranking' },
-  ...accountLinks,
-] as const;
+import { HeaderAccountLinks } from './header-account-links';
+import { HeaderLinks } from './header-links';
 
 export function Header() {
   const t = useTranslations('Header');
+
+  const sessionFallback = (
+    <div role='status'>
+      <span className='sr-only'>{t('sessionLoading')}</span>
+      <Skeleton className='h-9 w-28' />
+    </div>
+  );
 
   return (
     <header className='sticky top-0 z-40 border-b bg-card/90 backdrop-blur'>
@@ -41,11 +39,11 @@ export function Header() {
         </Button>
 
         <div className='hidden items-center gap-6 lg:flex'>
-          {links.map((link) => (
-            <Button asChild key={link.href} variant='ghost' size='sm'>
-              <Link href={link.href}>{t(link.label)}</Link>
-            </Button>
-          ))}
+          <HeaderLinks />
+
+          <Suspense fallback={sessionFallback}>
+            <HeaderAccountLinks />
+          </Suspense>
         </div>
 
         <SideMenu
@@ -58,13 +56,11 @@ export function Header() {
           description={t('menuDescription')}
           navigationLabel={t('mobileNavigation')}
         >
-          {links.map((link) => (
-            <SideMenuClose asChild key={link.href}>
-              <Button asChild variant='ghost' size='sm' className='justify-start'>
-                <Link href={link.href}>{t(link.label)}</Link>
-              </Button>
-            </SideMenuClose>
-          ))}
+          <HeaderLinks isSideMenu />
+
+          <Suspense fallback={sessionFallback}>
+            <HeaderAccountLinks isSideMenu />
+          </Suspense>
         </SideMenu>
       </nav>
     </header>

@@ -72,7 +72,9 @@
         "mobileNavigation": "Mobile navigation",
         "preferences": "Preferences",
         "ranking": "Ranking",
-        "register": "Register"
+        "register": "Register",
+        "sessionLoading": "Checking your session",
+        "sessionUnavailable": "We couldn't check your session."
     },
     "Home": {
         "description": "Discover games, meet up with friends, and share new games in one place.",

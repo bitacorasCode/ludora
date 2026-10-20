@@ -1,0 +1,56 @@
+import 'server-only';
+
+import { getTranslations } from 'next-intl/server';
+
+import { SideMenuClose } from '@/components/overlays';
+import { Button } from '@/components/ui';
+import { Link } from '@/i18n/navigation';
+import { getCurrentUser } from '@/lib/auth';
+
+type HeaderAccountLinksProps = {
+  isSideMenu?: boolean;
+};
+
+export async function HeaderAccountLinks({
+  isSideMenu = false,
+}: HeaderAccountLinksProps) {
+  const t = await getTranslations('Header');
+
+  try {
+    const user = await getCurrentUser();
+
+    const links = user
+      ? ([{ href: '/account/profile', label: 'account' }] as const)
+      : ([
+          { href: '/preferences', label: 'preferences' },
+          { href: '/login', label: 'login' },
+          { href: '/register', label: 'register' },
+        ] as const);
+
+    return links.map(({ href, label }) => {
+      const button = (
+        <Button
+          asChild
+          key={href}
+          variant='ghost'
+          size='sm'
+          className={isSideMenu ? 'justify-start' : undefined}
+        >
+          <Link href={href}>{t(label)}</Link>
+        </Button>
+      );
+
+      return isSideMenu ? (
+        <SideMenuClose asChild key={href}>
+          {button}
+        </SideMenuClose>
+      ) : (
+        button
+      );
+    });
+  } catch (error) {
+    console.error('Unable to load the header session.', error);
+
+    return <span role='status'>{t('sessionUnavailable')}</span>;
+  }
+}

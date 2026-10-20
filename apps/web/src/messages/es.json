@@ -72,7 +72,9 @@
         "mobileNavigation": "Navegación móvil",
         "preferences": "Preferencias",
         "ranking": "Ranking",
-        "register": "Registro"
+        "register": "Registro",
+        "sessionLoading": "Comprobando sesión",
+        "sessionUnavailable": "No pudimos comprobar tu sesión."
     },
     "Home": {
         "description": "Descubre juegos, reúne a tus amigos y comparte nuevas partidas desde un solo lugar.",
