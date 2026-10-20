@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+    ForbiddenException,
+    Injectable,
+    UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
@@ -6,7 +10,7 @@ import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
 import { LoginDto } from '../dto/login.dto.js';
 import type { RegisterDto } from '../dto/register.dto.js';
-import { EmailVerificationService } from './index.js';
+import { EmailVerificationService } from './email-verification.service.js';
 import { PasswordService } from './password.service.js';
 
 @Injectable()
@@ -48,13 +52,19 @@ export class AuthService {
             },
         );
 
-        const { verificationId, expiresAt } = verification;
+        const { verificationId, code, expiresAt } = verification;
+
+        const emailSent = await this.emailVerificationService.send(
+            user.email,
+            code,
+        );
 
         return {
             user,
             verification: {
                 id: verificationId,
                 expiresAt,
+                emailSent,
             },
         };
     }
@@ -77,6 +87,14 @@ export class AuthService {
             const { message, errorCode } = AUTH_ERRORS.invalidCredentials;
 
             throw new UnauthorizedException(message, {
+                errorCode,
+            });
+        }
+
+        if (!user.emailVerifiedAt) {
+            const { message, errorCode } = AUTH_ERRORS.emailNotVerified;
+
+            throw new ForbiddenException(message, {
                 errorCode,
             });
         }

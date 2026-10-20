@@ -21,6 +21,10 @@ export const AUTH_ERRORS = {
         errorCode: 'AUTH_EMAIL_ALREADY_EXISTS',
         message: 'Email already in use.',
     },
+    emailNotVerified: {
+        errorCode: 'AUTH_EMAIL_NOT_VERIFIED',
+        message: 'Email verification required.',
+    },
     nicknameAlreadyExists: {
         errorCode: 'AUTH_NICKNAME_ALREADY_EXISTS',
         message: 'Nickname already in use.',
