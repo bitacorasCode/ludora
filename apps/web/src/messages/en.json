@@ -53,6 +53,7 @@
             "unknown": "We couldn't complete the operation. Please try again."
         },
         "status": {
+            "checkingSession": "Checking your session",
             "validating": "Validating..."
         }
     },
@@ -114,6 +115,10 @@
             "emailInvalid": "Enter a valid email address.",
             "passwordRequired": "Enter your password."
         }
+    },
+    "Logout": {
+        "submit": "Sign out",
+        "submitting": "Signing out..."
     },
     "Metadata": {
         "description": "Discover games, meet up with friends, and share new games in one place.",

@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 
 import { SectionNavigation } from '@/components/navigation';
+import { LogoutButton } from '@/features/logout';
 
 const links = [
   { href: '/account/profile', label: 'profile' },
@@ -13,10 +14,17 @@ export function AccountNavigation() {
   const t = useTranslations('Account');
 
   return (
-    <SectionNavigation
-      title={t('title')}
-      ariaLabel={t('navigationLabel')}
-      items={links.map((link) => ({ href: link.href, label: t(link.label) }))}
-    />
+    <div className='space-y-4'>
+      <SectionNavigation
+        title={t('title')}
+        ariaLabel={t('navigationLabel')}
+        items={links.map(({ href, label }) => ({
+          href,
+          label: t(label),
+        }))}
+      />
+
+      <LogoutButton />
+    </div>
   );
 }

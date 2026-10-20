@@ -53,6 +53,7 @@
             "unknown": "No pudimos completar la operación. Inténtalo de nuevo."
         },
         "status": {
+            "checkingSession": "Comprobando sesión",
             "validating": "Validando..."
         }
     },
@@ -114,6 +115,10 @@
             "emailInvalid": "Introduce un correo electrónico válido.",
             "passwordRequired": "Introduce tu contraseña."
         }
+    },
+    "Logout": {
+        "submit": "Cerrar sesión",
+        "submitting": "Cerrando sesión..."
     },
     "Metadata": {
         "description": "Descubre juegos, reúne a tus amigos y comparte nuevas partidas desde un solo lugar.",

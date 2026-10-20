@@ -23,11 +23,11 @@ function resolveApiUrl(path: string): URL | null {
     const baseUrl = new URL(API_URL);
 
     if (
-        !['https:'].includes(baseUrl.protocol)
+        !['http:', 'https:'].includes(baseUrl.protocol)
         || baseUrl.username
         || baseUrl.password
     ) {
-        throw new Error('API_URL must be an HTTPS URL without credentials.');
+        throw new Error('API_URL must be an HTTP(S) URL without credentials.');
     }
 
     if (!path.startsWith('/') || path.startsWith('//') || path.includes('\\')) {
