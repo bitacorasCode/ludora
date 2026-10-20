@@ -9,13 +9,13 @@ import {
     UseGuards,
 } from '@nestjs/common';
 
-import { AuthService } from './auth.service.js';
 import { type LoginDto, loginSchema } from './dto/login.dto.js';
 import {
     type RegisterDto,
     registerSchema,
 } from './dto/register.dto.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+import { AuthService } from './services/index.js';
 import type { AuthenticatedRequest } from './types/authenticated-request.js';
 
 @Controller('auth')

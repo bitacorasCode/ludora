@@ -1,3 +1,4 @@
+-- CreateTable
 CREATE TABLE "users" (
     "id" UUID NOT NULL,
     "nickname" TEXT NOT NULL,
@@ -9,6 +10,8 @@ CREATE TABLE "users" (
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateIndex
 CREATE UNIQUE INDEX "users_nickname_key" ON "users"("nickname");
 
+-- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");

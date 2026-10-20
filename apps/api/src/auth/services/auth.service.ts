@@ -1,10 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { UsersService } from '../users/users.service.js';
-import { AUTH_ERRORS } from './constants/auth-errors.js';
-import { LoginDto } from './dto/login.dto.js';
-import type { RegisterDto } from './dto/register.dto.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
+import { UsersService } from '../../users/users.service.js';
+import { AUTH_ERRORS } from '../constants/auth-errors.js';
+import { LoginDto } from '../dto/login.dto.js';
+import type { RegisterDto } from '../dto/register.dto.js';
+import { EmailVerificationService } from './index.js';
 import { PasswordService } from './password.service.js';
 
 @Injectable()
@@ -13,18 +15,48 @@ export class AuthService {
         private readonly usersService: UsersService,
         private readonly passwordService: PasswordService,
         private readonly jwtService: JwtService,
+        private readonly prisma: PrismaService,
+        private readonly emailVerificationService: EmailVerificationService,
     ) { }
 
     async register(data: RegisterDto) {
-        const passwordHash = await this.passwordService.hash(data.password);
+        const passwordHash = await this.passwordService.hash(
+            data.password,
+        );
 
-        const user = await this.usersService.create({
-            nickname: data.nickname,
-            email: data.email,
-            passwordHash,
-        });
+        const { user, verification } = await this.prisma.$transaction(
+            async (database) => {
+                const user = await this.usersService.create(
+                    {
+                        nickname: data.nickname,
+                        email: data.email,
+                        passwordHash,
+                    },
+                    database,
+                );
 
-        return { user };
+                const verification =
+                    await this.emailVerificationService.create(
+                        user.id,
+                        database,
+                    );
+
+                return {
+                    user,
+                    verification,
+                };
+            },
+        );
+
+        const { verificationId, expiresAt } = verification;
+
+        return {
+            user,
+            verification: {
+                id: verificationId,
+                expiresAt,
+            },
+        };
     }
 
     async login(data: LoginDto) {

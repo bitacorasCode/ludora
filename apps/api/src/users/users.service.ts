@@ -19,14 +19,17 @@ const userResponseSelect = {
 export class UsersService {
     constructor(private readonly prisma: PrismaService) { }
 
-    create(data: CreateUserData) {
-        return this.prisma.user.create({
+    create(
+        data: CreateUserData,
+        database: Prisma.TransactionClient = this.prisma,
+    ) {
+        return database.user.create({
             data: {
                 nickname: data.nickname.trim(),
                 email: data.email.trim().toLowerCase(),
                 passwordHash: data.passwordHash,
             },
-            select: userResponseSelect
+            select: userResponseSelect,
         });
     }
 

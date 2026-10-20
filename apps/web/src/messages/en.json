@@ -96,6 +96,7 @@
         "email": "Email address",
         "emailPlaceholder": "you@example.com",
         "errors": {
+            "AUTH_EMAIL_NOT_VERIFIED": "Verify your email address to sign in.",
             "AUTH_INVALID_CREDENTIALS": "The email or password is incorrect."
         },
         "feedback": {
