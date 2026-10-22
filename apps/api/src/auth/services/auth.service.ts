@@ -5,11 +5,13 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
+import type { User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
 import { LoginDto } from '../dto/login.dto.js';
 import type { RegisterDto } from '../dto/register.dto.js';
+import type { VerifyEmailDto } from '../dto/verify-email.dto.js';
 import { EmailVerificationService } from './email-verification.service.js';
 import { PasswordService } from './password.service.js';
 
@@ -69,6 +71,19 @@ export class AuthService {
         };
     }
 
+    async verifyEmail(data: VerifyEmailDto) {
+        const { verificationId, code } = data;
+
+        const userId = await this.emailVerificationService.confirm(
+            verificationId,
+            code,
+        );
+
+        const { user } = await this.getCurrentUser(userId);
+
+        return this.createAuthResponse(user);
+    }
+
     async login(data: LoginDto) {
         const user = await this.usersService.findByEmail(data.email);
 
@@ -99,19 +114,7 @@ export class AuthService {
             });
         }
 
-        const accessToken = await this.jwtService.signAsync({
-            sub: user.id,
-        });
-
-        return {
-            accessToken,
-            user: {
-                id: user.id,
-                nickname: user.nickname,
-                email: user.email,
-                createdAt: user.createdAt,
-            },
-        };
+        return this.createAuthResponse(user);
     }
 
     async getCurrentUser(userId: string) {
@@ -126,5 +129,25 @@ export class AuthService {
         }
 
         return { user };
+    }
+
+    private async createAuthResponse(
+        user: Pick<User, 'id' | 'nickname' | 'email' | 'createdAt'>,
+    ) {
+        const { id, nickname, email, createdAt } = user;
+
+        const accessToken = await this.jwtService.signAsync({
+            sub: id,
+        });
+
+        return {
+            accessToken,
+            user: {
+                id,
+                nickname,
+                email,
+                createdAt,
+            },
+        };
     }
 }

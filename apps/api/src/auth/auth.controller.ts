@@ -14,6 +14,10 @@ import {
     type RegisterDto,
     registerSchema,
 } from './dto/register.dto.js';
+import {
+    type VerifyEmailDto,
+    verifyEmailSchema,
+} from './dto/verify-email.dto.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { AuthService } from './services/index.js';
 import type { AuthenticatedRequest } from './types/authenticated-request.js';
@@ -25,6 +29,12 @@ export class AuthController {
     @Post('register')
     register(@Body({ schema: registerSchema }) data: RegisterDto) {
         return this.authService.register(data);
+    }
+
+    @Post('verify-email')
+    @HttpCode(HttpStatus.OK)
+    verifyEmail(@Body({ schema: verifyEmailSchema }) data: VerifyEmailDto) {
+        return this.authService.verifyEmail(data);
     }
 
     @Post('login')
