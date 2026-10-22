@@ -25,6 +25,22 @@ export const AUTH_ERRORS = {
         errorCode: 'AUTH_EMAIL_NOT_VERIFIED',
         message: 'Email verification required.',
     },
+    emailVerificationInvalid: {
+        errorCode: 'AUTH_EMAIL_VERIFICATION_INVALID',
+        message: 'Email verification is invalid or no longer available.',
+    },
+    emailVerificationExpired: {
+        errorCode: 'AUTH_EMAIL_VERIFICATION_EXPIRED',
+        message: 'Email verification has expired.',
+    },
+    emailVerificationCodeInvalid: {
+        errorCode: 'AUTH_EMAIL_VERIFICATION_CODE_INVALID',
+        message: 'Invalid email verification code.',
+    },
+    emailVerificationAttemptsExceeded: {
+        errorCode: 'AUTH_EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED',
+        message: 'Email verification attempt limit reached.',
+    },
     nicknameAlreadyExists: {
         errorCode: 'AUTH_NICKNAME_ALREADY_EXISTS',
         message: 'Nickname already in use.',

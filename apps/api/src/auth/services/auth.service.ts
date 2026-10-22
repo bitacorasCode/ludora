@@ -29,20 +29,20 @@ export class AuthService {
         );
 
         const { user, verification } = await this.prisma.$transaction(
-            async (database) => {
+            async (transaction) => {
                 const user = await this.usersService.create(
                     {
                         nickname: data.nickname,
                         email: data.email,
                         passwordHash,
                     },
-                    database,
+                    transaction,
                 );
 
                 const verification =
                     await this.emailVerificationService.create(
                         user.id,
-                        database,
+                        transaction,
                     );
 
                 return {

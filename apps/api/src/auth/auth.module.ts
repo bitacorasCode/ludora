@@ -7,6 +7,7 @@ import { PrismaModule } from '../prisma/prisma.module.js';
 import { UsersModule } from '../users/users.module.js';
 import { AuthController } from './auth.controller.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+import { EmailVerificationRepository } from './repositories/index.js';
 import {
     AuthService,
     EmailVerificationCodeService,
@@ -40,6 +41,7 @@ import {
     ],
     controllers: [AuthController],
     providers: [
+        EmailVerificationRepository,
         AuthService,
         PasswordService,
         JwtAuthGuard,
