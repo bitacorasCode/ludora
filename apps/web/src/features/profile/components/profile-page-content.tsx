@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { PageHeading } from '@/components/typography';
 
@@ -10,16 +11,17 @@ import type { ProfilePreferences } from '../schema';
 import { ProfileEditor } from './profile-editor';
 import { ProfileIdentity } from './profile-identity';
 
+const PROFILE_SAVED_TOAST_ID = 'profile-saved';
+
 export function ProfilePageContent() {
   const t = useTranslations('Profile');
   const { profile, saveProfile } = usePreviewProfile();
   const [isEditing, setIsEditing] = useState(false);
-  const [wasSaved, setWasSaved] = useState(false);
 
   async function handleSave(values: ProfilePreferences) {
     saveProfile(values);
     setIsEditing(false);
-    setWasSaved(true);
+    toast.success(t('saved'), { id: PROFILE_SAVED_TOAST_ID });
   }
 
   return (
@@ -33,10 +35,7 @@ export function ProfilePageContent() {
       <ProfileIdentity
         profile={profile}
         isEditing={isEditing}
-        onEdit={() => {
-          setWasSaved(false);
-          setIsEditing(true);
-        }}
+        onEdit={() => setIsEditing(true)}
       />
 
       {isEditing && profile && (
@@ -46,8 +45,6 @@ export function ProfilePageContent() {
           onCancel={() => setIsEditing(false)}
         />
       )}
-
-      {wasSaved && <p role='status'>{t('saved')}</p>}
     </>
   );
 }

@@ -2,7 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { FeedbackAlert } from './feedback-alert';
+import { Alert } from './alert';
 
 expect.extend(toHaveNoViolations);
 
@@ -10,10 +10,10 @@ afterEach(() => {
   cleanup();
 });
 
-describe('FeedbackAlert', () => {
+describe('Alert', () => {
   it('announces success as a status', () => {
     render(
-      <FeedbackAlert
+      <Alert
         status='success'
         title='Guardado'
         message='Los cambios se guardaron.'
@@ -28,7 +28,7 @@ describe('FeedbackAlert', () => {
 
   it('announces warnings as alerts', () => {
     render(
-      <FeedbackAlert
+      <Alert
         status='warning'
         title='Atención'
         message='Revisa los datos.'
@@ -42,7 +42,7 @@ describe('FeedbackAlert', () => {
 
   it('announces errors without accessibility violations', async () => {
     const { container } = render(
-      <FeedbackAlert
+      <Alert
         status='error'
         title='Error'
         message='No se pudo guardar.'

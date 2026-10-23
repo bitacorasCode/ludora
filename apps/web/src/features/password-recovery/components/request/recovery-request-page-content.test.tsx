@@ -3,10 +3,12 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { NextIntlClientProvider } from 'next-intl';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { toast } from 'sonner';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import esMessages from '@/messages/es.json';
 
@@ -16,6 +18,10 @@ vi.mock('@/i18n/navigation', () => ({ Link: 'a' }));
 
 expect.extend(toHaveNoViolations);
 
+beforeEach(() => {
+  vi.spyOn(toast, 'warning').mockReturnValue('recovery-request-validated');
+});
+
 beforeAll(() => {
   if (!HTMLElement.prototype.scrollIntoView) {
     HTMLElement.prototype.scrollIntoView = () => {};
@@ -24,6 +30,7 @@ beforeAll(() => {
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
 });
 
 describe('RecoveryRequestPageContent integration', () => {
@@ -50,7 +57,7 @@ describe('RecoveryRequestPageContent integration', () => {
     expect(screen.getByRole('link', { name: esMessages.PasswordRecovery.backToLogin }).getAttribute('href')).toContain('/login');
   });
 
-  it('shows an email error and keeps the preview link hidden for invalid data', async () => {
+  it('shows an email error and keeps the preview link available for invalid data', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <RecoveryRequestPageContent />
@@ -63,10 +70,10 @@ describe('RecoveryRequestPageContent integration', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
 
     expect(await screen.findByText(esMessages.PasswordRecovery.validation.emailInvalid)).toBeTruthy();
-    expect(screen.queryByRole('link', { name: esMessages.PasswordRecovery.request.previewReset })).toBeNull();
+    expect(screen.getByRole('link', { name: esMessages.PasswordRecovery.request.previewReset })).toBeTruthy();
   });
 
-  it('shows the preview link after a valid email and hides it when the email changes', async () => {
+  it('shows validation feedback and keeps the preview link when the email changes', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <RecoveryRequestPageContent />
@@ -78,6 +85,11 @@ describe('RecoveryRequestPageContent integration', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
 
+    await waitFor(() => expect(toast.warning).toHaveBeenCalledExactlyOnceWith(
+      esMessages.PasswordRecovery.request.validatedMessage,
+      { id: 'recovery-request-validated' },
+    ));
+
     const preview = await screen.findByRole('link', {
       name: esMessages.PasswordRecovery.request.previewReset,
     });
@@ -86,6 +98,6 @@ describe('RecoveryRequestPageContent integration', () => {
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
       target: { value: 'not-an-email' },
     });
-    expect(screen.queryByRole('link', { name: esMessages.PasswordRecovery.request.previewReset })).toBeNull();
+    expect(screen.getByRole('link', { name: esMessages.PasswordRecovery.request.previewReset })).toBeTruthy();
   });
 });

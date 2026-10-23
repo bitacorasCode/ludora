@@ -38,7 +38,7 @@ test.describe('Profile persistence', () => {
     await page
       .getByRole('button', { name: esMessages.Common.actions.saveChanges })
       .click();
-    await expect(page.getByRole('status')).toHaveText(esMessages.Profile.saved);
+    await expect(page.getByText(esMessages.Profile.saved, { exact: true })).toBeVisible();
     await expect(
       otherTab.getByText('Mi perfil persistido', { exact: true }),
     ).toBeVisible();

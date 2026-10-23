@@ -2,10 +2,10 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
-import { FeedbackAlert } from '@/components/feedback';
+import { Alert } from '@/components/feedback';
 import {
   FormActions,
   FormPageCard,
@@ -20,13 +20,12 @@ import {
 } from '@/lib/schemas';
 
 const formId = 'reset-password-form';
+const PASSWORD_RESET_VALIDATED_TOAST_ID = 'password-reset-validated';
 
 export function ResetPasswordPageContent() {
   const t = useTranslations('PasswordRecovery');
   const common = useTranslations('Common');
   const validation = useTranslations('PasswordRecovery.validation');
-
-  const [submitted, setSubmitted] = useState(false);
 
   const form = useForm<PasswordResetFormData>({
     mode: 'onTouched',
@@ -45,18 +44,21 @@ export function ResetPasswordPageContent() {
       <form
         id={formId}
         aria-label={t('reset.title')}
+        aria-busy={form.formState.isSubmitting}
         tabIndex={-1}
-        onSubmit={form.handleSubmit(() => setSubmitted(true))}
-        onChange={() => setSubmitted(false)}
+        onSubmit={form.handleSubmit(() => {
+          toast.warning(t('reset.validatedMessage'), {
+            id: PASSWORD_RESET_VALIDATED_TOAST_ID,
+          });
+        })}
         noValidate
       >
-        {submitted && (
-          <FeedbackAlert
-            status='warning'
-            title={t('reset.feedbackTitle')}
-            message={t('reset.feedbackMessage')}
-          />
-        )}
+        <Alert
+          status='warning'
+          role='status'
+          title={t('reset.feedbackTitle')}
+          message={t('reset.feedbackMessage')}
+        />
         <FieldGroup>
           <FormTextField
             control={form.control}

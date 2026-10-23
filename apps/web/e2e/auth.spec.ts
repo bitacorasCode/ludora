@@ -103,9 +103,7 @@ test.describe('Real authentication', () => {
     await page.goto('/es/login');
     await fillLogin(page, testAccount.email, 'incorrect-password');
     await expect(
-      page
-        .getByRole('form', { name: esMessages.Login.title })
-        .getByRole('alert'),
+      page.getByRole('form', { name: esMessages.Login.title }).getByRole('alert'),
     ).toContainText(esMessages.Login.errors.AUTH_INVALID_CREDENTIALS);
     await expect(page).toHaveURL('/es/login');
     expect(
@@ -143,10 +141,8 @@ test.describe('Real authentication', () => {
     await apiMode('unavailable');
     await fillLogin(page, testAccount.email, testAccount.password);
     await expect(
-      page
-        .getByRole('form', { name: esMessages.Login.title })
-        .getByRole('alert'),
-    ).toContainText(esMessages.Common.errors.API_UNAVAILABLE);
+      page.getByText(esMessages.Common.errors.API_UNAVAILABLE, { exact: true }),
+    ).toBeVisible();
     expect(
       (await context.cookies()).find(({ name }) => name === SESSION_COOKIE),
     ).toBeUndefined();

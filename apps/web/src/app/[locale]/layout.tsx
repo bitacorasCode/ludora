@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 
+import { Toaster } from '@/components/ui/sonner';
 import { geistMono, geistSans, notoSans } from '@/config/fonts';
 import { routing } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
@@ -74,6 +75,7 @@ export default async function RootLayout({
             <main id='content' className='flex-1'>
               {children}
             </main>
+            <Toaster />
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>

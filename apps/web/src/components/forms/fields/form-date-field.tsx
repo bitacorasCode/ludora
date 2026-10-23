@@ -11,7 +11,6 @@ import {
   Button,
   Calendar,
   Field,
-  FieldError,
   FieldLabel,
   Popover,
   PopoverContent,
@@ -19,6 +18,7 @@ import {
 } from '@/components/ui';
 import { getDateFnsLocale } from '@/i18n/date-fns';
 
+import { FormFieldFeedback } from './form-field-feedback';
 import { BaseFormFieldProps } from './types';
 
 type Props<T extends FieldValues> = BaseFormFieldProps<T> & {
@@ -74,9 +74,7 @@ export function FormDateField<T extends FieldValues>({
             </PopoverContent>
           </Popover>
 
-          {fieldState.error && (
-            <FieldError id={errorId} errors={[fieldState.error]} />
-          )}
+          <FormFieldFeedback id={errorId} errors={[fieldState.error]} />
         </Field>
       )}
     />

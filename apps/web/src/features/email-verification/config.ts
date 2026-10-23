@@ -1,0 +1,3 @@
+export const EMAIL_VERIFICATION_ERROR_CODES = {
+    codeInvalid: 'AUTH_EMAIL_VERIFICATION_CODE_INVALID',
+} as const;

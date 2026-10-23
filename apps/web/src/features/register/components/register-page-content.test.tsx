@@ -8,7 +8,8 @@ import {
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { NextIntlClientProvider } from 'next-intl';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { toast } from 'sonner';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ACTION_ERROR_CODES, OPERATION_STATUS } from '@/lib/actions';
 import esMessages from '@/messages/es.json';
@@ -24,6 +25,10 @@ vi.mock('@/i18n/navigation', () => ({
 
 expect.extend(toHaveNoViolations);
 
+beforeEach(() => {
+  vi.spyOn(toast, 'error').mockReturnValue('register-error');
+});
+
 beforeAll(() => {
   if (!HTMLElement.prototype.scrollIntoView) {
     HTMLElement.prototype.scrollIntoView = () => {};
@@ -33,6 +38,7 @@ beforeAll(() => {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.restoreAllMocks();
 });
 
 function fillValidRegisterForm() {
@@ -147,7 +153,13 @@ describe('RegisterPageContent integration', () => {
     fillValidRegisterForm();
     fireEvent.click(screen.getByRole('button', { name: esMessages.Register.submit }));
 
-    expect(await screen.findByText(esMessages.Register.validation.emailInvalid)).toBeTruthy();
+    await waitFor(() => expect(toast.error).toHaveBeenCalledExactlyOnceWith(
+      esMessages.Register.feedback.errorTitle,
+      {
+        description: esMessages.Register.validation.emailInvalid,
+        duration: Infinity,
+      },
+    ));
     expect(registerUser).toHaveBeenCalledOnce();
   });
 
@@ -163,7 +175,13 @@ describe('RegisterPageContent integration', () => {
     fillValidRegisterForm();
     fireEvent.click(screen.getByRole('button', { name: esMessages.Register.submit }));
 
-    expect(await screen.findByText(esMessages.Common.errors.unknown)).toBeTruthy();
+    await waitFor(() => expect(toast.error).toHaveBeenCalledExactlyOnceWith(
+      esMessages.Register.feedback.errorTitle,
+      {
+        description: esMessages.Common.errors.unknown,
+        duration: Infinity,
+      },
+    ));
     expect(registerUser).toHaveBeenCalledOnce();
   });
 

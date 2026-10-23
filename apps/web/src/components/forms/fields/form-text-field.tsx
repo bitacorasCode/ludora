@@ -6,8 +6,9 @@ import { useTranslations } from 'next-intl';
 import { type ComponentProps, useId, useState } from 'react';
 import { Controller, type FieldValues } from 'react-hook-form';
 
-import { Button, Field, FieldError, FieldLabel, Input } from '@/components/ui';
+import { Button, Field, FieldLabel, Input } from '@/components/ui';
 
+import { FormFieldFeedback } from './form-field-feedback';
 import type { BaseFormFieldProps } from './types';
 
 type Props<T extends FieldValues> = BaseFormFieldProps<T> & Pick<
@@ -79,9 +80,7 @@ export function FormTextField<T extends FieldValues>({
               </Button>
             )}
           </div>
-          {fieldState.error && (
-            <FieldError id={errorId} errors={[fieldState.error]} />
-          )}
+          <FormFieldFeedback id={errorId} errors={[fieldState.error]} />
         </Field>
       )}
     />

@@ -5,7 +5,6 @@ import { Controller, type FieldValues } from 'react-hook-form';
 
 import {
   Field,
-  FieldError,
   FieldLabel,
   Select,
   SelectContent,
@@ -14,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui';
 
+import { FormFieldFeedback } from './form-field-feedback';
 import { BaseFormFieldProps } from './types';
 
 type Option = {
@@ -69,9 +69,7 @@ export function FormSelectField<T extends FieldValues>({
             </SelectContent>
           </Select>
 
-          {fieldState.error && (
-            <FieldError id={errorId} errors={[fieldState.error]} />
-          )}
+          <FormFieldFeedback id={errorId} errors={[fieldState.error]} />
         </Field>
       )}
     />

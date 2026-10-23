@@ -2,13 +2,13 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocale, useTranslations } from 'next-intl';
-import { useState, useTransition } from 'react';
+import { useEffect, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { useActionErrorToast } from '@/hooks';
 import { useRouter } from '@/i18n/navigation';
 import {
     ACTION_ERROR_CODES,
-    type ActionError,
     type ActionResult,
     OPERATION_STATUS,
 } from '@/lib/actions';
@@ -18,14 +18,18 @@ import {
 } from '@/lib/schemas';
 
 import { verifyEmail } from '../actions';
+import { EMAIL_VERIFICATION_ERROR_CODES } from '../config';
 
 export default function useEmailVerificationForm(verificationId: string) {
     const locale = useLocale();
     const validation = useTranslations('EmailVerification.validation');
+    const errors = useTranslations('EmailVerification.errors');
+    const feedback = useTranslations('EmailVerification.feedback');
     const router = useRouter();
-
-    const [submissionError, setSubmissionError] =
-        useState<ActionError | null>(null);
+    const { showError, dismissError } = useActionErrorToast({
+        title: feedback('errorTitle'),
+        featureErrors: errors,
+    });
     const [isPending, startTransition] = useTransition();
 
     const form = useForm<EmailVerificationFormData>({
@@ -37,17 +41,20 @@ export default function useEmailVerificationForm(verificationId: string) {
             code: '',
         },
     });
+    const { getFieldState, setFocus } = form;
 
-    function clearSubmission() {
-        setSubmissionError(null);
-    }
+    useEffect(() => {
+        if (!isPending && getFieldState('code').error?.type === 'server') {
+            setFocus('code');
+        }
+    }, [getFieldState, isPending, setFocus]);
 
     function onSubmit(data: EmailVerificationFormData) {
         if (isPending) {
             return;
         }
 
-        clearSubmission();
+        dismissError();
 
         startTransition(async () => {
             let result: ActionResult;
@@ -58,17 +65,28 @@ export default function useEmailVerificationForm(verificationId: string) {
                     verificationId,
                 });
             } catch {
-                setSubmissionError({
+                showError({
                     errorCode: ACTION_ERROR_CODES.unexpected,
                 });
                 return;
             }
 
             if (result.status === OPERATION_STATUS.error) {
-                setSubmissionError(result.error);
+                const { errorCode } = result.error;
+
+                if (errorCode === EMAIL_VERIFICATION_ERROR_CODES.codeInvalid) {
+                    form.setError('code', {
+                        type: 'server',
+                        message: errors(errorCode),
+                    });
+                    return;
+                }
+
+                showError(result.error);
                 return;
             }
 
+            form.reset();
             router.replace('/account/profile');
             router.refresh();
         });
@@ -77,8 +95,6 @@ export default function useEmailVerificationForm(verificationId: string) {
     return {
         form,
         onSubmit,
-        clearSubmission,
-        submissionError,
         isSubmitting: form.formState.isSubmitting || isPending,
     };
 }

@@ -58,6 +58,7 @@ export {
     SheetTrigger,
 } from './sheet';
 export { Skeleton } from './skeleton';
+export { Toaster } from './sonner';
 export { Spinner } from './spinner';
 export { Switch } from './switch';
 export { Textarea } from './textarea';

@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import { renderToString } from 'react-dom/server';
+import { toast } from 'sonner';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import esMessages from '@/messages/es.json';
@@ -18,6 +19,8 @@ import { ProfilePageContent } from './profile-page-content';
 
 beforeEach(() => {
   localStorage.clear();
+  vi.spyOn(toast, 'success').mockReturnValue('profile-saved');
+  vi.spyOn(toast, 'error').mockReturnValue('profile-save-error');
 });
 
 afterEach(() => {
@@ -81,7 +84,10 @@ describe('ProfilePageContent integration', () => {
     fireEvent.click(
       screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
     );
-    expect(await screen.findByText(esMessages.Profile.saved)).toBeTruthy();
+    await waitFor(() => expect(toast.success).toHaveBeenCalledExactlyOnceWith(
+      esMessages.Profile.saved,
+      { id: 'profile-saved' },
+    ));
     expect(screen.getByText('Mi nueva biografía')).toBeTruthy();
     expect(screen.queryByLabelText(esMessages.Profile.bioLabel)).toBeNull();
     expect(readPreferences(getStoredProfile())).toEqual({
@@ -91,7 +97,7 @@ describe('ProfilePageContent integration', () => {
     fireEvent.click(
       screen.getByRole('button', { name: esMessages.Profile.edit }),
     );
-    expect(screen.queryByText(esMessages.Profile.saved)).toBeNull();
+    expect(toast.success).toHaveBeenCalledOnce();
     expect(
       (
         screen.getByLabelText(
@@ -141,7 +147,10 @@ describe('ProfilePageContent integration', () => {
     fireEvent.click(
       screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
     );
-    expect(await screen.findByText(esMessages.Profile.saveError)).toBeTruthy();
+    await waitFor(() => expect(toast.error).toHaveBeenCalledExactlyOnceWith(
+      esMessages.Profile.saveError,
+      { duration: Infinity },
+    ));
     expect(
       (
         screen.getByLabelText(
@@ -149,7 +158,7 @@ describe('ProfilePageContent integration', () => {
         ) as HTMLTextAreaElement
       ).value,
     ).toBe('Cambio pendiente');
-    expect(screen.queryByText(esMessages.Profile.saved)).toBeNull();
+    expect(toast.success).not.toHaveBeenCalled();
     expect(getStoredProfile()).toBeNull();
   });
 

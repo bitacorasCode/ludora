@@ -1,8 +1,8 @@
 import type { ComponentProps } from 'react';
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui';
+import { Alert as BaseAlert, AlertDescription, AlertTitle } from '@/components/ui';
 
-type AlertVariant = NonNullable<ComponentProps<typeof Alert>['variant']>;
+type AlertVariant = NonNullable<ComponentProps<typeof BaseAlert>['variant']>;
 
 const statusConfig = {
   success: {
@@ -24,28 +24,39 @@ const statusConfig = {
   },
 } as const satisfies Record<
   string,
-  { variant: AlertVariant; role: 'status' | 'alert'; className: string }
+  {
+    variant: AlertVariant;
+    role: 'status' | 'alert';
+    className: string;
+  }
 >;
 
-type FeedbackStatus = keyof typeof statusConfig;
+type AlertStatus = keyof typeof statusConfig;
 
-type FeedbackAlertProps = {
-  status: FeedbackStatus;
-  title: string;
+type AlertProps = {
+  status: AlertStatus;
+  title?: string;
   message: string;
+  role?: 'status' | 'alert';
 };
 
-export function FeedbackAlert({ status, title, message }: FeedbackAlertProps) {
+export function Alert({
+  status,
+  title,
+  message,
+  role,
+}: AlertProps) {
   const config = statusConfig[status];
 
   return (
-    <Alert
+    <BaseAlert
       variant={config.variant}
-      role={config.role}
+      role={role ?? config.role}
+      aria-atomic='true'
       className={`mb-4 w-full ${config.className}`}
     >
-      <AlertTitle>{title}</AlertTitle>
+      {title && <AlertTitle>{title}</AlertTitle>}
       <AlertDescription>{message}</AlertDescription>
-    </Alert>
+    </BaseAlert>
   );
 }

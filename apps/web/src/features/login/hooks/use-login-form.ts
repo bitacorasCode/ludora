@@ -5,6 +5,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { useActionErrorToast } from '@/hooks';
+import { useRouter } from '@/i18n/navigation';
 import {
     ACTION_ERROR_CODES,
     type ActionResult,
@@ -13,15 +15,21 @@ import {
 import { createLoginSchema, type LoginFormData } from '@/lib/schemas';
 
 import { loginUser } from '../actions';
+import { LOGIN_ERROR_CODES } from '../config';
 
 export default function useLoginForm() {
     const locale = useLocale();
+    const router = useRouter();
     const validation = useTranslations('Login.validation');
-
-    const [submissionResult, setSubmissionResult] =
-        useState<ActionResult | null>(null);
+    const feedback = useTranslations('Login.feedback');
+    const errors = useTranslations('Login.errors');
+    const { showError, dismissError } = useActionErrorToast({
+        title: feedback('errorTitle'),
+        featureErrors: errors,
+    });
 
     const [isPending, startTransition] = useTransition();
+    const [hasInvalidCredentials, setHasInvalidCredentials] = useState(false);
 
     const form = useForm<LoginFormData>({
         mode: 'onTouched',
@@ -33,43 +41,53 @@ export default function useLoginForm() {
         },
     });
 
-    function clearSubmission() {
-        setSubmissionResult(null);
+    function clearCredentialsError() {
+        setHasInvalidCredentials(false);
     }
 
     function onSubmit(data: LoginFormData) {
-        clearSubmission();
+        if (isPending) {
+            return;
+        }
+
+        dismissError();
 
         startTransition(async () => {
-            try {
-                const result = await loginUser(locale, data);
+            let result: ActionResult;
 
-                setSubmissionResult(result);
+            try {
+                result = await loginUser(locale, data);
             } catch {
-                setSubmissionResult({
-                    status: OPERATION_STATUS.error,
-                    error: {
-                        errorCode: ACTION_ERROR_CODES.unexpected,
-                    },
+                clearCredentialsError();
+                showError({
+                    errorCode: ACTION_ERROR_CODES.unexpected,
                 });
+                return;
             }
+
+            if (result.status === OPERATION_STATUS.error) {
+                if (result.error.errorCode === LOGIN_ERROR_CODES.invalidCredentials) {
+                    setHasInvalidCredentials(true);
+                    return;
+                }
+
+                clearCredentialsError();
+                showError(result.error);
+                return;
+            }
+
+            clearCredentialsError();
+            form.reset();
+            router.replace('/');
+            router.refresh();
         });
     }
-
-    const submissionError =
-        submissionResult?.status === OPERATION_STATUS.error
-            ? submissionResult.error
-            : null;
-
-    const isSuccess =
-        submissionResult?.status === OPERATION_STATUS.success;
 
     return {
         form,
         onSubmit,
-        clearSubmission,
-        submissionError,
-        isSuccess,
+        hasInvalidCredentials,
+        clearCredentialsError,
         isSubmitting: form.formState.isSubmitting || isPending,
     };
 }

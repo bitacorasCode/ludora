@@ -9,6 +9,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { NextIntlClientProvider } from 'next-intl';
+import { toast } from 'sonner';
 import {
   afterEach,
   beforeAll,
@@ -24,7 +25,9 @@ import esMessages from '@/messages/es.json';
 import { loginUser } from '../actions';
 import { LoginPageContent } from './login-page-content';
 
-vi.mock('@/i18n/navigation', () => ({ Link: 'a' }));
+const router = vi.hoisted(() => ({ replace: vi.fn(), refresh: vi.fn() }));
+
+vi.mock('@/i18n/navigation', () => ({ Link: 'a', useRouter: () => router }));
 
 vi.mock('../actions', () => ({
   loginUser: vi.fn().mockResolvedValue({
@@ -36,6 +39,8 @@ vi.mock('../actions', () => ({
 expect.extend(toHaveNoViolations);
 
 beforeEach(() => {
+  vi.clearAllMocks();
+  vi.spyOn(toast, 'error').mockReturnValue('login-error');
   vi.mocked(loginUser).mockReset();
   vi.mocked(loginUser).mockResolvedValue({ status: 'success', data: null });
 });
@@ -48,6 +53,7 @@ beforeAll(() => {
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
 });
 
 describe('LoginPageContent integration', () => {
@@ -71,12 +77,11 @@ describe('LoginPageContent integration', () => {
     );
   }
 
-  it('submits valid credentials and displays success', async () => {
+  it('submits valid credentials and navigates home', async () => {
     renderLogin();
     await submitValidLogin();
-    expect(
-      await screen.findByText(esMessages.Login.feedback.successMessage),
-    ).toBeTruthy();
+    await waitFor(() => expect(router.replace).toHaveBeenCalledExactlyOnceWith('/'));
+    expect(router.refresh).toHaveBeenCalledOnce();
     expect(loginUser).toHaveBeenCalledExactlyOnceWith('es', {
       email: 'jugador@example.test',
       password: 'password123',
@@ -90,39 +95,44 @@ describe('LoginPageContent integration', () => {
     });
     renderLogin();
     await submitValidLogin();
-    expect(
-      await screen.findByText(esMessages.Login.errors.AUTH_INVALID_CREDENTIALS),
-    ).toBeTruthy();
-    expect(
-      screen.queryByText(esMessages.Login.feedback.successMessage),
-    ).toBeNull();
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toContain(esMessages.Login.feedback.errorTitle);
+    expect(alert.textContent).toContain(esMessages.Login.errors.AUTH_INVALID_CREDENTIALS);
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(router.replace).not.toHaveBeenCalled();
   });
 
-  it('shows a transport error and clears it when editing the form', async () => {
+  it('keeps a transport error toast persistent when editing the form', async () => {
     vi.mocked(loginUser).mockResolvedValue({
       status: 'error',
       error: { errorCode: 'API_UNAVAILABLE' },
     });
     renderLogin();
     await submitValidLogin();
-    expect(
-      await screen.findByText(esMessages.Common.errors.API_UNAVAILABLE),
-    ).toBeTruthy();
+    await waitFor(() => expect(toast.error).toHaveBeenCalledExactlyOnceWith(
+      esMessages.Login.feedback.errorTitle,
+      {
+        description: esMessages.Common.errors.API_UNAVAILABLE,
+        duration: Infinity,
+      },
+    ));
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
       target: { value: 'otro@example.test' },
     });
-    expect(
-      screen.queryByText(esMessages.Common.errors.API_UNAVAILABLE),
-    ).toBeNull();
+    expect(toast.error).toHaveBeenCalledOnce();
   });
 
   it('shows a generic message for unexpected action failures', async () => {
     vi.mocked(loginUser).mockRejectedValue(new Error('Unexpected failure'));
     renderLogin();
     await submitValidLogin();
-    expect(
-      await screen.findByText(esMessages.Common.errors.unknown),
-    ).toBeTruthy();
+    await waitFor(() => expect(toast.error).toHaveBeenCalledExactlyOnceWith(
+      esMessages.Login.feedback.errorTitle,
+      {
+        description: esMessages.Common.errors.unknown,
+        duration: Infinity,
+      },
+    ));
   });
 
   it('disables submission and fields while the action is pending', async () => {

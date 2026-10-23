@@ -8,7 +8,8 @@ import {
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { NextIntlClientProvider } from 'next-intl';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { toast } from 'sonner';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import esMessages from '@/messages/es.json';
 
@@ -23,6 +24,11 @@ const profile: Profile = {
 };
 
 expect.extend(toHaveNoViolations);
+
+beforeEach(() => {
+  vi.spyOn(toast, 'error').mockReturnValue('profile-save-error');
+  vi.spyOn(toast, 'dismiss').mockReturnValue('profile-save-error');
+});
 
 afterEach(() => {
   cleanup();
@@ -134,15 +140,19 @@ describe('ProfileEditor integration', () => {
     fireEvent.click(
       screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
     );
-    expect(await screen.findByText(esMessages.Profile.saveError)).toBeTruthy();
+    await waitFor(() => expect(toast.error).toHaveBeenCalledExactlyOnceWith(
+      esMessages.Profile.saveError,
+      { duration: Infinity },
+    ));
     expect(bio.value).toBe('Mi cambio');
     fireEvent.click(
       screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
     );
     await waitFor(() =>
-      expect(screen.queryByText(esMessages.Profile.saveError)).toBeNull(),
+      expect(onSave).toHaveBeenCalledTimes(2),
     );
-    expect(onSave).toHaveBeenCalledTimes(2);
+    expect(toast.dismiss).toHaveBeenCalledOnce();
+    expect(toast.dismiss).toHaveBeenLastCalledWith('profile-save-error');
   });
 
   it('disables editing until an asynchronous save finishes', async () => {

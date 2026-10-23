@@ -3,8 +3,9 @@
 import { useId } from 'react';
 import { Controller, type FieldValues } from 'react-hook-form';
 
-import { Field, FieldError, FieldLabel, Textarea } from '@/components/ui';
+import { Field, FieldLabel, Textarea } from '@/components/ui';
 
+import { FormFieldFeedback } from './form-field-feedback';
 import type { BaseFormFieldProps } from './types';
 
 type Props<T extends FieldValues> = BaseFormFieldProps<T> & {
@@ -59,9 +60,7 @@ export function FormTextareaField<T extends FieldValues>({
                 {formatCounter(value.length, maxLength)}
               </p>
             )}
-            {fieldState.error && (
-              <FieldError id={errorId} errors={[fieldState.error]} />
-            )}
+            <FormFieldFeedback id={errorId} errors={[fieldState.error]} />
           </Field>
         );
       }}

@@ -3,8 +3,9 @@
 import { useId } from 'react';
 import { Controller, type FieldValues } from 'react-hook-form';
 
-import { Field, FieldError, FieldLabel, Input } from '@/components/ui';
+import { Field, FieldLabel, Input } from '@/components/ui';
 
+import { FormFieldFeedback } from './form-field-feedback';
 import { BaseFormFieldProps } from './types';
 
 export function FormFileField<T extends FieldValues>({
@@ -36,9 +37,7 @@ export function FormFileField<T extends FieldValues>({
             onBlur={field.onBlur}
           />
 
-          {fieldState.error && (
-            <FieldError id={errorId} errors={[fieldState.error]} />
-          )}
+          <FormFieldFeedback id={errorId} errors={[fieldState.error]} />
         </Field>
       )}
     />

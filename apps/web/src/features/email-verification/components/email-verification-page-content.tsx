@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 
-import { FeedbackAlert } from '@/components/feedback';
+import { Alert } from '@/components/feedback';
 import {
     FormActions,
     FormPageCard,
@@ -10,9 +10,7 @@ import {
     SubmitButton,
 } from '@/components/forms';
 import { Button, FieldGroup, FieldSet } from '@/components/ui';
-import { useActionErrorMessage } from '@/hooks';
 import { Link } from '@/i18n/navigation';
-import { OPERATION_STATUS } from '@/lib/actions';
 import { EMAIL_VERIFICATION_CODE_LENGTH } from '@/lib/schemas';
 
 import useEmailVerificationForm from '../hooks/use-email-verification-form';
@@ -29,19 +27,11 @@ export function EmailVerificationPageContent({
     deliveryUnconfirmed = false,
 }: EmailVerificationPageContentProps) {
     const t = useTranslations('EmailVerification');
-    const verificationErrors = useTranslations('EmailVerification.errors');
     const {
         form,
         onSubmit,
-        clearSubmission,
-        submissionError,
         isSubmitting,
     } = useEmailVerificationForm(verificationId);
-
-    const errorMessage = useActionErrorMessage(
-        submissionError,
-        verificationErrors,
-    );
 
     return (
         <FormPageCard
@@ -56,22 +46,14 @@ export function EmailVerificationPageContent({
                 aria-busy={isSubmitting}
                 tabIndex={-1}
                 onSubmit={form.handleSubmit(onSubmit)}
-                onChange={clearSubmission}
                 noValidate
             >
                 {deliveryUnconfirmed && (
-                    <FeedbackAlert
+                    <Alert
                         status='warning'
+                        role='status'
                         title={t('feedback.deliveryUnconfirmedTitle')}
                         message={t('feedback.deliveryUnconfirmedMessage')}
-                    />
-                )}
-
-                {errorMessage && (
-                    <FeedbackAlert
-                        status={OPERATION_STATUS.error}
-                        title={t('feedback.errorTitle')}
-                        message={errorMessage}
                     />
                 )}
 

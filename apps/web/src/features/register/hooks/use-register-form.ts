@@ -2,13 +2,13 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocale, useTranslations } from 'next-intl';
-import { useState, useTransition } from 'react';
+import { useEffect, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { useActionErrorToast } from '@/hooks';
 import { useRouter } from '@/i18n/navigation';
 import {
     ACTION_ERROR_CODES,
-    type ActionError,
     OPERATION_STATUS,
 } from '@/lib/actions';
 import {
@@ -17,15 +17,18 @@ import {
 } from '@/lib/schemas';
 
 import { type RegisterResult, registerUser } from '../actions';
-import { userDefaultValues } from '../config';
+import { REGISTER_FIELD_ERRORS, userDefaultValues } from '../config';
 
 export default function useRegisterForm() {
     const locale = useLocale();
     const router = useRouter();
     const validation = useTranslations('Register.validation');
-
-    const [submissionError, setSubmissionError] =
-        useState<ActionError | null>(null);
+    const errors = useTranslations('Register.errors');
+    const feedback = useTranslations('Register.feedback');
+    const { showError, dismissError } = useActionErrorToast({
+        title: feedback('errorTitle'),
+        featureErrors: errors,
+    });
     const [isPending, startTransition] = useTransition();
 
     const form = useForm<RegisterFormData>({
@@ -34,17 +37,28 @@ export default function useRegisterForm() {
         resolver: zodResolver(createRegisterSchema(validation)),
         defaultValues: userDefaultValues,
     });
+    const { getFieldState, setFocus } = form;
 
-    function clearSubmission() {
-        setSubmissionError(null);
-    }
+    useEffect(() => {
+        if (isPending) {
+            return;
+        }
+
+        const fieldName = [...REGISTER_FIELD_ERRORS.values()].find(
+            (name) => getFieldState(name).error?.type === 'server',
+        );
+
+        if (fieldName) {
+            setFocus(fieldName);
+        }
+    }, [getFieldState, isPending, setFocus]);
 
     function onSubmit(data: RegisterFormData) {
         if (isPending) {
             return;
         }
 
-        clearSubmission();
+        dismissError();
 
         startTransition(async () => {
             let result: RegisterResult;
@@ -52,14 +66,25 @@ export default function useRegisterForm() {
             try {
                 result = await registerUser(locale, data);
             } catch {
-                setSubmissionError({
+                showError({
                     errorCode: ACTION_ERROR_CODES.unexpected,
                 });
                 return;
             }
 
             if (result.status === OPERATION_STATUS.error) {
-                setSubmissionError(result.error);
+                const { errorCode } = result.error;
+                const fieldName = REGISTER_FIELD_ERRORS.get(errorCode);
+
+                if (fieldName && errors.has(errorCode)) {
+                    form.setError(fieldName, {
+                        type: 'server',
+                        message: errors(errorCode),
+                    });
+                    return;
+                }
+
+                showError(result.error);
                 return;
             }
 
@@ -80,8 +105,6 @@ export default function useRegisterForm() {
     return {
         form,
         onSubmit,
-        clearSubmission,
-        submissionError,
         isSubmitting: form.formState.isSubmitting || isPending,
     };
 }

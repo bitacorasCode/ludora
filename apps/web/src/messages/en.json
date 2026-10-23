@@ -54,6 +54,7 @@
         },
         "status": {
             "checkingSession": "Checking your session",
+            "saving": "Saving...",
             "validating": "Validating..."
         }
     },
@@ -126,9 +127,7 @@
             "AUTH_INVALID_CREDENTIALS": "The email or password is incorrect."
         },
         "feedback": {
-            "errorTitle": "We couldn't sign you in",
-            "successMessage": "You have signed in successfully.",
-            "successTitle": "Signed in"
+            "errorTitle": "We couldn't sign you in"
         },
         "forgotPassword": "Forgot your password?",
         "password": "Password",
@@ -157,6 +156,10 @@
         "eyebrow": "Error 404",
         "title": "Page not found"
     },
+    "Notification": {
+        "close": "Close notification",
+        "label": "Notifications"
+    },
     "PasswordRecovery": {
         "backToLogin": "Back to sign in",
         "confirmPassword": "Confirm new password",
@@ -167,17 +170,19 @@
         "passwordPlaceholder": "Create a new password",
         "request": {
             "description": "Enter your email to preview how account recovery will work.",
-            "feedbackMessage": "The email is valid, but recovery messages are not available yet. No email was sent.",
+            "feedbackMessage": "This screen is a preview. Recovery emails are not available yet.",
             "feedbackTitle": "Recovery is not available yet",
             "previewReset": "View new password screen",
-            "title": "Recover your password"
+            "title": "Recover your password",
+            "validatedMessage": "Validation completed. No recovery email has been sent."
         },
         "reset": {
             "description": "Preview of the last recovery step. There is no recovery link or associated account yet.",
-            "feedbackMessage": "The passwords match, but no password was changed. This screen is a preview.",
+            "feedbackMessage": "This screen is a preview and does not change your password. Password changes are not available yet.",
             "feedbackTitle": "Password changes are not available yet",
             "submit": "Change password",
-            "title": "Create a new password"
+            "title": "Create a new password",
+            "validatedMessage": "Validation completed. No password has been changed."
         },
         "skipToForm": "Skip to recovery form",
         "validation": {

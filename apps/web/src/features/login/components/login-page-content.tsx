@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 
-import { FeedbackAlert } from '@/components/feedback';
+import { TransitionAlert } from '@/components/feedback';
 import {
   FormActions,
   FormPageCard,
@@ -10,28 +10,23 @@ import {
   SubmitButton,
 } from '@/components/forms';
 import { Button, FieldGroup, FieldSet } from '@/components/ui';
-import { useActionErrorMessage } from '@/hooks';
 import { Link } from '@/i18n/navigation';
-import { OPERATION_STATUS } from '@/lib/actions';
 
+import { LOGIN_ERROR_CODES } from '../config';
 import useLoginForm from '../hooks/use-login-form';
 
 const formId = 'login-form';
 
 export function LoginPageContent() {
   const t = useTranslations('Login');
-  const loginErrors = useTranslations('Login.errors');
 
   const {
     form,
     onSubmit,
-    clearSubmission,
-    submissionError,
-    isSuccess,
+    hasInvalidCredentials,
+    clearCredentialsError,
     isSubmitting,
   } = useLoginForm();
-
-  const errorMessage = useActionErrorMessage(submissionError, loginErrors);
 
   return (
     <FormPageCard
@@ -46,25 +41,9 @@ export function LoginPageContent() {
         aria-busy={isSubmitting}
         tabIndex={-1}
         onSubmit={form.handleSubmit(onSubmit)}
-        onChange={clearSubmission}
+        onChange={clearCredentialsError}
         noValidate
       >
-        {errorMessage && (
-          <FeedbackAlert
-            status={OPERATION_STATUS.error}
-            title={t('feedback.errorTitle')}
-            message={errorMessage}
-          />
-        )}
-
-        {isSuccess && (
-          <FeedbackAlert
-            status={OPERATION_STATUS.success}
-            title={t('feedback.successTitle')}
-            message={t('feedback.successMessage')}
-          />
-        )}
-
         <FieldSet disabled={isSubmitting}>
           <FieldGroup>
             <FormTextField
@@ -89,6 +68,13 @@ export function LoginPageContent() {
               <Button asChild variant='link' className='mt-2 px-0'>
                 <Link href='/forgot-password'>{t('forgotPassword')}</Link>
               </Button>
+
+              <TransitionAlert
+                open={hasInvalidCredentials}
+                status='error'
+                title={t('feedback.errorTitle')}
+                message={t(`errors.${LOGIN_ERROR_CODES.invalidCredentials}`)}
+              />
             </div>
 
             <FormActions

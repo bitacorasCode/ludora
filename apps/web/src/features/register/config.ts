@@ -39,3 +39,8 @@ export const userFields = [
 export const userDefaultValues = Object.fromEntries(
     userFields.map(({ name, defaultValue }) => [name, defaultValue]),
 ) as DefaultValues<RegisterFormData>;
+
+export const REGISTER_FIELD_ERRORS = new Map<string, keyof RegisterFormData>([
+    ['AUTH_EMAIL_ALREADY_EXISTS', 'email'],
+    ['AUTH_NICKNAME_ALREADY_EXISTS', 'nickname'],
+]);

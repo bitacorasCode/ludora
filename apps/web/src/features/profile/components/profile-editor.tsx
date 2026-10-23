@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Controller } from 'react-hook-form';
 
-import { FormTextareaField } from '@/components/forms';
+import { FormTextareaField, SubmitButton } from '@/components/forms';
 import { Button, Card, CardContent } from '@/components/ui';
 
 import type { Profile } from '../config';
@@ -24,12 +24,17 @@ export function ProfileEditor({
 }: ProfileEditorProps) {
   const t = useTranslations('Profile');
   const common = useTranslations('Common');
-  const { form, onSubmit, saveError } = useProfileForm(profile, onSave);
+  const { form, onSubmit } = useProfileForm(profile, onSave);
 
   return (
     <Card>
       <CardContent>
-        <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
+        <form
+          aria-label={t('edit')}
+          aria-busy={form.formState.isSubmitting}
+          onSubmit={form.handleSubmit(onSubmit)}
+          noValidate
+        >
           <fieldset disabled={form.formState.isSubmitting} className='space-y-8'>
             <Controller
               control={form.control}
@@ -53,10 +58,12 @@ export function ProfileEditor({
               formatCounter={(count, max) => t('bioCounter', { count, max })}
             />
 
-            {saveError && <p role='alert'>{t('saveError')}</p>}
-
             <div className='flex flex-wrap gap-3'>
-              <Button type='submit'>{common('actions.saveChanges')}</Button>
+              <SubmitButton
+                isSubmitting={form.formState.isSubmitting}
+                mainText={common('actions.saveChanges')}
+                submittingText={common('status.saving')}
+              />
               <Button type='button' variant='outline' onClick={onCancel}>
                 {common('actions.cancel')}
               </Button>
