@@ -10,13 +10,17 @@ import { axe, toHaveNoViolations } from 'jest-axe';
 import { NextIntlClientProvider } from 'next-intl';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
+import { ACTION_ERROR_CODES, OPERATION_STATUS } from '@/lib/actions';
 import esMessages from '@/messages/es.json';
 
 import { registerUser } from '../actions';
 import { RegisterPageContent } from './register-page-content';
 
 vi.mock('../actions', () => ({ registerUser: vi.fn() }));
-vi.mock('@/i18n/navigation', () => ({ Link: 'a' }));
+vi.mock('@/i18n/navigation', () => ({
+  Link: 'a',
+  useRouter: () => ({ push: vi.fn() }),
+}));
 
 expect.extend(toHaveNoViolations);
 
@@ -90,7 +94,7 @@ describe('RegisterPageContent integration', () => {
       target: { value: 'corta' },
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    fireEvent.click(screen.getByRole('button', { name: esMessages.Register.submit }));
 
     await waitFor(() => {
       expect(
@@ -118,7 +122,7 @@ describe('RegisterPageContent integration', () => {
     fireEvent.change(screen.getByLabelText('Confirmar contraseña'), {
       target: { value: 'otraContraseña123' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    fireEvent.click(screen.getByRole('button', { name: esMessages.Register.submit }));
 
     expect(await screen.findByText(esMessages.Register.validation.passwordMismatch)).toBeTruthy();
     expect(screen.getByLabelText('Confirmar contraseña').getAttribute('aria-invalid')).toBe('true');
@@ -127,8 +131,11 @@ describe('RegisterPageContent integration', () => {
 
   it('shows a server validation error', async () => {
     vi.mocked(registerUser).mockResolvedValueOnce({
-      status: 'invalid',
-      errors: [esMessages.Register.validation.emailInvalid],
+      status: OPERATION_STATUS.error,
+      error: {
+        errorCode: ACTION_ERROR_CODES.validationFailed,
+        validationErrors: [esMessages.Register.validation.emailInvalid],
+      },
     });
 
     render(
@@ -138,7 +145,7 @@ describe('RegisterPageContent integration', () => {
     );
 
     fillValidRegisterForm();
-    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    fireEvent.click(screen.getByRole('button', { name: esMessages.Register.submit }));
 
     expect(await screen.findByText(esMessages.Register.validation.emailInvalid)).toBeTruthy();
     expect(registerUser).toHaveBeenCalledOnce();
@@ -154,9 +161,9 @@ describe('RegisterPageContent integration', () => {
     );
 
     fillValidRegisterForm();
-    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    fireEvent.click(screen.getByRole('button', { name: esMessages.Register.submit }));
 
-    expect(await screen.findByText(esMessages.Register.feedback.unexpectedError)).toBeTruthy();
+    expect(await screen.findByText(esMessages.Common.errors.unknown)).toBeTruthy();
     expect(registerUser).toHaveBeenCalledOnce();
   });
 

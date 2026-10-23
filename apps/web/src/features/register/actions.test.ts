@@ -3,12 +3,17 @@ import { getTranslations } from 'next-intl/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { routing } from '@/i18n/routing';
+import { ACTION_ERROR_CODES, OPERATION_STATUS } from '@/lib/actions';
 import type { RegisterFormData } from '@/lib/schemas';
 import esMessages from '@/messages/es.json';
 
 import { registerUser } from './actions';
 
 vi.mock('next-intl/server', () => ({ getTranslations: vi.fn() }));
+vi.mock('@/lib/api', async () => ({
+  ...(await import('@/lib/api/constants')),
+  publicApi: { post: vi.fn() },
+}));
 
 const validData: RegisterFormData = {
   nickname: 'Jugador',
@@ -33,8 +38,11 @@ describe('registerUser validation', () => {
   it('rejects invalid data sent directly to the action', async () => {
     const result = await registerUser('es', { ...validData, email: 'invalid' });
     expect(result).toEqual({
-      status: 'invalid',
-      errors: [esMessages.Register.validation.emailInvalid],
+      status: OPERATION_STATUS.error,
+      error: {
+        errorCode: ACTION_ERROR_CODES.validationFailed,
+        validationErrors: [esMessages.Register.validation.emailInvalid],
+      },
     });
   });
 
@@ -44,8 +52,11 @@ describe('registerUser validation', () => {
       confirmPassword: 'another-password',
     });
     expect(result).toEqual({
-      status: 'invalid',
-      errors: [esMessages.Register.validation.passwordMismatch],
+      status: OPERATION_STATUS.error,
+      error: {
+        errorCode: ACTION_ERROR_CODES.validationFailed,
+        validationErrors: [esMessages.Register.validation.passwordMismatch],
+      },
     });
   });
 
@@ -54,18 +65,18 @@ describe('registerUser validation', () => {
       ...validData,
       confirmPassword: '',
     });
-    expect(result.status).toBe('invalid');
-    if (result.status === 'invalid')
-      expect(result.errors).toContain(
+    expect(result.status).toBe(OPERATION_STATUS.error);
+    if (result.status === OPERATION_STATUS.error)
+      expect(result.error.validationErrors).toContain(
         esMessages.Register.validation.confirmPasswordRequired,
       );
   });
 
   it('rejects a malformed payload without crashing', async () => {
     const result = await registerUser('es', {} as RegisterFormData);
-    expect(result.status).toBe('invalid');
-    if (result.status === 'invalid')
-      expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.status).toBe(OPERATION_STATUS.error);
+    if (result.status === OPERATION_STATUS.error)
+      expect(result.error.validationErrors?.length).toBeGreaterThan(0);
   });
 
   it('requests translations for the supported locale', async () => {

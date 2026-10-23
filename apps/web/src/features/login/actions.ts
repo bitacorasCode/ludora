@@ -2,7 +2,6 @@
 
 import { hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
-import { z } from 'zod';
 
 import { routing } from '@/i18n/routing';
 import {
@@ -11,14 +10,11 @@ import {
     OPERATION_STATUS,
 } from '@/lib/actions';
 import { API_ERROR_CODES, publicApi } from '@/lib/api';
+import { authResponseSchema } from '@/lib/auth';
 import { createLoginSchema } from '@/lib/schemas';
 import { createSession } from '@/lib/session';
 
 const LOGIN_ENDPOINT = '/auth/login';
-
-const loginResponseSchema = z.object({
-    accessToken: z.string().min(1),
-});
 
 export async function loginUser(
     locale: string,
@@ -54,7 +50,7 @@ export async function loginUser(
         return result;
     }
 
-    const responseValidation = loginResponseSchema.safeParse(result.data);
+    const responseValidation = authResponseSchema.safeParse(result.data);
 
     if (!responseValidation.success) {
         return {

@@ -57,6 +57,32 @@
             "validating": "Validando..."
         }
     },
+    "EmailVerification": {
+        "backToLogin": "Volver a iniciar sesión",
+        "codeLabel": "Código de verificación",
+        "codePlaceholder": "000000",
+        "description": "Introduce el código recibido por correo para confirmar tu dirección, activar tu cuenta e iniciar sesión.",
+        "errors": {
+            "AUTH_EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED": "Has alcanzado el límite de intentos para este código.",
+            "AUTH_EMAIL_VERIFICATION_CODE_INVALID": "El código de verificación es incorrecto.",
+            "AUTH_EMAIL_VERIFICATION_EXPIRED": "El código ha caducado y ya no se puede utilizar.",
+            "AUTH_EMAIL_VERIFICATION_INVALID": "La verificación no es válida o ya no está disponible."
+        },
+        "feedback": {
+            "deliveryUnconfirmedMessage": "Tu cuenta está creada y pendiente de confirmación, pero no pudimos confirmar el envío del correo. Si recibes el código, puedes introducirlo aquí. El reenvío de códigos todavía no está disponible.",
+            "deliveryUnconfirmedTitle": "No pudimos confirmar el envío del correo",
+            "errorTitle": "No pudimos confirmar tu correo"
+        },
+        "skipToForm": "Saltar al formulario de confirmación",
+        "submit": "Confirmar correo",
+        "submitting": "Confirmando correo...",
+        "title": "Confirma tu correo",
+        "validation": {
+            "codeInvalid": "Introduce un código de 6 dígitos.",
+            "codeRequired": "Introduce el código que recibiste por correo.",
+            "verificationInvalid": "La solicitud de verificación no es válida."
+        }
+    },
     "FormTextField": {
         "hide": "Ocultar",
         "show": "Mostrar"
@@ -203,11 +229,13 @@
     },
     "Register": {
         "accountData": "Datos de la cuenta",
+        "description": "Crea tu cuenta y confirma tu correo electrónico para acceder a Ludora.",
+        "errors": {
+            "AUTH_EMAIL_ALREADY_EXISTS": "El correo electrónico ya está registrado.",
+            "AUTH_NICKNAME_ALREADY_EXISTS": "El nombre de usuario ya está en uso."
+        },
         "feedback": {
-            "errorTitle": "Algo salió mal",
-            "title": "Registro todavía no disponible",
-            "unavailable": "El formulario pasó la validación, pero aún no podemos crear cuentas. Tus datos no se guardaron.",
-            "unexpectedError": "No pudimos procesar el formulario. Inténtalo de nuevo."
+            "errorTitle": "No pudimos completar el registro"
         },
         "fields": {
             "confirmPassword": {
@@ -227,9 +255,11 @@
                 "placeholder": "Crea una contraseña"
             }
         },
-        "metadataDescription": "Conoce el formulario de registro de Ludora. La creación de cuentas estará disponible próximamente.",
+        "metadataDescription": "Crea tu cuenta de Ludora y confirma tu correo electrónico para empezar.",
         "signIn": "Ya tengo una cuenta",
         "skipToForm": "Saltar al formulario",
+        "submit": "Crear cuenta",
+        "submitting": "Creando cuenta...",
         "title": "Registro",
         "validation": {
             "confirmPasswordRequired": "Repite la contraseña.",

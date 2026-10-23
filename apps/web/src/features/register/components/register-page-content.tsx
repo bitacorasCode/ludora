@@ -4,8 +4,10 @@ import { useTranslations } from 'next-intl';
 
 import { FeedbackAlert } from '@/components/feedback';
 import { FormActions, FormPageCard, SubmitButton } from '@/components/forms';
-import { Button } from '@/components/ui';
+import { Button, FieldSet } from '@/components/ui';
+import { useActionErrorMessage } from '@/hooks';
 import { Link } from '@/i18n/navigation';
+import { OPERATION_STATUS } from '@/lib/actions';
 
 import useRegisterForm from '../hooks/use-register-form';
 import RegisterFormData from './register-form-data';
@@ -13,31 +15,41 @@ import RegisterFormData from './register-form-data';
 const formId = 'register-form';
 
 export function RegisterPageContent() {
-  const { form, submissionFeedback, onSubmit } = useRegisterForm();
+  const {
+    form,
+    onSubmit,
+    clearSubmission,
+    submissionError,
+    isSubmitting,
+  } = useRegisterForm();
   const t = useTranslations('Register');
-  const common = useTranslations('Common');
+  const registerErrors = useTranslations('Register.errors');
+  const errorMessage = useActionErrorMessage(submissionError, registerErrors);
 
   return (
     <FormPageCard
       formId={formId}
       skipToForm={t('skipToForm')}
       title={t('title')}
+      description={t('description')}
     >
       <form
         id={formId}
         aria-label={t('title')}
+        aria-busy={isSubmitting}
         tabIndex={-1}
         onSubmit={form.handleSubmit(onSubmit)}
+        onChange={clearSubmission}
         noValidate
       >
-        {submissionFeedback && (
+        {errorMessage && (
           <FeedbackAlert
-            status={submissionFeedback.status}
-            title={submissionFeedback.title}
-            message={submissionFeedback.message}
+            status={OPERATION_STATUS.error}
+            title={t('feedback.errorTitle')}
+            message={errorMessage}
           />
         )}
-        <fieldset disabled={form.formState.isSubmitting} className='space-y-6'>
+        <FieldSet disabled={isSubmitting}>
           <legend className='sr-only'>{t('accountData')}</legend>
           <RegisterFormData control={form.control} />
           <FormActions
@@ -48,12 +60,12 @@ export function RegisterPageContent() {
             }
           >
             <SubmitButton
-              isSubmitting={form.formState.isSubmitting}
-              mainText={common('actions.continue')}
-              submittingText={common('status.validating')}
+              isSubmitting={isSubmitting}
+              mainText={t('submit')}
+              submittingText={t('submitting')}
             />
           </FormActions>
-        </fieldset>
+        </FieldSet>
       </form>
     </FormPageCard>
   );

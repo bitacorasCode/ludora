@@ -3,14 +3,17 @@
 import { EyeIcon, EyeOffIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { useTranslations } from 'next-intl';
-import { useId, useState } from 'react';
+import { type ComponentProps, useId, useState } from 'react';
 import { Controller, type FieldValues } from 'react-hook-form';
 
 import { Button, Field, FieldError, FieldLabel, Input } from '@/components/ui';
 
 import type { BaseFormFieldProps } from './types';
 
-type Props<T extends FieldValues> = BaseFormFieldProps<T> & {
+type Props<T extends FieldValues> = BaseFormFieldProps<T> & Pick<
+  ComponentProps<typeof Input>,
+  'autoFocus' | 'inputMode' | 'maxLength'
+> & {
   placeholder?: string;
   inputType?: 'text' | 'email' | 'password';
   autoComplete?: string;
@@ -23,6 +26,9 @@ export function FormTextField<T extends FieldValues>({
   placeholder,
   inputType = 'text',
   autoComplete,
+  autoFocus,
+  inputMode,
+  maxLength,
 }: Props<T>) {
   const t = useTranslations('FormTextField');
   const id = useId();
@@ -46,6 +52,9 @@ export function FormTextField<T extends FieldValues>({
                 inputType === 'password' && passwordVisible ? 'text' : inputType
               }
               autoComplete={autoComplete}
+              autoFocus={autoFocus}
+              inputMode={inputMode}
+              maxLength={maxLength}
               placeholder={placeholder}
               className={showVisibilityToggle ? 'pr-10' : undefined}
               aria-invalid={fieldState.invalid}

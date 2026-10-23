@@ -57,6 +57,32 @@
             "validating": "Validating..."
         }
     },
+    "EmailVerification": {
+        "backToLogin": "Back to sign in",
+        "codeLabel": "Verification code",
+        "codePlaceholder": "000000",
+        "description": "Enter the code you received by email to confirm your address, activate your account, and sign in.",
+        "errors": {
+            "AUTH_EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED": "You have reached the attempt limit for this code.",
+            "AUTH_EMAIL_VERIFICATION_CODE_INVALID": "The verification code is incorrect.",
+            "AUTH_EMAIL_VERIFICATION_EXPIRED": "The code has expired and can no longer be used.",
+            "AUTH_EMAIL_VERIFICATION_INVALID": "The verification is invalid or no longer available."
+        },
+        "feedback": {
+            "deliveryUnconfirmedMessage": "Your account has been created and is awaiting confirmation, but we couldn't confirm the email was sent. If you receive the code, you can enter it here. Resending codes is not available yet.",
+            "deliveryUnconfirmedTitle": "We couldn't confirm the email was sent",
+            "errorTitle": "We couldn't confirm your email"
+        },
+        "skipToForm": "Skip to confirmation form",
+        "submit": "Confirm email",
+        "submitting": "Confirming email...",
+        "title": "Confirm your email",
+        "validation": {
+            "codeInvalid": "Enter a 6-digit code.",
+            "codeRequired": "Enter the code you received by email.",
+            "verificationInvalid": "The verification request is invalid."
+        }
+    },
     "FormTextField": {
         "hide": "Hide",
         "show": "Show"
@@ -203,11 +229,13 @@
     },
     "Register": {
         "accountData": "Account details",
+        "description": "Create your account and confirm your email address to access Ludora.",
+        "errors": {
+            "AUTH_EMAIL_ALREADY_EXISTS": "The email address is already registered.",
+            "AUTH_NICKNAME_ALREADY_EXISTS": "The username is already in use."
+        },
         "feedback": {
-            "errorTitle": "Something went wrong",
-            "title": "Registration is not available yet",
-            "unavailable": "The form passed validation, but account creation is not available yet. Your details were not saved.",
-            "unexpectedError": "We couldn't process the form. Please try again."
+            "errorTitle": "We couldn't complete your registration"
         },
         "fields": {
             "confirmPassword": {
@@ -227,9 +255,11 @@
                 "placeholder": "Create a password"
             }
         },
-        "metadataDescription": "Explore the Ludora registration form. Account creation will be available soon.",
+        "metadataDescription": "Create your Ludora account and confirm your email address to get started.",
         "signIn": "I already have an account",
         "skipToForm": "Skip to form",
+        "submit": "Create account",
+        "submitting": "Creating account...",
         "title": "Register",
         "validation": {
             "confirmPasswordRequired": "Repeat your password.",
