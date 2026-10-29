@@ -2,35 +2,58 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
-import { useActionErrorToast } from '@/hooks';
+import { useActionErrorToast, useCountdown } from '@/hooks';
 import { useRouter } from '@/i18n/navigation';
 import {
     ACTION_ERROR_CODES,
-    type ActionResult,
     OPERATION_STATUS,
 } from '@/lib/actions';
+import { HTTP_STATUS } from '@/lib/api/constants';
 import {
     createEmailVerificationSchema,
     type EmailVerificationFormData,
 } from '@/lib/schemas';
 
-import { verifyEmail } from '../actions';
+import { resendVerification, verifyEmail } from '../actions';
 import { EMAIL_VERIFICATION_ERROR_CODES } from '../config';
+import { updateVerificationLocation } from '../utils/update-verification-location';
 
-export default function useEmailVerificationForm(verificationId: string) {
+type EmailVerificationFormOptions = {
+    verificationId: string;
+    initialWaitSeconds: number;
+    deliveryUnconfirmed: boolean;
+};
+
+export default function useEmailVerificationForm({
+    verificationId,
+    initialWaitSeconds,
+    deliveryUnconfirmed: initialDeliveryUnconfirmed,
+}: EmailVerificationFormOptions) {
     const locale = useLocale();
     const validation = useTranslations('EmailVerification.validation');
     const errors = useTranslations('EmailVerification.errors');
     const feedback = useTranslations('EmailVerification.feedback');
+    const resend = useTranslations('EmailVerification.resend');
     const router = useRouter();
     const { showError, dismissError } = useActionErrorToast({
         title: feedback('errorTitle'),
         featureErrors: errors,
     });
+    const resendFeedback = useActionErrorToast({
+        title: resend('errorTitle'),
+        featureErrors: errors,
+    });
     const [isPending, startTransition] = useTransition();
+    const [isResending, startResend] = useTransition();
+    const [deliveryUnconfirmed, setDeliveryUnconfirmed] = useState(initialDeliveryUnconfirmed);
+    const { secondsRemaining, restart } = useCountdown(initialWaitSeconds);
+    const isActive = useRef(false);
+    const requestInFlight = useRef(false);
+    const focusCodeAfterResend = useRef(false);
 
     const form = useForm<EmailVerificationFormData>({
         mode: 'onTouched',
@@ -44,57 +67,140 @@ export default function useEmailVerificationForm(verificationId: string) {
     const { getFieldState, setFocus } = form;
 
     useEffect(() => {
-        if (!isPending && getFieldState('code').error?.type === 'server') {
+        isActive.current = true;
+
+        return () => {
+            isActive.current = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (isPending || isResending) return;
+
+        if (focusCodeAfterResend.current || getFieldState('code').error?.type === 'server') {
+            focusCodeAfterResend.current = false;
             setFocus('code');
         }
-    }, [getFieldState, isPending, setFocus]);
+    }, [getFieldState, isPending, isResending, setFocus]);
+
+    function beginRequest() {
+        if (requestInFlight.current) return false;
+
+        requestInFlight.current = true;
+        dismissError();
+        resendFeedback.dismissError();
+
+        return true;
+    }
 
     function onSubmit(data: EmailVerificationFormData) {
-        if (isPending) {
-            return;
-        }
-
-        dismissError();
+        if (!beginRequest()) return;
 
         startTransition(async () => {
-            let result: ActionResult;
-
             try {
-                result = await verifyEmail(locale, {
+                const result = await verifyEmail(locale, {
                     ...data,
                     verificationId,
                 });
+
+                if (!isActive.current) return;
+
+                if (result.status === OPERATION_STATUS.error) {
+                    const { errorCode } = result.error;
+
+                    if (errorCode === EMAIL_VERIFICATION_ERROR_CODES.codeInvalid) {
+                        form.setError('code', {
+                            type: 'server',
+                            message: errors(errorCode),
+                        });
+                        return;
+                    }
+
+                    showError(result.error);
+                    return;
+                }
+
+                form.reset();
+                router.replace('/account/profile');
+                router.refresh();
             } catch {
                 showError({
                     errorCode: ACTION_ERROR_CODES.unexpected,
                 });
-                return;
+            } finally {
+                requestInFlight.current = false;
             }
+        });
+    }
 
-            if (result.status === OPERATION_STATUS.error) {
-                const { errorCode } = result.error;
+    function onResend() {
+        if (secondsRemaining > 0 || !beginRequest()) return;
 
-                if (errorCode === EMAIL_VERIFICATION_ERROR_CODES.codeInvalid) {
-                    form.setError('code', {
-                        type: 'server',
-                        message: errors(errorCode),
-                    });
+        startResend(async () => {
+            try {
+                const result = await resendVerification(locale, { verificationId });
+
+                if (!isActive.current) return;
+
+                if (result.status === OPERATION_STATUS.error) {
+                    const { errorCode, statusCode, retryAfterSeconds, retryAt } = result.error;
+                    const isRateLimited = statusCode === HTTP_STATUS.tooManyRequests
+                        || errorCode === EMAIL_VERIFICATION_ERROR_CODES.resendTooSoon;
+
+                    if (isRateLimited && retryAfterSeconds !== undefined) {
+                        restart(retryAfterSeconds);
+
+                        if (retryAt) {
+                            updateVerificationLocation({
+                                verificationId,
+                                resendAvailableAt: retryAt,
+                            });
+                        }
+                    }
+
+                    resendFeedback.showError(result.error);
                     return;
                 }
 
-                showError(result.error);
-                return;
-            }
+                const { emailSent, resendAvailableAt, retryAfterSeconds } = result.data;
 
-            form.reset();
-            router.replace('/account/profile');
-            router.refresh();
+                restart(retryAfterSeconds);
+                setDeliveryUnconfirmed(!emailSent);
+                form.resetField('code');
+                focusCodeAfterResend.current = true;
+                updateVerificationLocation({
+                    verificationId,
+                    resendAvailableAt,
+                    deliveryUnconfirmed: !emailSent,
+                });
+
+                if (emailSent) {
+                    toast.success(resend('successTitle'), {
+                        description: resend('successMessage'),
+                    });
+                } else {
+                    toast.warning(feedback('deliveryUnconfirmedTitle'), {
+                        description: feedback('deliveryUnconfirmedMessage'),
+                    });
+                }
+            } catch {
+                resendFeedback.showError({
+                    errorCode: ACTION_ERROR_CODES.unexpected,
+                });
+            } finally {
+                requestInFlight.current = false;
+            }
         });
     }
 
     return {
         form,
         onSubmit,
+        onResend,
+        secondsRemaining,
+        deliveryUnconfirmed,
+        isResending,
+        isBusy: form.formState.isSubmitting || isPending || isResending,
         isSubmitting: form.formState.isSubmitting || isPending,
     };
 }

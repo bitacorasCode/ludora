@@ -14,6 +14,10 @@ const apiErrorSchema = z.object({
     errorCode: z.string().min(1),
 });
 
+const apiRetryAfterSchema = z.object({
+    retryAfterSeconds: z.number().int().positive(),
+});
+
 function resolveApiUrl(path: string): URL | null {
     const baseUrl = getApiBaseUrl();
 
@@ -79,6 +83,7 @@ export async function apiRequest(
 
     if (!response.ok) {
         const parsedError = apiErrorSchema.safeParse(data);
+        const parsedRetryAfter = apiRetryAfterSchema.safeParse(data);
 
         const errorCode = parsedError.success
             ? parsedError.data.errorCode
@@ -89,6 +94,7 @@ export async function apiRequest(
             error: {
                 errorCode,
                 statusCode: response.status,
+                ...(parsedRetryAfter.success ? parsedRetryAfter.data : {}),
             },
         };
     }

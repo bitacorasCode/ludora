@@ -2,19 +2,18 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocale, useTranslations } from 'next-intl';
-import { useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { useActionErrorToast } from '@/hooks';
 import { useRouter } from '@/i18n/navigation';
 import {
     ACTION_ERROR_CODES,
-    type ActionResult,
     OPERATION_STATUS,
 } from '@/lib/actions';
 import { createLoginSchema, type LoginFormData } from '@/lib/schemas';
 
-import { loginUser } from '../actions';
+import { type LoginResult, loginUser } from '../actions';
 import { LOGIN_ERROR_CODES } from '../config';
 
 export default function useLoginForm() {
@@ -30,6 +29,16 @@ export default function useLoginForm() {
 
     const [isPending, startTransition] = useTransition();
     const [hasInvalidCredentials, setHasInvalidCredentials] = useState(false);
+    const requestInFlight = useRef(false);
+    const isActive = useRef(false);
+
+    useEffect(() => {
+        isActive.current = true;
+
+        return () => {
+            isActive.current = false;
+        };
+    }, []);
 
     const form = useForm<LoginFormData>({
         mode: 'onTouched',
@@ -46,24 +55,31 @@ export default function useLoginForm() {
     }
 
     function onSubmit(data: LoginFormData) {
-        if (isPending) {
+        if (requestInFlight.current) {
             return;
         }
 
+        requestInFlight.current = true;
         dismissError();
 
         startTransition(async () => {
-            let result: ActionResult;
+            let result: LoginResult;
 
             try {
                 result = await loginUser(locale, data);
             } catch {
+                if (!isActive.current) return;
+
                 clearCredentialsError();
                 showError({
                     errorCode: ACTION_ERROR_CODES.unexpected,
                 });
                 return;
+            } finally {
+                requestInFlight.current = false;
             }
+
+            if (!isActive.current) return;
 
             if (result.status === OPERATION_STATUS.error) {
                 if (result.error.errorCode === LOGIN_ERROR_CODES.invalidCredentials) {
@@ -78,6 +94,17 @@ export default function useLoginForm() {
 
             clearCredentialsError();
             form.reset();
+
+            if (result.data !== null) {
+                const { verificationId, resendAvailableAt } = result.data;
+
+                router.replace({
+                    pathname: '/verify-email',
+                    query: { verificationId, resendAvailableAt },
+                });
+                return;
+            }
+
             router.replace('/');
             router.refresh();
         });

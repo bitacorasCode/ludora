@@ -23,4 +23,5 @@ export const API_ERROR_CODES = {
 
 export const HTTP_STATUS = {
     unauthorized: 401,
+    tooManyRequests: 429,
 } as const;

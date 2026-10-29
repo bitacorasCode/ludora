@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { z } from 'zod';
 
 import { EmailVerificationPageContent } from '@/features/email-verification';
+import { getVerificationWaitSeconds } from '@/features/email-verification/server/get-verification-wait-seconds';
 import { redirect } from '@/i18n/navigation';
 
 import { GuestOnly } from '../_components/auth/guest-only';
@@ -29,17 +30,20 @@ async function VerificationContent({
 }: Pick<PageProps<'/[locale]/verify-email'>, 'searchParams'> & {
     locale: string;
 }) {
-    const { verificationId, delivery } = await searchParams;
+    const { verificationId, delivery, resendAvailableAt } = await searchParams;
     const validation = z.uuid().safeParse(verificationId);
 
     if (!validation.success) {
         return redirect({ href: '/register', locale });
     }
 
+    const initialWaitSeconds = await getVerificationWaitSeconds(resendAvailableAt);
+
     return (
         <EmailVerificationPageContent
             key={validation.data}
             verificationId={validation.data}
+            initialWaitSeconds={initialWaitSeconds}
             deliveryUnconfirmed={delivery === 'unconfirmed'}
         />
     );

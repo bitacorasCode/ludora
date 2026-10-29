@@ -2,6 +2,8 @@ import type { OPERATION_STATUS } from './constants';
 
 export type ActionError = {
     errorCode: string;
+    retryAfterSeconds?: number;
+    retryAt?: string;
     statusCode?: number;
     validationErrors?: string[];
 };

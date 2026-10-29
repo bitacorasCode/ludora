@@ -64,15 +64,25 @@
         "codePlaceholder": "000000",
         "description": "Introduce el código recibido por correo para confirmar tu dirección, activar tu cuenta e iniciar sesión.",
         "errors": {
-            "AUTH_EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED": "Has alcanzado el límite de intentos para este código.",
+            "AUTH_EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED": "Has alcanzado el límite de intentos para este código. Usa «Reenviar código» para solicitar uno nuevo.",
             "AUTH_EMAIL_VERIFICATION_CODE_INVALID": "El código de verificación es incorrecto.",
-            "AUTH_EMAIL_VERIFICATION_EXPIRED": "El código ha caducado y ya no se puede utilizar.",
-            "AUTH_EMAIL_VERIFICATION_INVALID": "La verificación no es válida o ya no está disponible."
+            "AUTH_EMAIL_VERIFICATION_EXPIRED": "El código ha caducado y ya no se puede utilizar. Usa «Reenviar código» para solicitar uno nuevo.",
+            "AUTH_EMAIL_VERIFICATION_INVALID": "La verificación no es válida o ya no está disponible.",
+            "AUTH_EMAIL_VERIFICATION_RESEND_TOO_SOON": "Espera un momento antes de solicitar otro código de verificación."
         },
         "feedback": {
-            "deliveryUnconfirmedMessage": "Tu cuenta está creada y pendiente de confirmación, pero no pudimos confirmar el envío del correo. Si recibes el código, puedes introducirlo aquí. El reenvío de códigos todavía no está disponible.",
+            "deliveryUnconfirmedMessage": "No pudimos confirmar el envío del correo. Si recibes un código, puedes introducirlo aquí. También puedes solicitar otro cuando termine la espera.",
             "deliveryUnconfirmedTitle": "No pudimos confirmar el envío del correo",
             "errorTitle": "No pudimos confirmar tu correo"
+        },
+        "resend": {
+            "action": "Reenviar código",
+            "cooldown": "{seconds, plural, one {Podrás reenviar en # segundo.} other {Podrás reenviar en # segundos.}}",
+            "errorTitle": "No pudimos reenviar el código",
+            "hint": "¿No recibiste el correo? Puedes solicitar otro código.",
+            "pending": "Reenviando...",
+            "successMessage": "Revisa tu correo e introduce el código más reciente.",
+            "successTitle": "Código enviado"
         },
         "skipToForm": "Saltar al formulario de confirmación",
         "submit": "Confirmar correo",

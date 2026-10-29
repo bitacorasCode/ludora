@@ -2,7 +2,6 @@
 
 import { hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
-import { z } from 'zod';
 
 import { routing } from '@/i18n/routing';
 import {
@@ -11,20 +10,15 @@ import {
     OPERATION_STATUS,
 } from '@/lib/actions';
 import { API_ERROR_CODES, publicApi } from '@/lib/api';
+import { emailVerificationResponseSchema } from '@/lib/auth';
 import { createRegisterSchema } from '@/lib/schemas';
 
 const REGISTER_ENDPOINT = '/auth/register';
 
-const registerResponseSchema = z.object({
-    verification: z.object({
-        id: z.uuid(),
-        emailSent: z.boolean(),
-    }),
-});
-
 export type RegisterResult = ActionResult<{
     verificationId: string;
     emailSent: boolean;
+    resendAvailableAt: string;
 }>;
 
 export async function registerUser(
@@ -67,7 +61,7 @@ export async function registerUser(
         return result;
     }
 
-    const responseValidation = registerResponseSchema.safeParse(result.data);
+    const responseValidation = emailVerificationResponseSchema.safeParse(result.data);
 
     if (!responseValidation.success) {
         return {
@@ -79,7 +73,7 @@ export async function registerUser(
     }
 
     const {
-        verification: { id: verificationId, emailSent },
+        verification: { id: verificationId, emailSent, resendAvailableAt },
     } = responseValidation.data;
 
     return {
@@ -87,6 +81,7 @@ export async function registerUser(
         data: {
             verificationId,
             emailSent,
+            resendAvailableAt,
         },
     };
 }

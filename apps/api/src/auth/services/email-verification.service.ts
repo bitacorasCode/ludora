@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
+import { TooManyRequestsException } from '../../common/exceptions/too-many-requests.exception.js';
 import type { ApiErrorDefinition } from '../../common/types/api-error-definition.js';
 import type { Prisma } from '../../generated/prisma/client.js';
 import { MailService } from '../../mail/index.js';
@@ -29,11 +30,30 @@ export class EmailVerificationService {
         private readonly usersService: UsersService,
     ) { }
 
+    async getPending(userId: string) {
+        const verification = await this.verificationRepository.findPendingByUserId(
+            userId,
+        );
+
+        if (!verification) return null;
+
+        const { id, expiresAt, lastSentAt } = verification;
+        const { resendCooldownSeconds } = EMAIL_VERIFICATION_CONFIG;
+
+        return {
+            id,
+            expiresAt,
+            resendAvailableAt: new Date(
+                lastSentAt.getTime() + resendCooldownSeconds * 1_000,
+            ),
+        };
+    }
+
     async create(
         userId: string,
         transaction?: Prisma.TransactionClient,
     ) {
-        const { expiresInSeconds } = EMAIL_VERIFICATION_CONFIG;
+        const { expiresInSeconds, resendCooldownSeconds } = EMAIL_VERIFICATION_CONFIG;
 
         const verificationId = randomUUID();
         const code = this.codeService.generate();
@@ -43,8 +63,10 @@ export class EmailVerificationService {
             code,
         );
 
-        const expiresAt = new Date(
-            Date.now() + expiresInSeconds * 1_000,
+        const lastSentAt = new Date();
+        const expiresAt = new Date(lastSentAt.getTime() + expiresInSeconds * 1_000);
+        const resendAvailableAt = new Date(
+            lastSentAt.getTime() + resendCooldownSeconds * 1_000,
         );
 
         await this.verificationRepository.create(
@@ -53,6 +75,7 @@ export class EmailVerificationService {
                 userId,
                 codeHash,
                 expiresAt,
+                lastSentAt,
             },
             transaction,
         );
@@ -61,6 +84,82 @@ export class EmailVerificationService {
             verificationId,
             code,
             expiresAt,
+            resendAvailableAt,
+        };
+    }
+
+    async resend(verificationId: string) {
+        const { expiresInSeconds, resendCooldownSeconds } = EMAIL_VERIFICATION_CONFIG;
+        const cooldownMs = resendCooldownSeconds * 1_000;
+
+        const renewed = await this.prisma.$transaction(async (transaction) => {
+            const now = new Date();
+            const resendReserved = await this.verificationRepository.reserveResend(
+                {
+                    verificationId,
+                    now,
+                    resendBefore: new Date(now.getTime() - cooldownMs),
+                },
+                transaction,
+            );
+
+            const verification = await this.verificationRepository.findPendingById(
+                verificationId,
+                transaction,
+            );
+
+            if (!verification) {
+                const { message, errorCode } = AUTH_ERRORS.emailVerificationInvalid;
+
+                throw new BadRequestException(message, { errorCode });
+            }
+
+            const { userId, lastSentAt } = verification;
+            const resendAvailableAt = new Date(lastSentAt.getTime() + cooldownMs);
+
+            if (!resendReserved) {
+                const { message, errorCode } = AUTH_ERRORS.emailVerificationResendTooSoon;
+                const retryAfterSeconds = Math.max(
+                    1,
+                    Math.ceil((resendAvailableAt.getTime() - Date.now()) / 1_000),
+                );
+
+                throw new TooManyRequestsException(message, {
+                    errorCode,
+                    retryAfterSeconds,
+                });
+            }
+
+            const code = this.codeService.generate();
+            const expiresAt = new Date(now.getTime() + expiresInSeconds * 1_000);
+            const codeHash = this.codeService.hash(verificationId, code);
+
+            await this.verificationRepository.renewCode(
+                { id: verificationId, codeHash, expiresAt },
+                transaction,
+            );
+
+            return { userId, code, expiresAt, resendAvailableAt };
+        });
+
+        const { userId, code, expiresAt, resendAvailableAt } = renewed;
+        const user = await this.usersService.findById(userId);
+
+        if (!user) {
+            const { message, errorCode } = AUTH_ERRORS.emailVerificationInvalid;
+
+            throw new BadRequestException(message, { errorCode });
+        }
+
+        const emailSent = await this.send(user.email, code);
+
+        return {
+            verification: {
+                id: verificationId,
+                expiresAt,
+                emailSent,
+                resendAvailableAt,
+            },
         };
     }
 

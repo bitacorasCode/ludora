@@ -41,6 +41,10 @@ export const AUTH_ERRORS = {
         errorCode: 'AUTH_EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED',
         message: 'Email verification attempt limit reached.',
     },
+    emailVerificationResendTooSoon: {
+        errorCode: 'AUTH_EMAIL_VERIFICATION_RESEND_TOO_SOON',
+        message: 'Please wait before requesting another verification email.',
+    },
     nicknameAlreadyExists: {
         errorCode: 'AUTH_NICKNAME_ALREADY_EXISTS',
         message: 'Nickname already in use.',

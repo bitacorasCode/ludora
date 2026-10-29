@@ -64,15 +64,25 @@
         "codePlaceholder": "000000",
         "description": "Enter the code you received by email to confirm your address, activate your account, and sign in.",
         "errors": {
-            "AUTH_EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED": "You have reached the attempt limit for this code.",
+            "AUTH_EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED": "You have reached the attempt limit for this code. Select “Resend code” to request a new one.",
             "AUTH_EMAIL_VERIFICATION_CODE_INVALID": "The verification code is incorrect.",
-            "AUTH_EMAIL_VERIFICATION_EXPIRED": "The code has expired and can no longer be used.",
-            "AUTH_EMAIL_VERIFICATION_INVALID": "The verification is invalid or no longer available."
+            "AUTH_EMAIL_VERIFICATION_EXPIRED": "The code has expired and can no longer be used. Select “Resend code” to request a new one.",
+            "AUTH_EMAIL_VERIFICATION_INVALID": "The verification is invalid or no longer available.",
+            "AUTH_EMAIL_VERIFICATION_RESEND_TOO_SOON": "Please wait before requesting another verification code."
         },
         "feedback": {
-            "deliveryUnconfirmedMessage": "Your account has been created and is awaiting confirmation, but we couldn't confirm the email was sent. If you receive the code, you can enter it here. Resending codes is not available yet.",
+            "deliveryUnconfirmedMessage": "We couldn't confirm the email was sent. If you receive a code, you can enter it here. You can also request another when the waiting period ends.",
             "deliveryUnconfirmedTitle": "We couldn't confirm the email was sent",
             "errorTitle": "We couldn't confirm your email"
+        },
+        "resend": {
+            "action": "Resend code",
+            "cooldown": "{seconds, plural, one {You can resend in # second.} other {You can resend in # seconds.}}",
+            "errorTitle": "We couldn't resend the code",
+            "hint": "Didn't receive the email? You can request another code.",
+            "pending": "Resending...",
+            "successMessage": "Check your email and enter the latest code.",
+            "successTitle": "Code sent"
         },
         "skipToForm": "Skip to confirmation form",
         "submit": "Confirm email",

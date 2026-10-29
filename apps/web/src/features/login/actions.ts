@@ -10,16 +10,21 @@ import {
     OPERATION_STATUS,
 } from '@/lib/actions';
 import { API_ERROR_CODES, publicApi } from '@/lib/api';
-import { authResponseSchema } from '@/lib/auth';
+import { AUTH_NEXT_STEP, loginResponseSchema } from '@/lib/auth';
 import { createLoginSchema } from '@/lib/schemas';
 import { createSession } from '@/lib/session';
 
 const LOGIN_ENDPOINT = '/auth/login';
 
+export type LoginResult = ActionResult<{
+    verificationId: string;
+    resendAvailableAt: string;
+} | null>;
+
 export async function loginUser(
     locale: string,
     formData: unknown,
-): Promise<ActionResult> {
+): Promise<LoginResult> {
     const validLocale = hasLocale(routing.locales, locale)
         ? locale
         : routing.defaultLocale;
@@ -50,7 +55,7 @@ export async function loginUser(
         return result;
     }
 
-    const responseValidation = authResponseSchema.safeParse(result.data);
+    const responseValidation = loginResponseSchema.safeParse(result.data);
 
     if (!responseValidation.success) {
         return {
@@ -61,7 +66,18 @@ export async function loginUser(
         };
     }
 
-    const { accessToken } = responseValidation.data;
+    const response = responseValidation.data;
+
+    if (response.nextStep === AUTH_NEXT_STEP.verifyEmail) {
+        const { id: verificationId, resendAvailableAt } = response.verification;
+
+        return {
+            status: OPERATION_STATUS.success,
+            data: { verificationId, resendAvailableAt },
+        };
+    }
+
+    const { accessToken } = response;
 
     await createSession(accessToken);
 

@@ -9,8 +9,10 @@ import type { User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
+import { AUTH_NEXT_STEP } from '../constants/auth-next-step.js';
 import { LoginDto } from '../dto/login.dto.js';
 import type { RegisterDto } from '../dto/register.dto.js';
+import type { ResendVerificationDto } from '../dto/resend-verification.dto.js';
 import type { VerifyEmailDto } from '../dto/verify-email.dto.js';
 import { EmailVerificationService } from './email-verification.service.js';
 import { PasswordService } from './password.service.js';
@@ -54,7 +56,7 @@ export class AuthService {
             },
         );
 
-        const { verificationId, code, expiresAt } = verification;
+        const { verificationId, code, expiresAt, resendAvailableAt } = verification;
 
         const emailSent = await this.emailVerificationService.send(
             user.email,
@@ -67,8 +69,13 @@ export class AuthService {
                 id: verificationId,
                 expiresAt,
                 emailSent,
+                resendAvailableAt,
             },
         };
+    }
+
+    resendVerification({ verificationId }: ResendVerificationDto) {
+        return this.emailVerificationService.resend(verificationId);
     }
 
     async verifyEmail(data: VerifyEmailDto) {
@@ -107,6 +114,17 @@ export class AuthService {
         }
 
         if (!user.emailVerifiedAt) {
+            const verification = await this.emailVerificationService.getPending(
+                user.id,
+            );
+
+            if (verification) {
+                return {
+                    nextStep: AUTH_NEXT_STEP.verifyEmail,
+                    verification,
+                };
+            }
+
             const { message, errorCode } = AUTH_ERRORS.emailNotVerified;
 
             throw new ForbiddenException(message, {
@@ -114,7 +132,10 @@ export class AuthService {
             });
         }
 
-        return this.createAuthResponse(user);
+        return {
+            nextStep: AUTH_NEXT_STEP.authenticated,
+            ...await this.createAuthResponse(user),
+        };
     }
 
     async getCurrentUser(userId: string) {

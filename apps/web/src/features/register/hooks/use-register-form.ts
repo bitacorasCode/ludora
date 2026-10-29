@@ -88,7 +88,7 @@ export default function useRegisterForm() {
                 return;
             }
 
-            const { verificationId, emailSent } = result.data;
+            const { verificationId, emailSent, resendAvailableAt } = result.data;
 
             form.reset();
 
@@ -96,6 +96,7 @@ export default function useRegisterForm() {
                 pathname: '/verify-email',
                 query: {
                     verificationId,
+                    resendAvailableAt,
                     ...(!emailSent && { delivery: 'unconfirmed' }),
                 },
             });

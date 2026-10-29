@@ -14,9 +14,11 @@ import { Link } from '@/i18n/navigation';
 import { EMAIL_VERIFICATION_CODE_LENGTH } from '@/lib/schemas';
 
 import useEmailVerificationForm from '../hooks/use-email-verification-form';
+import { EmailVerificationResendButton } from './email-verification-resend-button';
 
 type EmailVerificationPageContentProps = {
     verificationId: string;
+    initialWaitSeconds?: number;
     deliveryUnconfirmed?: boolean;
 };
 
@@ -24,14 +26,24 @@ const formId = 'email-verification-form';
 
 export function EmailVerificationPageContent({
     verificationId,
+    initialWaitSeconds = 0,
     deliveryUnconfirmed = false,
 }: EmailVerificationPageContentProps) {
     const t = useTranslations('EmailVerification');
     const {
         form,
         onSubmit,
+        onResend,
         isSubmitting,
-    } = useEmailVerificationForm(verificationId);
+        isResending,
+        isBusy,
+        secondsRemaining,
+        deliveryUnconfirmed: showDeliveryWarning,
+    } = useEmailVerificationForm({
+        verificationId,
+        initialWaitSeconds,
+        deliveryUnconfirmed,
+    });
 
     return (
         <FormPageCard
@@ -43,12 +55,12 @@ export function EmailVerificationPageContent({
             <form
                 id={formId}
                 aria-label={t('title')}
-                aria-busy={isSubmitting}
+                aria-busy={isBusy}
                 tabIndex={-1}
                 onSubmit={form.handleSubmit(onSubmit)}
                 noValidate
             >
-                {deliveryUnconfirmed && (
+                {showDeliveryWarning && (
                     <Alert
                         status='warning'
                         role='status'
@@ -57,7 +69,7 @@ export function EmailVerificationPageContent({
                     />
                 )}
 
-                <FieldSet disabled={isSubmitting}>
+                <FieldSet disabled={isBusy}>
                     <FieldGroup>
                         <FormTextField
                             control={form.control}
@@ -70,6 +82,13 @@ export function EmailVerificationPageContent({
                             autoFocus
                         />
 
+                        <EmailVerificationResendButton
+                            secondsRemaining={secondsRemaining}
+                            isResending={isResending}
+                            disabled={isBusy}
+                            onResend={onResend}
+                        />
+
                         <FormActions
                             secondaryAction={
                                 <Button asChild variant='link'>
@@ -79,6 +98,7 @@ export function EmailVerificationPageContent({
                         >
                             <SubmitButton
                                 isSubmitting={isSubmitting}
+                                disabled={isResending}
                                 mainText={t('submit')}
                                 submittingText={t('submitting')}
                             />

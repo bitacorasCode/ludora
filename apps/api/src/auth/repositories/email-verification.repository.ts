@@ -5,7 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 
 type CreateEmailVerificationData = Pick<
     EmailVerification,
-    'id' | 'userId' | 'codeHash' | 'expiresAt'
+    'id' | 'userId' | 'codeHash' | 'expiresAt' | 'lastSentAt'
 >;
 
 type ReserveAttemptData = {
@@ -13,6 +13,17 @@ type ReserveAttemptData = {
     now: Date;
     maxFailedAttempts: number;
 };
+
+type ReserveResendData = {
+    verificationId: string;
+    now: Date;
+    resendBefore: Date;
+};
+
+type RenewVerificationCodeData = Pick<
+    EmailVerification,
+    'id' | 'codeHash' | 'expiresAt'
+>;
 
 @Injectable()
 export class EmailVerificationRepository {
@@ -34,6 +45,67 @@ export class EmailVerificationRepository {
     ) {
         return transaction.emailVerification.findUnique({
             where: { id },
+        });
+    }
+
+    findPendingById(
+        id: string,
+        transaction: Prisma.TransactionClient = this.prisma,
+    ) {
+        return transaction.emailVerification.findUnique({
+            where: {
+                id,
+                user: { emailVerifiedAt: null },
+            },
+        });
+    }
+
+    findPendingByUserId(
+        userId: string,
+        transaction: Prisma.TransactionClient = this.prisma,
+    ) {
+        return transaction.emailVerification.findUnique({
+            where: {
+                userId,
+                user: { emailVerifiedAt: null },
+            },
+            select: {
+                id: true,
+                expiresAt: true,
+                lastSentAt: true,
+            },
+        });
+    }
+
+    // Keep the row lock until the code is renewed in the same transaction.
+    async reserveResend(
+        { verificationId, now, resendBefore }: ReserveResendData,
+        transaction: Prisma.TransactionClient,
+    ): Promise<boolean> {
+        const { count } = await transaction.emailVerification.updateMany({
+            where: {
+                id: verificationId,
+                lastSentAt: { lte: resendBefore },
+                user: { emailVerifiedAt: null },
+            },
+            data: { lastSentAt: now },
+        });
+
+        return count === 1;
+    }
+
+    renewCode(
+        { id, codeHash, expiresAt }: RenewVerificationCodeData,
+        transaction: Prisma.TransactionClient,
+    ) {
+        return transaction.emailVerification.update({
+            where: { id },
+            data: {
+                codeHash,
+                expiresAt,
+                failedAttempts: 0,
+            },
+            select: { id: true },
         });
     }
 

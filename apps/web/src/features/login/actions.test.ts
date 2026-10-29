@@ -31,7 +31,7 @@ beforeEach(() => {
   );
   vi.mocked(publicApi.post).mockResolvedValue({
     status: OPERATION_STATUS.success,
-    data: { accessToken: 'test-access-token' },
+    data: { nextStep: 'authenticated', accessToken: 'test-access-token' },
   });
 });
 

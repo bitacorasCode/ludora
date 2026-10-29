@@ -15,6 +15,10 @@ import {
     registerSchema,
 } from './dto/register.dto.js';
 import {
+    type ResendVerificationDto,
+    resendVerificationSchema,
+} from './dto/resend-verification.dto.js';
+import {
     type VerifyEmailDto,
     verifyEmailSchema,
 } from './dto/verify-email.dto.js';
@@ -29,6 +33,14 @@ export class AuthController {
     @Post('register')
     register(@Body({ schema: registerSchema }) data: RegisterDto) {
         return this.authService.register(data);
+    }
+
+    @Post('resend-verification')
+    @HttpCode(HttpStatus.OK)
+    resendVerification(
+        @Body({ schema: resendVerificationSchema }) data: ResendVerificationDto,
+    ) {
+        return this.authService.resendVerification(data);
     }
 
     @Post('verify-email')
