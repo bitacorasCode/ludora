@@ -6,20 +6,10 @@ import {
   SESSION_COOKIE,
   test,
 } from './fixtures/auth';
+import { fillLogin } from './fixtures/login';
 
-async function fillLogin(
-  page: import('@playwright/test').Page,
-  email: string,
-  password: string,
-) {
-  await page.getByLabel(esMessages.Login.email, { exact: true }).fill(email);
-  await page
-    .getByLabel(esMessages.Login.password, { exact: true })
-    .fill(password);
-  await page
-    .getByRole('button', { name: esMessages.Login.submit, exact: true })
-    .click();
-}
+// Authentication traces can include credentials and session tokens.
+test.use({ trace: 'off', screenshot: 'off' });
 
 test.describe('Real authentication', () => {
   test('logs in, persists the HttpOnly cookie, protects guest pages and logs out', async ({

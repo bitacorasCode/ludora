@@ -61,6 +61,50 @@ describe('apiRequest', () => {
     });
   });
 
+  it('preserves the server waiting time when a resend is rate limited', async () => {
+    fetchMock.mockResolvedValue(
+      Response.json(
+        {
+          errorCode: 'AUTH_EMAIL_VERIFICATION_RESEND_TOO_SOON',
+          retryAfterSeconds: 37,
+        },
+        { status: 429 },
+      ),
+    );
+
+    expect(await apiRequest('/auth/resend-verification')).toEqual({
+      status: OPERATION_STATUS.error,
+      error: {
+        errorCode: 'AUTH_EMAIL_VERIFICATION_RESEND_TOO_SOON',
+        statusCode: 429,
+        retryAfterSeconds: 37,
+      },
+    });
+  });
+
+  it.each([undefined, null, '37', 0, -1, 1.5])(
+    'preserves the error code while discarding an invalid waiting time: %j',
+    async (retryAfterSeconds) => {
+      fetchMock.mockResolvedValue(
+        Response.json(
+          {
+            errorCode: 'AUTH_EMAIL_VERIFICATION_RESEND_TOO_SOON',
+            retryAfterSeconds,
+          },
+          { status: 429 },
+        ),
+      );
+
+      expect(await apiRequest('/auth/resend-verification')).toEqual({
+        status: OPERATION_STATUS.error,
+        error: {
+          errorCode: 'AUTH_EMAIL_VERIFICATION_RESEND_TOO_SOON',
+          statusCode: 429,
+        },
+      });
+    },
+  );
+
   it('returns a generic code for an unrecognized HTTP error', async () => {
     fetchMock.mockResolvedValue(
       Response.json({ message: 'Internal error' }, { status: 500 }),

@@ -88,6 +88,41 @@ describe('LoginPageContent integration', () => {
     });
   });
 
+  it('takes pending accounts to email verification without refreshing the session', async () => {
+    const verification = {
+      verificationId: '2cfa016c-57e0-4342-8815-2dcf33638e46',
+      resendAvailableAt: '2026-10-29T12:01:00.000Z',
+    };
+    vi.mocked(loginUser).mockResolvedValue({
+      status: 'success',
+      data: verification,
+    });
+    renderLogin();
+
+    await submitValidLogin();
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalledExactlyOnceWith({
+      pathname: '/verify-email',
+      query: verification,
+    }));
+    expect(router.refresh).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it('does not navigate when a pending login completes after unmounting', async () => {
+    const pending = Promise.withResolvers<Awaited<ReturnType<typeof loginUser>>>();
+    vi.mocked(loginUser).mockReturnValue(pending.promise);
+    const { unmount } = renderLogin();
+    await submitValidLogin();
+    await waitFor(() => expect(loginUser).toHaveBeenCalledOnce());
+
+    unmount();
+    await act(async () => pending.resolve({ status: 'success', data: null }));
+
+    expect(router.replace).not.toHaveBeenCalled();
+    expect(router.refresh).not.toHaveBeenCalled();
+  });
+
   it('translates invalid credentials from the backend error code', async () => {
     vi.mocked(loginUser).mockResolvedValue({
       status: 'error',

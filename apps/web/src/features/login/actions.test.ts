@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { routing } from '@/i18n/routing';
 import { ACTION_ERROR_CODES, OPERATION_STATUS } from '@/lib/actions';
 import { API_ERROR_CODES, publicApi } from '@/lib/api';
+import { AUTH_NEXT_STEP } from '@/lib/auth/constants';
 import { createSession } from '@/lib/session';
 import esMessages from '@/messages/es.json';
 
@@ -18,6 +19,11 @@ vi.mock('@/lib/api', async () => ({
 vi.mock('@/lib/session', () => ({ createSession: vi.fn() }));
 
 const validData = { email: 'jugador@example.test', password: 'password123' };
+const verification = {
+  id: 'b75ea701-bdd9-4ec2-8c3e-250090b60c6b',
+  expiresAt: '2026-10-29T15:10:00.000Z',
+  resendAvailableAt: '2026-10-29T15:01:00.000Z',
+};
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -31,12 +37,15 @@ beforeEach(() => {
   );
   vi.mocked(publicApi.post).mockResolvedValue({
     status: OPERATION_STATUS.success,
-    data: { nextStep: 'authenticated', accessToken: 'test-access-token' },
+    data: {
+      nextStep: AUTH_NEXT_STEP.authenticated,
+      accessToken: 'test-access-token',
+    },
   });
 });
 
 describe('loginUser', () => {
-  it('creates the session after a valid backend response', async () => {
+  it('creates the session without exposing the token in the action result', async () => {
     expect(await loginUser('es', validData)).toEqual({
       status: OPERATION_STATUS.success,
       data: null,
@@ -46,6 +55,23 @@ describe('loginUser', () => {
       validData,
     );
     expect(createSession).toHaveBeenCalledExactlyOnceWith('test-access-token');
+  });
+
+  it('returns the pending verification without creating a session', async () => {
+    vi.mocked(publicApi.post).mockResolvedValue({
+      status: OPERATION_STATUS.success,
+      data: { nextStep: AUTH_NEXT_STEP.verifyEmail, verification },
+    });
+
+    expect(await loginUser('es', validData)).toEqual({
+      status: OPERATION_STATUS.success,
+      data: {
+        verificationId: verification.id,
+        resendAvailableAt: verification.resendAvailableAt,
+      },
+    });
+    expect(publicApi.post).toHaveBeenCalledExactlyOnceWith('/auth/login', validData);
+    expect(createSession).not.toHaveBeenCalled();
   });
 
   it('rejects invalid data before calling the API', async () => {
@@ -78,7 +104,29 @@ describe('loginUser', () => {
     },
   );
 
-  it.each([{}, { accessToken: '' }, { accessToken: 123 }])(
+  it.each([
+    null,
+    {},
+    { accessToken: 'test-access-token' },
+    { nextStep: 'unexpected', accessToken: 'test-access-token' },
+    { nextStep: AUTH_NEXT_STEP.authenticated },
+    { nextStep: AUTH_NEXT_STEP.authenticated, accessToken: '' },
+    { nextStep: AUTH_NEXT_STEP.authenticated, accessToken: 123 },
+    { nextStep: AUTH_NEXT_STEP.verifyEmail, verification: null },
+    { nextStep: AUTH_NEXT_STEP.verifyEmail, verification: {} },
+    {
+      nextStep: AUTH_NEXT_STEP.verifyEmail,
+      verification: { ...verification, id: 'invalid' },
+    },
+    {
+      nextStep: AUTH_NEXT_STEP.verifyEmail,
+      verification: { ...verification, expiresAt: 'invalid' },
+    },
+    {
+      nextStep: AUTH_NEXT_STEP.verifyEmail,
+      verification: { ...verification, resendAvailableAt: 'invalid' },
+    },
+  ])(
     'rejects an invalid success response: %j',
     async (data) => {
       vi.mocked(publicApi.post).mockResolvedValue({
@@ -105,5 +153,11 @@ describe('loginUser', () => {
     vi.mocked(publicApi.post).mockRejectedValue(new Error('Invalid API_URL'));
     await expect(loginUser('es', validData)).rejects.toThrow('Invalid API_URL');
     expect(createSession).not.toHaveBeenCalled();
+  });
+
+  it('propagates session creation errors instead of returning a successful login', async () => {
+    vi.mocked(createSession).mockRejectedValue(new Error('Cookie unavailable'));
+
+    await expect(loginUser('es', validData)).rejects.toThrow('Cookie unavailable');
   });
 });

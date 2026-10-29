@@ -16,13 +16,21 @@ export default defineConfig({
     channel: process.env.PLAYWRIGHT_CHANNEL,
   },
   projects: [
-    { name: 'signed-in', testIgnore: ['**/guest.spec.ts', '**/auth.spec.ts'], use: { ...devices['Desktop Chrome'] } },
-    { name: 'guest', testMatch: ['**/guest.spec.ts', '**/auth.spec.ts'], use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'signed-in',
+      testIgnore: ['**/guest.spec.ts', '**/auth.spec.ts', '**/email-verification.spec.ts'],
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'guest',
+      testMatch: ['**/guest.spec.ts', '**/auth.spec.ts', '**/email-verification.spec.ts'],
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
   webServer: [
     {
       command: 'pnpm --filter api start:dev',
-      url: 'http://localhost:3001',
+      url: 'http://localhost:3001/health',
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },
