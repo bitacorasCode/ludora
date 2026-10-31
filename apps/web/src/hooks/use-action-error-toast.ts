@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 import type { ActionError } from '@/lib/actions';
+import { HTTP_STATUS } from '@/lib/api/constants';
 
 type ErrorTranslator = {
   (key: string): string;
@@ -21,6 +22,7 @@ export function useActionErrorToast({
   featureErrors,
 }: ActionErrorToastOptions) {
   const commonErrors = useTranslations('Common.errors');
+  const commonStatus = useTranslations('Common.status');
   const isMounted = useRef(false);
   const activeToastId = useRef<ReturnType<typeof toast.error> | null>(null);
 
@@ -42,7 +44,12 @@ export function useActionErrorToast({
     };
   }, [dismissError]);
 
-  function showError({ errorCode, validationErrors }: ActionError) {
+  function showError({
+    errorCode,
+    validationErrors,
+    statusCode,
+    retryAfterSeconds,
+  }: ActionError) {
     if (!isMounted.current) {
       return;
     }
@@ -58,6 +65,19 @@ export function useActionErrorToast({
       description = commonErrors(errorCode);
     } else {
       description = commonErrors('unknown');
+    }
+
+    if (
+      statusCode === HTTP_STATUS.tooManyRequests
+      && retryAfterSeconds !== undefined
+      && Number.isInteger(retryAfterSeconds)
+      && retryAfterSeconds > 0
+    ) {
+      const waitMessage = commonStatus('retryAfter', {
+        seconds: retryAfterSeconds,
+      });
+
+      description = `${description} ${waitMessage}`;
     }
 
     dismissError();
