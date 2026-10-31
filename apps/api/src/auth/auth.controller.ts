@@ -12,19 +12,16 @@ import { Throttle } from '@nestjs/throttler';
 
 import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
 import { AUTH_RATE_LIMIT_CONFIG } from '../config/rate-limit.js';
-import { type LoginDto, loginSchema } from './dto/login.dto.js';
 import {
+    type LoginDto,
+    loginSchema,
     type RegisterDto,
     registerSchema,
-} from './dto/register.dto.js';
-import {
     type ResendVerificationDto,
     resendVerificationSchema,
-} from './dto/resend-verification.dto.js';
-import {
     type VerifyEmailDto,
     verifyEmailSchema,
-} from './dto/verify-email.dto.js';
+} from './dto/index.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { AuthService } from './services/index.js';
 import type { AuthenticatedRequest } from './types/authenticated-request.js';

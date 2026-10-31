@@ -1,5 +1,17 @@
 # Arquitectura de acceso a datos
 
+## Imports e índices
+
+- Utilizar `index.ts` como punto de entrada de una carpeta cuando agrupe exports
+  relacionados y simplifique sus consumidores, como los DTOs de autenticación.
+- Declarar los exports explícitamente y utilizar `export type` o `import type`
+  para los símbolos que solo representan tipos.
+- Dentro de una carpeta, importar las dependencias de archivos vecinos
+  directamente; evitar importar un índice que también exporte al consumidor.
+- Conservar los imports relativos con archivo y extensión `.js` para NodeNext.
+- Revisar las dependencias transitivas al ampliar un índice: reexportar un módulo
+  también puede cargar sus dependencias e introducir un ciclo.
+
 ## Responsabilidades
 
 | Capa | Responsabilidad |

@@ -10,10 +10,12 @@ import type { User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
-import { LoginDto } from '../dto/login.dto.js';
-import type { RegisterDto } from '../dto/register.dto.js';
-import type { ResendVerificationDto } from '../dto/resend-verification.dto.js';
-import type { VerifyEmailDto } from '../dto/verify-email.dto.js';
+import type {
+    LoginDto,
+    RegisterDto,
+    ResendVerificationDto,
+    VerifyEmailDto,
+} from '../dto/index.js';
 import { EmailVerificationService } from './email-verification.service.js';
 import { PasswordService } from './password.service.js';
 

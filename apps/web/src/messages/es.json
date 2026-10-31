@@ -50,10 +50,12 @@
             "API_REQUEST_FAILED": "No pudimos completar la solicitud.",
             "API_UNAVAILABLE": "No pudimos conectar con el servicio. Inténtalo de nuevo.",
             "AUTHENTICATION_REQUIRED": "Inicia sesión para continuar.",
+            "RATE_LIMIT_EXCEEDED": "Se ha alcanzado el límite de solicitudes. Inténtalo de nuevo más tarde.",
             "unknown": "No pudimos completar la operación. Inténtalo de nuevo."
         },
         "status": {
             "checkingSession": "Comprobando sesión",
+            "retryAfter": "{seconds, plural, one {Podrás volver a intentarlo en # segundo.} other {Podrás volver a intentarlo en # segundos.}}",
             "saving": "Guardando...",
             "validating": "Validando..."
         }
