@@ -1,52 +1,54 @@
+import { AUTH_ERROR_CODES } from '@ludora/security';
+
 import type { ApiErrorDefinition } from '../../common/types/api-error-definition.js';
 
 export const AUTH_ERRORS = {
     invalidCredentials: {
-        errorCode: 'AUTH_INVALID_CREDENTIALS',
+        errorCode: AUTH_ERROR_CODES.invalidCredentials,
         message: 'Invalid credentials.',
     },
     authenticationRequired: {
-        errorCode: 'AUTHENTICATION_REQUIRED',
+        errorCode: AUTH_ERROR_CODES.authenticationRequired,
         message: 'Authentication required.',
     },
     invalidToken: {
-        errorCode: 'AUTH_INVALID_TOKEN',
+        errorCode: AUTH_ERROR_CODES.invalidToken,
         message: 'Invalid or expired token.',
     },
     invalidTokenPayload: {
-        errorCode: 'AUTH_INVALID_TOKEN_PAYLOAD',
+        errorCode: AUTH_ERROR_CODES.invalidTokenPayload,
         message: 'Invalid token payload.',
     },
     emailAlreadyExists: {
-        errorCode: 'AUTH_EMAIL_ALREADY_EXISTS',
+        errorCode: AUTH_ERROR_CODES.emailAlreadyExists,
         message: 'Email already in use.',
     },
     emailNotVerified: {
-        errorCode: 'AUTH_EMAIL_NOT_VERIFIED',
+        errorCode: AUTH_ERROR_CODES.emailNotVerified,
         message: 'Email verification required.',
     },
     emailVerificationInvalid: {
-        errorCode: 'AUTH_EMAIL_VERIFICATION_INVALID',
+        errorCode: AUTH_ERROR_CODES.emailVerificationInvalid,
         message: 'Email verification is invalid or no longer available.',
     },
     emailVerificationExpired: {
-        errorCode: 'AUTH_EMAIL_VERIFICATION_EXPIRED',
+        errorCode: AUTH_ERROR_CODES.emailVerificationExpired,
         message: 'Email verification has expired.',
     },
     emailVerificationCodeInvalid: {
-        errorCode: 'AUTH_EMAIL_VERIFICATION_CODE_INVALID',
+        errorCode: AUTH_ERROR_CODES.emailVerificationCodeInvalid,
         message: 'Invalid email verification code.',
     },
     emailVerificationAttemptsExceeded: {
-        errorCode: 'AUTH_EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED',
+        errorCode: AUTH_ERROR_CODES.emailVerificationAttemptsExceeded,
         message: 'Email verification attempt limit reached.',
     },
     emailVerificationResendTooSoon: {
-        errorCode: 'AUTH_EMAIL_VERIFICATION_RESEND_TOO_SOON',
+        errorCode: AUTH_ERROR_CODES.emailVerificationResendTooSoon,
         message: 'Please wait before requesting another verification email.',
     },
     nicknameAlreadyExists: {
-        errorCode: 'AUTH_NICKNAME_ALREADY_EXISTS',
+        errorCode: AUTH_ERROR_CODES.nicknameAlreadyExists,
         message: 'Nickname already in use.',
     },
 } as const satisfies Record<string, ApiErrorDefinition>;

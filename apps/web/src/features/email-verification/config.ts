@@ -1,4 +1,6 @@
+import { AUTH_ERROR_CODES } from '@ludora/security';
+
 export const EMAIL_VERIFICATION_ERROR_CODES = {
-    codeInvalid: 'AUTH_EMAIL_VERIFICATION_CODE_INVALID',
-    resendTooSoon: 'AUTH_EMAIL_VERIFICATION_RESEND_TOO_SOON',
+    codeInvalid: AUTH_ERROR_CODES.emailVerificationCodeInvalid,
+    resendTooSoon: AUTH_ERROR_CODES.emailVerificationResendTooSoon,
 } as const;

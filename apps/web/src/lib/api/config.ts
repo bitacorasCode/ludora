@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { HEX_64_PATTERN } from '@ludora/security';
+
 const LOCAL_API_HOSTS = ['localhost', '127.0.0.1', '[::1]'] as const;
 
 export function getApiBaseUrl(): URL {
@@ -30,7 +32,7 @@ export function getInternalApiSecret(): string {
 
     if (
         !INTERNAL_API_SECRET
-        || !/^[a-f0-9]{64}$/i.test(INTERNAL_API_SECRET)
+        || !HEX_64_PATTERN.test(INTERNAL_API_SECRET)
     ) {
         throw new Error(
             'INTERNAL_API_SECRET must contain 64 hexadecimal characters.',

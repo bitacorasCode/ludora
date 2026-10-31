@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { INTERNAL_REQUEST_HEADERS } from '@ludora/security';
+
 import { type ActionResult, OPERATION_STATUS } from '@/lib/actions';
 import { getSessionToken } from '@/lib/session';
 
@@ -7,7 +9,6 @@ import { apiRequest } from './api-request';
 import { getInternalApiSecret } from './config';
 import {
     API_ERROR_CODES,
-    API_INTERNAL_HEADERS,
     API_METHOD,
     API_RESERVED_HEADERS,
     JSON_MEDIA_TYPE,
@@ -67,7 +68,7 @@ function createApiClient<TOptions extends PublicApiOptions>(
         }
 
         headers.set(
-            API_INTERNAL_HEADERS.secret,
+            INTERNAL_REQUEST_HEADERS.secret,
             getInternalApiSecret(),
         );
 

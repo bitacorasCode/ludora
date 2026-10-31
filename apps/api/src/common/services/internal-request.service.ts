@@ -1,10 +1,9 @@
 import { timingSafeEqual } from 'node:crypto';
 
+import { HEX_64_PATTERN, INTERNAL_REQUEST_HEADERS } from '@ludora/security';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
-
-import { INTERNAL_REQUEST_HEADERS } from '../constants/internal-request.js';
 
 @Injectable()
 export class InternalRequestService {
@@ -13,7 +12,7 @@ export class InternalRequestService {
     constructor(config: ConfigService) {
         const secret = config.getOrThrow<string>('INTERNAL_API_SECRET');
 
-        if (!/^[a-f0-9]{64}$/i.test(secret)) {
+        if (!HEX_64_PATTERN.test(secret)) {
             throw new Error(
                 'INTERNAL_API_SECRET must contain 64 hexadecimal characters.',
             );

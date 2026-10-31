@@ -1,10 +1,11 @@
+import { DIGITS_PATTERN, EMAIL_VERIFICATION_CODE_LENGTH } from '@ludora/security';
 import { z } from 'zod';
 
 import type esMessages from '@/messages/es.json';
 
 type ValidationKey = keyof typeof esMessages.EmailVerification.validation;
 
-export const EMAIL_VERIFICATION_CODE_LENGTH = 6;
+export { EMAIL_VERIFICATION_CODE_LENGTH } from '@ludora/security';
 
 export function createEmailVerificationSchema(
     t: (key: ValidationKey) => string,
@@ -16,7 +17,7 @@ export function createEmailVerificationSchema(
             .trim()
             .min(1, t('codeRequired'))
             .length(EMAIL_VERIFICATION_CODE_LENGTH, t('codeInvalid'))
-            .regex(/^[0-9]+$/, t('codeInvalid')),
+            .regex(DIGITS_PATTERN, t('codeInvalid')),
     });
 }
 

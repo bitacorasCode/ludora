@@ -1,3 +1,4 @@
+import { AUTH_ERROR_CODES } from '@ludora/security';
 import type { DefaultValues } from 'react-hook-form';
 
 import type { RegisterFormData } from '@/lib/schemas';
@@ -41,6 +42,6 @@ export const userDefaultValues = Object.fromEntries(
 ) as DefaultValues<RegisterFormData>;
 
 export const REGISTER_FIELD_ERRORS = new Map<string, keyof RegisterFormData>([
-    ['AUTH_EMAIL_ALREADY_EXISTS', 'email'],
-    ['AUTH_NICKNAME_ALREADY_EXISTS', 'nickname'],
+    [AUTH_ERROR_CODES.emailAlreadyExists, 'email'],
+    [AUTH_ERROR_CODES.nicknameAlreadyExists, 'nickname'],
 ]);

@@ -1,4 +1,1 @@
-export const AUTH_NEXT_STEP = {
-    authenticated: 'authenticated',
-    verifyEmail: 'verifyEmail',
-} as const;
+export { AUTH_NEXT_STEP } from '@ludora/security';

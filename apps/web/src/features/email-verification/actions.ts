@@ -1,9 +1,8 @@
 'use server';
 
-import { hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 
-import { routing } from '@/i18n/routing';
+import { resolveLocale } from '@/i18n/resolve-locale';
 import {
     ACTION_ERROR_CODES,
     type ActionResult,
@@ -28,9 +27,7 @@ export async function resendVerification(
     locale: string,
     formData: unknown,
 ): Promise<ResendVerificationResult> {
-    const validLocale = hasLocale(routing.locales, locale)
-        ? locale
-        : routing.defaultLocale;
+    const validLocale = resolveLocale(locale);
 
     const t = await getTranslations({
         locale: validLocale,
@@ -120,9 +117,7 @@ export async function verifyEmail(
     locale: string,
     formData: unknown,
 ): Promise<ActionResult> {
-    const validLocale = hasLocale(routing.locales, locale)
-        ? locale
-        : routing.defaultLocale;
+    const validLocale = resolveLocale(locale);
 
     const t = await getTranslations({
         locale: validLocale,

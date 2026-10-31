@@ -1,3 +1,4 @@
+import { DIGITS_PATTERN } from '@ludora/security';
 import { z } from 'zod';
 
 import { EMAIL_VERIFICATION_CONFIG } from '../constants/email-verification.js';
@@ -10,7 +11,7 @@ export const verifyEmailSchema = z.strictObject({
         .string()
         .trim()
         .length(codeLength)
-        .regex(/^[0-9]+$/),
+        .regex(DIGITS_PATTERN),
 });
 
 export type VerifyEmailDto = z.infer<typeof verifyEmailSchema>;

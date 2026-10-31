@@ -1,15 +1,11 @@
 'use server';
 
-import { hasLocale } from 'next-intl';
-
 import { redirect } from '@/i18n/navigation';
-import { routing } from '@/i18n/routing';
+import { resolveLocale } from '@/i18n/resolve-locale';
 import { deleteSession } from '@/lib/session';
 
 export async function logoutUser(locale: string): Promise<void> {
-    const validLocale = hasLocale(routing.locales, locale)
-        ? locale
-        : routing.defaultLocale;
+    const validLocale = resolveLocale(locale);
 
     await deleteSession();
 

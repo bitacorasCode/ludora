@@ -1,11 +1,9 @@
 import { z } from 'zod';
 
+import { emailSchema } from '../schemas/email.schema.js';
+
 export const loginSchema = z.strictObject({
-    email: z
-        .string()
-        .trim()
-        .toLowerCase()
-        .pipe(z.email()),
+    email: emailSchema,
     password: z.string().min(1),
 });
 

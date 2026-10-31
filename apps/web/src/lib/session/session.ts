@@ -1,9 +1,9 @@
 import 'server-only';
 
+import { ACCESS_TOKEN_TTL_SECONDS } from '@ludora/security';
 import { cookies } from 'next/headers';
 
 const SESSION_COOKIE_NAME = 'ludora_session';
-const SESSION_MAX_AGE_SECONDS = 15 * 60;
 
 export async function createSession(accessToken: string): Promise<void> {
     const cookieStore = await cookies();
@@ -13,7 +13,7 @@ export async function createSession(accessToken: string): Promise<void> {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
-        maxAge: SESSION_MAX_AGE_SECONDS,
+        maxAge: ACCESS_TOKEN_TTL_SECONDS,
     });
 }
 

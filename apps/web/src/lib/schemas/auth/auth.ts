@@ -1,3 +1,4 @@
+import { AUTH_VALIDATION } from '@ludora/security';
 import { z } from 'zod';
 
 import esMessages from '@/messages/es.json';
@@ -23,7 +24,7 @@ export function createPasswordResetSchema(
 ) {
   return z
     .object({
-      password: z.string().min(8, t('passwordMin')),
+      password: z.string().min(AUTH_VALIDATION.passwordMinLength, t('passwordMin')),
       confirmPassword: z.string().min(1, t('confirmPasswordRequired')),
     })
     .refine(

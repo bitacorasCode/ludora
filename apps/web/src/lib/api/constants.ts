@@ -1,3 +1,5 @@
+import { AUTH_ERROR_CODES, INTERNAL_REQUEST_HEADERS } from '@ludora/security';
+
 export const API_TIMEOUT_MS = 10_000;
 export const JSON_MEDIA_TYPE = 'application/json';
 
@@ -6,17 +8,12 @@ export const API_METHOD = {
     post: 'POST',
 } as const;
 
-export const API_INTERNAL_HEADERS = {
-    secret: 'x-ludora-internal-key',
-    clientIp: 'x-ludora-client-ip',
-} as const;
-
 export const API_RESERVED_HEADERS = [
     'authorization',
     'cookie',
     'host',
     'proxy-authorization',
-    ...Object.values(API_INTERNAL_HEADERS)
+    ...Object.values(INTERNAL_REQUEST_HEADERS)
 ] as const;
 
 export const API_ERROR_CODES = {
@@ -24,7 +21,7 @@ export const API_ERROR_CODES = {
     invalidResponse: 'API_INVALID_RESPONSE',
     requestFailed: 'API_REQUEST_FAILED',
     invalidRequest: 'API_INVALID_REQUEST',
-    authenticationRequired: 'AUTHENTICATION_REQUIRED',
+    authenticationRequired: AUTH_ERROR_CODES.authenticationRequired,
 } as const;
 
 export const HTTP_STATUS = {

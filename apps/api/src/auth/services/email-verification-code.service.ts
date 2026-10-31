@@ -1,5 +1,6 @@
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
 
+import { HEX_64_PATTERN } from '@ludora/security';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -14,7 +15,7 @@ export class EmailVerificationCodeService {
             'EMAIL_VERIFICATION_SECRET',
         );
 
-        if (!/^[a-f0-9]{64}$/i.test(secret)) {
+        if (!HEX_64_PATTERN.test(secret)) {
             throw new Error(
                 'EMAIL_VERIFICATION_SECRET must contain 64 hexadecimal characters.',
             );

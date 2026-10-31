@@ -1,13 +1,11 @@
-import { hasLocale, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
 
 import { NotFoundPageContent } from '@/features/not-found';
-import { routing } from '@/i18n/routing';
+import { resolveLocale } from '@/i18n/resolve-locale';
 
 export default function NotFound() {
   const locale = useLocale();
-  const resolvedLocale = hasLocale(routing.locales, locale)
-    ? locale
-    : routing.defaultLocale;
+  const resolvedLocale = resolveLocale(locale);
 
   return <NotFoundPageContent locale={resolvedLocale} />;
 }
