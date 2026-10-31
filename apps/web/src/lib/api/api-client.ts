@@ -4,8 +4,10 @@ import { type ActionResult, OPERATION_STATUS } from '@/lib/actions';
 import { getSessionToken } from '@/lib/session';
 
 import { apiRequest } from './api-request';
+import { getInternalApiSecret } from './config';
 import {
     API_ERROR_CODES,
+    API_INTERNAL_HEADERS,
     API_METHOD,
     API_RESERVED_HEADERS,
     JSON_MEDIA_TYPE,
@@ -63,6 +65,11 @@ function createApiClient<TOptions extends PublicApiOptions>(
 
             headers.set('Authorization', `Bearer ${accessToken}`);
         }
+
+        headers.set(
+            API_INTERNAL_HEADERS.secret,
+            getInternalApiSecret(),
+        );
 
         const cache = requiresAuthentication || method === API_METHOD.post
             ? 'no-store'

@@ -6,11 +6,17 @@ export const API_METHOD = {
     post: 'POST',
 } as const;
 
+export const API_INTERNAL_HEADERS = {
+    secret: 'x-ludora-internal-key',
+    clientIp: 'x-ludora-client-ip',
+} as const;
+
 export const API_RESERVED_HEADERS = [
     'authorization',
     'cookie',
     'host',
     'proxy-authorization',
+    ...Object.values(API_INTERNAL_HEADERS)
 ] as const;
 
 export const API_ERROR_CODES = {
