@@ -236,7 +236,10 @@ describe('EmailVerificationPageContent integration', () => {
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledExactlyOnceWith(
       messages.resend.errorTitle,
-      { description: messages.errors.AUTH_EMAIL_VERIFICATION_RESEND_TOO_SOON, duration: Infinity },
+      {
+        description: `${messages.errors.AUTH_EMAIL_VERIFICATION_RESEND_TOO_SOON} Podrás volver a intentarlo en 25 segundos.`,
+        duration: Infinity,
+      },
     ));
     expect((screen.getByLabelText(messages.codeLabel) as HTMLInputElement).value).toBe('123456');
     expect(screen.getByText('Podrás reenviar en 25 segundos.')).toBeTruthy();
