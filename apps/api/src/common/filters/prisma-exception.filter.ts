@@ -9,8 +9,7 @@ import type { Response } from 'express';
 import { AUTH_ERRORS } from '../../auth/constants/auth-errors.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import { DATABASE_CONSTRAINTS, PRISMA_ERROR_CODES } from '../constants/database.js';
-import { DATABASE_ERRORS } from '../constants/database-errors.js';
-import { HTTP_ERROR_NAMES } from '../constants/http.js';
+import { DATABASE_ERRORS, HTTP_ERROR_NAMES } from '../constants/errors.js';
 import type { ApiErrorDefinition } from '../types/api-error-definition.js';
 
 type PostgreSqlAdapterError = {

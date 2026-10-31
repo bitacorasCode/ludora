@@ -3,12 +3,12 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, type JwtModuleOptions } from '@nestjs/jwt';
 
-import { InternalRequestModule } from '../common/internal-request.module.js';
+import { ClientIpModule } from '../common/client-ip.module.js';
+import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
 import { MailModule } from '../mail/index.js';
 import { PrismaModule } from '../prisma/prisma.module.js';
 import { UsersModule } from '../users/users.module.js';
 import { AuthController } from './auth.controller.js';
-import { JWT_CONFIG } from './constants/jwt.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { EmailVerificationRepository } from './repositories/index.js';
 import {
@@ -18,11 +18,17 @@ import {
     PasswordService,
 } from './services/index.js';
 
+const JWT_CONFIG = {
+    algorithm: 'HS256',
+    issuer: 'ludora-api',
+    audience: 'ludora-web',
+} as const;
+
 const { algorithm, issuer, audience } = JWT_CONFIG;
 
 @Module({
     imports: [
-        InternalRequestModule,
+        ClientIpModule,
         MailModule,
         PrismaModule,
         UsersModule,
@@ -51,6 +57,7 @@ const { algorithm, issuer, audience } = JWT_CONFIG;
         AuthService,
         PasswordService,
         JwtAuthGuard,
+        RateLimitGuard,
         EmailVerificationCodeService,
         EmailVerificationService
     ],

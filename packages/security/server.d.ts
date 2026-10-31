@@ -1,0 +1,1 @@
+export declare function isValidIp(value: unknown): value is string;

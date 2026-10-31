@@ -1,3 +1,4 @@
+import { AUTH_NEXT_STEP } from '@ludora/security';
 import { BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
@@ -7,7 +8,6 @@ import type { User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
-import { AUTH_NEXT_STEP } from '../constants/auth-next-step.js';
 import { AuthService } from './auth.service.js';
 import { EmailVerificationService } from './email-verification.service.js';
 import { PasswordService } from './password.service.js';

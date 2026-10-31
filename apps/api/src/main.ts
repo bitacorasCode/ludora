@@ -3,7 +3,8 @@ import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module.js';
 import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter.js';
-import { DEFAULT_API_PORT } from './config/application.js';
+
+const DEFAULT_API_PORT = 3001;
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);

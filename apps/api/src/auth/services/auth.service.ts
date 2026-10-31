@@ -1,3 +1,4 @@
+import { AUTH_NEXT_STEP } from '@ludora/security';
 import {
     ForbiddenException,
     Injectable,
@@ -9,7 +10,6 @@ import type { User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
-import { AUTH_NEXT_STEP } from '../constants/auth-next-step.js';
 import { LoginDto } from '../dto/login.dto.js';
 import type { RegisterDto } from '../dto/register.dto.js';
 import type { ResendVerificationDto } from '../dto/resend-verification.dto.js';

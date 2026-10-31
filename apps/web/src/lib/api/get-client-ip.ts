@@ -1,14 +1,11 @@
 import 'server-only';
 
-import { isIP } from 'node:net';
-
+import { isValidIp } from '@ludora/security/server';
 import { headers } from 'next/headers';
 
 import { ENV_ENABLED_FLAG, NODE_ENVIRONMENT } from '@/config/environment';
 
 import { VERCEL_REQUEST_HEADERS } from './constants';
-
-const INVALID_IP_RESULT = 0;
 
 export async function getClientIp(): Promise<string | undefined> {
     const { NODE_ENV, VERCEL } = process.env;
@@ -23,7 +20,7 @@ export async function getClientIp(): Promise<string | undefined> {
         .get(VERCEL_REQUEST_HEADERS.clientIp)
         ?.trim();
 
-    if (!clientIp || isIP(clientIp) === INVALID_IP_RESULT) {
+    if (!clientIp || !isValidIp(clientIp)) {
         return undefined;
     }
 

@@ -4,7 +4,7 @@ import {
     HttpStatus,
 } from '@nestjs/common';
 
-import { HTTP_ERROR_NAMES } from '../constants/http.js';
+import { HTTP_ERROR_NAMES } from '../constants/errors.js';
 
 type TooManyRequestsOptions = HttpExceptionOptions & {
     retryAfterSeconds?: number;

@@ -16,6 +16,7 @@ import {
     AUTHORIZATION_SCHEME,
     JSON_MEDIA_TYPE,
 } from './constants';
+import { getClientIp } from './get-client-ip';
 import type { ApiClient, ApiOptions, PublicApiOptions } from './types';
 
 function createApiClient<TOptions extends PublicApiOptions>(
@@ -78,10 +79,23 @@ function createApiClient<TOptions extends PublicApiOptions>(
             getInternalApiSecret(),
         );
 
-        const cache = requiresAuthentication || method === API_METHOD.post
+        const usesVisitorContext =
+            requiresAuthentication || method === API_METHOD.post;
+
+        if (usesVisitorContext) {
+            const clientIp = await getClientIp();
+
+            if (clientIp) {
+                headers.set(
+                    INTERNAL_REQUEST_HEADERS.clientIp,
+                    clientIp,
+                );
+            }
+        }
+
+        const cache = usesVisitorContext
             ? API_REQUEST_DEFAULTS.cache
             : options.cache ?? API_REQUEST_DEFAULTS.cache;
-
         return apiRequest(path, {
             method,
             headers,

@@ -7,10 +7,16 @@
         ".": {
             "types": "./index.d.ts",
             "import": "./index.js"
+        },
+        "./server": {
+            "types": "./server.d.ts",
+            "import": "./server.js"
         }
     },
     "files": [
         "index.js",
-        "index.d.ts"
+        "index.d.ts",
+        "server.js",
+        "server.d.ts"
     ]
 }

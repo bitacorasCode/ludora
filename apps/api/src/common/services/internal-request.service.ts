@@ -1,6 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 
 import { HEX_64_PATTERN, INTERNAL_REQUEST_HEADERS } from '@ludora/security';
+import { isValidIp } from '@ludora/security/server';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
@@ -35,5 +36,26 @@ export class InternalRequestService {
 
         return received.length === this.secret.length
             && timingSafeEqual(received, this.secret);
+    }
+
+    getForwardedClientIp(request: Request): string | undefined {
+        if (!this.isTrusted(request)) {
+            return undefined;
+        }
+
+        const receivedIp =
+            request.headers[INTERNAL_REQUEST_HEADERS.clientIp];
+
+        if (typeof receivedIp !== 'string') {
+            return undefined;
+        }
+
+        const clientIp = receivedIp.trim();
+
+        if (!isValidIp(clientIp)) {
+            return undefined;
+        }
+
+        return clientIp;
     }
 }
