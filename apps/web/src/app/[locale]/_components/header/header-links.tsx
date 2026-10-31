@@ -2,11 +2,12 @@ import { useTranslations } from 'next-intl';
 
 import { SideMenuClose } from '@/components/overlays';
 import { Button } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { Link } from '@/i18n/navigation';
 
 const links = [
-  { href: '/games', label: 'games' },
-  { href: '/ranking', label: 'ranking' },
+  { href: APP_ROUTES.games, label: 'games' },
+  { href: APP_ROUTES.ranking, label: 'ranking' },
 ] as const;
 
 export type HeaderLinksProps = {

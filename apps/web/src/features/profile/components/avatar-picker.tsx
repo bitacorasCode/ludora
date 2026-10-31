@@ -14,6 +14,8 @@ import { ProfileAvatar } from './profile-avatar';
 const optionClassName =
   'relative flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-3 text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 data-[state=checked]:border-primary data-[state=checked]:bg-primary-soft';
 
+const INITIAL_AVATAR_OPTION_ID = 'initial';
+
 type AvatarPickerProps = {
   nickname: string;
   value: AvatarPresetId | null;
@@ -24,7 +26,7 @@ export function AvatarPicker({ nickname, value, onChange }: AvatarPickerProps) {
   const t = useTranslations('Profile');
   const legendId = useId();
   const options = [
-    { id: 'initial', avatarPresetId: null, label: t('useInitial') },
+    { id: INITIAL_AVATAR_OPTION_ID, avatarPresetId: null, label: t('useInitial') },
     ...avatarPresets.map((preset) => ({
       id: preset.id,
       avatarPresetId: preset.id,
@@ -39,7 +41,7 @@ export function AvatarPicker({ nickname, value, onChange }: AvatarPickerProps) {
       </legend>
       <RadioGroup.Root
         name='avatarPresetId'
-        value={value ?? 'initial'}
+        value={value ?? INITIAL_AVATAR_OPTION_ID}
         onValueChange={(selected) =>
           onChange(isAvatarPresetId(selected) ? selected : null)
         }

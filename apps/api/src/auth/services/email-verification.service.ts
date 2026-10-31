@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
+import { MILLISECONDS_PER_SECOND } from '../../common/constants/time.js';
 import { TooManyRequestsException } from '../../common/exceptions/too-many-requests.exception.js';
 import type { ApiErrorDefinition } from '../../common/types/api-error-definition.js';
 import type { Prisma } from '../../generated/prisma/client.js';
@@ -44,7 +45,7 @@ export class EmailVerificationService {
             id,
             expiresAt,
             resendAvailableAt: new Date(
-                lastSentAt.getTime() + resendCooldownSeconds * 1_000,
+                lastSentAt.getTime() + resendCooldownSeconds * MILLISECONDS_PER_SECOND,
             ),
         };
     }
@@ -64,9 +65,11 @@ export class EmailVerificationService {
         );
 
         const lastSentAt = new Date();
-        const expiresAt = new Date(lastSentAt.getTime() + expiresInSeconds * 1_000);
+        const expiresAt = new Date(
+            lastSentAt.getTime() + expiresInSeconds * MILLISECONDS_PER_SECOND,
+        );
         const resendAvailableAt = new Date(
-            lastSentAt.getTime() + resendCooldownSeconds * 1_000,
+            lastSentAt.getTime() + resendCooldownSeconds * MILLISECONDS_PER_SECOND,
         );
 
         await this.verificationRepository.create(
@@ -89,8 +92,12 @@ export class EmailVerificationService {
     }
 
     async resend(verificationId: string) {
-        const { expiresInSeconds, resendCooldownSeconds } = EMAIL_VERIFICATION_CONFIG;
-        const cooldownMs = resendCooldownSeconds * 1_000;
+        const {
+            expiresInSeconds,
+            resendCooldownSeconds,
+            minRetryAfterSeconds,
+        } = EMAIL_VERIFICATION_CONFIG;
+        const cooldownMs = resendCooldownSeconds * MILLISECONDS_PER_SECOND;
 
         const renewed = await this.prisma.$transaction(async (transaction) => {
             const now = new Date();
@@ -120,8 +127,10 @@ export class EmailVerificationService {
             if (!resendReserved) {
                 const { message, errorCode } = AUTH_ERRORS.emailVerificationResendTooSoon;
                 const retryAfterSeconds = Math.max(
-                    1,
-                    Math.ceil((resendAvailableAt.getTime() - Date.now()) / 1_000),
+                    minRetryAfterSeconds,
+                    Math.ceil(
+                        (resendAvailableAt.getTime() - Date.now()) / MILLISECONDS_PER_SECOND,
+                    ),
                 );
 
                 throw new TooManyRequestsException(message, {
@@ -131,7 +140,9 @@ export class EmailVerificationService {
             }
 
             const code = this.codeService.generate();
-            const expiresAt = new Date(now.getTime() + expiresInSeconds * 1_000);
+            const expiresAt = new Date(
+                now.getTime() + expiresInSeconds * MILLISECONDS_PER_SECOND,
+            );
             const codeHash = this.codeService.hash(verificationId, code);
 
             await this.verificationRepository.renewCode(

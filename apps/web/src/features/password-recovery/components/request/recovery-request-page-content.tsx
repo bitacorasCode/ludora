@@ -13,7 +13,9 @@ import {
   SubmitButton,
 } from '@/components/forms';
 import { Button, FieldGroup } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { Link } from '@/i18n/navigation';
+import { FORM_VALIDATION_OPTIONS } from '@/lib/forms';
 import {
   createRecoveryRequestSchema,
   type RecoveryRequestFormData,
@@ -28,8 +30,7 @@ export function RecoveryRequestPageContent() {
   const validation = useTranslations('PasswordRecovery.validation');
 
   const form = useForm<RecoveryRequestFormData>({
-    mode: 'onTouched',
-    reValidateMode: 'onChange',
+    ...FORM_VALIDATION_OPTIONS,
     resolver: zodResolver(
       createRecoveryRequestSchema((key) => validation(key)),
     ),
@@ -71,12 +72,12 @@ export function RecoveryRequestPageContent() {
             placeholder={t('emailPlaceholder')}
           />
           <Button asChild variant='link' className='justify-start px-0'>
-            <Link href='/reset-password'>{t('request.previewReset')}</Link>
+            <Link href={APP_ROUTES.resetPassword}>{t('request.previewReset')}</Link>
           </Button>
           <FormActions
             secondaryAction={
               <Button asChild variant='link'>
-                <Link href='/login'>{t('backToLogin')}</Link>
+                <Link href={APP_ROUTES.login}>{t('backToLogin')}</Link>
               </Button>
             }
           >

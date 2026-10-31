@@ -13,7 +13,9 @@ import {
   SubmitButton,
 } from '@/components/forms';
 import { Button, FieldGroup } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { Link } from '@/i18n/navigation';
+import { FORM_VALIDATION_OPTIONS } from '@/lib/forms';
 import {
   createPasswordResetSchema,
   type PasswordResetFormData,
@@ -28,8 +30,7 @@ export function ResetPasswordPageContent() {
   const validation = useTranslations('PasswordRecovery.validation');
 
   const form = useForm<PasswordResetFormData>({
-    mode: 'onTouched',
-    reValidateMode: 'onChange',
+    ...FORM_VALIDATION_OPTIONS,
     resolver: zodResolver(createPasswordResetSchema((key) => validation(key))),
     defaultValues: { password: '', confirmPassword: '' },
   });
@@ -79,7 +80,7 @@ export function ResetPasswordPageContent() {
           <FormActions
             secondaryAction={
               <Button asChild variant='link'>
-                <Link href='/login'>{t('backToLogin')}</Link>
+                <Link href={APP_ROUTES.login}>{t('backToLogin')}</Link>
               </Button>
             }
           >

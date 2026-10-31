@@ -2,7 +2,13 @@ import 'server-only';
 
 import { HEX_64_PATTERN } from '@ludora/security';
 
+import { NODE_ENVIRONMENT } from '@/config/environment';
+
 const LOCAL_API_HOSTS = ['localhost', '127.0.0.1', '[::1]'] as const;
+const HTTP_PROTOCOL = {
+    secure: 'https:',
+    insecure: 'http:',
+} as const;
 
 export function getApiBaseUrl(): URL {
     const { API_URL, NODE_ENV } = process.env;
@@ -12,10 +18,10 @@ export function getApiBaseUrl(): URL {
     }
 
     const baseUrl = new URL(API_URL);
-    const isHttps = baseUrl.protocol === 'https:';
+    const isHttps = baseUrl.protocol === HTTP_PROTOCOL.secure;
     const isLocalHttp =
-        (NODE_ENV === 'development' || NODE_ENV === 'test') &&
-        baseUrl.protocol === 'http:' &&
+        (NODE_ENV === NODE_ENVIRONMENT.development || NODE_ENV === NODE_ENVIRONMENT.test) &&
+        baseUrl.protocol === HTTP_PROTOCOL.insecure &&
         LOCAL_API_HOSTS.some((hostname) => hostname === baseUrl.hostname);
 
     if ((!isHttps && !isLocalHttp) || baseUrl.username || baseUrl.password) {

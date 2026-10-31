@@ -8,7 +8,11 @@ import {
 } from '@/lib/actions';
 
 import { getApiBaseUrl } from './config';
-import { API_ERROR_CODES, API_TIMEOUT_MS } from './constants';
+import {
+    API_ERROR_CODES,
+    API_REQUEST_DEFAULTS,
+    API_TIMEOUT_MS,
+} from './constants';
 
 const apiErrorSchema = z.object({
     errorCode: z.string().min(1),
@@ -53,10 +57,9 @@ export async function apiRequest(
     try {
         response = await fetch(url, {
             ...options,
-            cache: options.cache ?? 'no-store',
+            ...API_REQUEST_DEFAULTS,
+            cache: options.cache ?? API_REQUEST_DEFAULTS.cache,
             signal,
-            credentials: 'omit',
-            redirect: 'error',
         });
     } catch {
         return {

@@ -8,7 +8,9 @@ import type { Response } from 'express';
 
 import { AUTH_ERRORS } from '../../auth/constants/auth-errors.js';
 import { Prisma } from '../../generated/prisma/client.js';
+import { DATABASE_CONSTRAINTS, PRISMA_ERROR_CODES } from '../constants/database.js';
 import { DATABASE_ERRORS } from '../constants/database-errors.js';
+import { HTTP_ERROR_NAMES } from '../constants/http.js';
 import type { ApiErrorDefinition } from '../types/api-error-definition.js';
 
 type PostgreSqlAdapterError = {
@@ -25,7 +27,7 @@ export class PrismaExceptionFilter extends BaseExceptionFilter<unknown> {
         exception: Prisma.PrismaClientKnownRequestError,
         host: ArgumentsHost,
     ): void {
-        if (exception.code !== 'P2002') {
+        if (exception.code !== PRISMA_ERROR_CODES.uniqueConstraintViolation) {
             super.catch(exception, host);
             return;
         }
@@ -35,9 +37,9 @@ export class PrismaExceptionFilter extends BaseExceptionFilter<unknown> {
         const constraintName = driverAdapterError?.cause?.constraint?.index;
         let conflict: ApiErrorDefinition = DATABASE_ERRORS.uniqueConstraintViolation;
 
-        if (constraintName === 'users_nickname_key') {
+        if (constraintName === DATABASE_CONSTRAINTS.usersNicknameUnique) {
             conflict = AUTH_ERRORS.nicknameAlreadyExists;
-        } else if (constraintName === 'users_email_key') {
+        } else if (constraintName === DATABASE_CONSTRAINTS.usersEmailUnique) {
             conflict = AUTH_ERRORS.emailAlreadyExists;
         }
 
@@ -48,7 +50,7 @@ export class PrismaExceptionFilter extends BaseExceptionFilter<unknown> {
         response.status(status).json({
             statusCode: status,
             message,
-            error: 'Conflict',
+            error: HTTP_ERROR_NAMES.conflict,
             errorCode,
         });
     }

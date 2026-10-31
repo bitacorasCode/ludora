@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { MILLISECONDS_PER_SECOND } from '@/lib/time';
+
 const COUNTDOWN_INTERVAL_MS = 250;
 
 export function useCountdown(initialSeconds = 0) {
@@ -12,12 +14,12 @@ export function useCountdown(initialSeconds = 0) {
   useEffect(() => {
     if (!isActive) return;
 
-    deadline.current ??= Date.now() + initialSeconds * 1_000;
+    deadline.current ??= Date.now() + initialSeconds * MILLISECONDS_PER_SECOND;
 
     const interval = window.setInterval(() => {
       const remaining = Math.max(
         0,
-        Math.ceil(((deadline.current ?? 0) - Date.now()) / 1_000),
+        Math.ceil(((deadline.current ?? 0) - Date.now()) / MILLISECONDS_PER_SECOND),
       );
 
       setSecondsRemaining(remaining);
@@ -29,7 +31,7 @@ export function useCountdown(initialSeconds = 0) {
   const restart = useCallback((seconds: number) => {
     const remaining = Math.max(0, Math.ceil(seconds));
 
-    deadline.current = Date.now() + remaining * 1_000;
+    deadline.current = Date.now() + remaining * MILLISECONDS_PER_SECOND;
     setSecondsRemaining(remaining);
   }, []);
 

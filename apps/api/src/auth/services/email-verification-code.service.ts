@@ -4,7 +4,14 @@ import { HEX_64_PATTERN } from '@ludora/security';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { EMAIL_VERIFICATION_CONFIG } from '../constants/email-verification.js';
+import {
+    EMAIL_VERIFICATION_CONFIG,
+    EMAIL_VERIFICATION_HASH_CONFIG,
+} from '../constants/email-verification.js';
+
+const DECIMAL_BASE = 10;
+const CODE_PADDING_DIGIT = '0';
+const { algorithm, encoding } = EMAIL_VERIFICATION_HASH_CONFIG;
 
 @Injectable()
 export class EmailVerificationCodeService {
@@ -21,21 +28,21 @@ export class EmailVerificationCodeService {
             );
         }
 
-        this.secret = Buffer.from(secret, 'hex');
+        this.secret = Buffer.from(secret, encoding);
     }
 
     generate(): string {
         const { codeLength } = EMAIL_VERIFICATION_CONFIG;
 
-        return randomInt(0, 10 ** codeLength)
+        return randomInt(0, DECIMAL_BASE ** codeLength)
             .toString()
-            .padStart(codeLength, '0');
+            .padStart(codeLength, CODE_PADDING_DIGIT);
     }
 
     hash(verificationId: string, code: string): string {
-        return createHmac('sha256', this.secret)
+        return createHmac(algorithm, this.secret)
             .update(`${verificationId}:${code}`)
-            .digest('hex');
+            .digest(encoding);
     }
 
     verify(
@@ -43,10 +50,10 @@ export class EmailVerificationCodeService {
         code: string,
         storedHash: string,
     ): boolean {
-        const expected = Buffer.from(storedHash, 'hex');
+        const expected = Buffer.from(storedHash, encoding);
         const actual = Buffer.from(
             this.hash(verificationId, code),
-            'hex',
+            encoding,
         );
 
         return expected.length === actual.length

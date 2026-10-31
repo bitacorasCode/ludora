@@ -10,6 +10,8 @@ import { z } from 'zod';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
 import type { AuthenticatedRequest } from '../types/authenticated-request.js';
 
+const BEARER_TOKEN_PATTERN = /^Bearer (\S+)$/i;
+
 const tokenPayloadSchema = z.object({
     sub: z.uuid(),
     exp: z.number().int(),
@@ -24,8 +26,8 @@ export class JwtAuthGuard implements CanActivate {
             .switchToHttp()
             .getRequest<AuthenticatedRequest>();
 
-        const token = request.headers.authorization
-            ?.match(/^Bearer (\S+)$/i)?.[1];
+        const [, token] = request.headers.authorization
+            ?.match(BEARER_TOKEN_PATTERN) ?? [];
 
         if (!token) {
             const { message, errorCode } = AUTH_ERRORS.authenticationRequired;

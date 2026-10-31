@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 
 import { SideMenuClose } from '@/components/overlays';
 import { Button } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { Link } from '@/i18n/navigation';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -20,11 +21,11 @@ export async function HeaderAccountLinks({
     const user = await getCurrentUser();
 
     const links = user
-      ? ([{ href: '/account/profile', label: 'account' }] as const)
+      ? ([{ href: APP_ROUTES.accountProfile, label: 'account' }] as const)
       : ([
-          { href: '/preferences', label: 'preferences' },
-          { href: '/login', label: 'login' },
-          { href: '/register', label: 'register' },
+          { href: APP_ROUTES.preferences, label: 'preferences' },
+          { href: APP_ROUTES.login, label: 'login' },
+          { href: APP_ROUTES.register, label: 'register' },
         ] as const);
 
     return links.map(({ href, label }) => {

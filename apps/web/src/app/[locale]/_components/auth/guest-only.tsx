@@ -5,6 +5,7 @@ import { type ReactNode, Suspense } from 'react';
 
 import { PageContainer, PageSection } from '@/components/layout';
 import { Spinner } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { redirect } from '@/i18n/navigation';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -17,7 +18,7 @@ type GuestOnlyProps = {
 async function GuestOnlyContent({
   children,
   locale,
-  redirectTo = '/',
+  redirectTo = APP_ROUTES.home,
 }: GuestOnlyProps) {
   const user = await getCurrentUser();
 

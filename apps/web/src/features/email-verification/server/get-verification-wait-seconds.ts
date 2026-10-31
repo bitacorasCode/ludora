@@ -3,6 +3,8 @@ import 'server-only';
 import { io } from 'next/cache';
 import { z } from 'zod';
 
+import { MILLISECONDS_PER_SECOND } from '@/lib/time';
+
 export async function getVerificationWaitSeconds(
   resendAvailableAt: unknown,
 ): Promise<number> {
@@ -14,6 +16,6 @@ export async function getVerificationWaitSeconds(
 
   return Math.max(
     0,
-    Math.ceil((Date.parse(availability.data) - Date.now()) / 1_000),
+    Math.ceil((Date.parse(availability.data) - Date.now()) / MILLISECONDS_PER_SECOND),
   );
 }

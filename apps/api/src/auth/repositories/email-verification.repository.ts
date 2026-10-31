@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import { SINGLE_RECORD_UPDATE_COUNT } from '../../common/constants/database.js';
 import type { EmailVerification, Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
@@ -91,7 +92,7 @@ export class EmailVerificationRepository {
             data: { lastSentAt: now },
         });
 
-        return count === 1;
+        return count === SINGLE_RECORD_UPDATE_COUNT;
     }
 
     renewCode(
@@ -125,7 +126,7 @@ export class EmailVerificationRepository {
             },
         });
 
-        return count === 1;
+        return count === SINGLE_RECORD_UPDATE_COUNT;
     }
 
     delete(id: string, transaction: Prisma.TransactionClient) {

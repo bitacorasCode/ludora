@@ -5,12 +5,14 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { APP_ROUTES } from '@/config/routes';
 import { useActionErrorToast } from '@/hooks';
 import { useRouter } from '@/i18n/navigation';
 import {
     ACTION_ERROR_CODES,
     OPERATION_STATUS,
 } from '@/lib/actions';
+import { FORM_VALIDATION_OPTIONS } from '@/lib/forms';
 import { createLoginSchema, type LoginFormData } from '@/lib/schemas';
 
 import { type LoginResult, loginUser } from '../actions';
@@ -41,8 +43,7 @@ export default function useLoginForm() {
     }, []);
 
     const form = useForm<LoginFormData>({
-        mode: 'onTouched',
-        reValidateMode: 'onChange',
+        ...FORM_VALIDATION_OPTIONS,
         resolver: zodResolver(createLoginSchema(validation)),
         defaultValues: {
             email: '',
@@ -99,13 +100,16 @@ export default function useLoginForm() {
                 const { verificationId, resendAvailableAt } = result.data;
 
                 router.replace({
-                    pathname: '/verify-email',
-                    query: { verificationId, resendAvailableAt },
+                    pathname: APP_ROUTES.verifyEmail,
+                    query: {
+                        verificationId,
+                        resendAvailableAt,
+                    },
                 });
                 return;
             }
 
-            router.replace('/');
+            router.replace(APP_ROUTES.home);
             router.refresh();
         });
     }

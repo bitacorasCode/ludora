@@ -1,4 +1,5 @@
 const STORAGE_CHANGE_EVENT = 'ludora:local-storage-change';
+const BROWSER_STORAGE_EVENT = 'storage';
 
 type StorageChangeEvent = CustomEvent<{ key: string }>;
 
@@ -24,11 +25,11 @@ export function createLocalStorageStore(key: string) {
       if ((event as StorageChangeEvent).detail.key === key) onStoreChange();
     };
 
-    window.addEventListener('storage', onStorage);
+    window.addEventListener(BROWSER_STORAGE_EVENT, onStorage);
     window.addEventListener(STORAGE_CHANGE_EVENT, onLocalChange);
 
     return () => {
-      window.removeEventListener('storage', onStorage);
+      window.removeEventListener(BROWSER_STORAGE_EVENT, onStorage);
       window.removeEventListener(STORAGE_CHANGE_EVENT, onLocalChange);
     };
   }

@@ -5,6 +5,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 
+const INTERNAL_SECRET_ENCODING = 'utf8';
+
 @Injectable()
 export class InternalRequestService {
     private readonly secret: Buffer;
@@ -18,7 +20,7 @@ export class InternalRequestService {
             );
         }
 
-        this.secret = Buffer.from(secret, 'utf8');
+        this.secret = Buffer.from(secret, INTERNAL_SECRET_ENCODING);
     }
 
     isTrusted(request: Request): boolean {
@@ -29,7 +31,7 @@ export class InternalRequestService {
             return false;
         }
 
-        const received = Buffer.from(receivedSecret, 'utf8');
+        const received = Buffer.from(receivedSecret, INTERNAL_SECRET_ENCODING);
 
         return received.length === this.secret.length
             && timingSafeEqual(received, this.secret);

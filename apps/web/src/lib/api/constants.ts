@@ -8,13 +8,34 @@ export const API_METHOD = {
     post: 'POST',
 } as const;
 
+export const API_HEADERS = {
+    accept: 'accept',
+    contentType: 'content-type',
+    authorization: 'authorization',
+    cookie: 'cookie',
+    host: 'host',
+    proxyAuthorization: 'proxy-authorization',
+} as const;
+
+export const AUTHORIZATION_SCHEME = 'Bearer';
+
+export const API_REQUEST_DEFAULTS = {
+    cache: 'no-store',
+    credentials: 'omit',
+    redirect: 'error',
+} as const satisfies Pick<RequestInit, 'cache' | 'credentials' | 'redirect'>;
+
 export const API_RESERVED_HEADERS = [
-    'authorization',
-    'cookie',
-    'host',
-    'proxy-authorization',
-    ...Object.values(INTERNAL_REQUEST_HEADERS)
+    API_HEADERS.authorization,
+    API_HEADERS.cookie,
+    API_HEADERS.host,
+    API_HEADERS.proxyAuthorization,
+    ...Object.values(INTERNAL_REQUEST_HEADERS),
 ] as const;
+
+export const VERCEL_REQUEST_HEADERS = {
+    clientIp: 'x-vercel-forwarded-for',
+} as const;
 
 export const API_ERROR_CODES = {
     unavailable: 'API_UNAVAILABLE',

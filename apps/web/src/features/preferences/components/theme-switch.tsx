@@ -5,6 +5,7 @@ import { useTheme } from 'next-themes';
 import { useId, useSyncExternalStore } from 'react';
 
 import { Switch } from '@/components/ui';
+import { THEME } from '@/config/theme';
 
 export function ThemeSwitch() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -30,9 +31,9 @@ export function ThemeSwitch() {
       <Switch
         id={id}
         aria-label={t('label')}
-        checked={mounted && resolvedTheme === 'dark'}
+        checked={mounted && resolvedTheme === THEME.dark}
         disabled={!mounted}
-        onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+        onCheckedChange={(checked) => setTheme(checked ? THEME.dark : THEME.light)}
       />
     </div>
   );

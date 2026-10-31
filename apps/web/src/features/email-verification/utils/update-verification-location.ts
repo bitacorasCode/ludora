@@ -1,3 +1,8 @@
+import {
+  EMAIL_VERIFICATION_DELIVERY,
+  EMAIL_VERIFICATION_QUERY_PARAMS,
+} from '../config';
+
 type VerificationLocationUpdate = {
   verificationId: string;
   resendAvailableAt: string;
@@ -11,14 +16,14 @@ export function updateVerificationLocation({
 }: VerificationLocationUpdate) {
   const url = new URL(window.location.href);
 
-  if (url.searchParams.get('verificationId') !== verificationId) return;
+  if (url.searchParams.get(EMAIL_VERIFICATION_QUERY_PARAMS.verificationId) !== verificationId) return;
 
-  url.searchParams.set('resendAvailableAt', resendAvailableAt);
+  url.searchParams.set(EMAIL_VERIFICATION_QUERY_PARAMS.resendAvailableAt, resendAvailableAt);
 
   if (deliveryUnconfirmed === true) {
-    url.searchParams.set('delivery', 'unconfirmed');
+    url.searchParams.set(EMAIL_VERIFICATION_QUERY_PARAMS.delivery, EMAIL_VERIFICATION_DELIVERY.unconfirmed);
   } else if (deliveryUnconfirmed === false) {
-    url.searchParams.delete('delivery');
+    url.searchParams.delete(EMAIL_VERIFICATION_QUERY_PARAMS.delivery);
   }
 
   window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);

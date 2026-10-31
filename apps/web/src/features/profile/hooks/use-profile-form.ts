@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { FORM_VALIDATION_OPTIONS } from '@/lib/forms';
+
 import type { Profile } from '../config';
 import { type ProfilePreferences, profilePreferencesSchema } from '../schema';
 
@@ -18,8 +20,7 @@ export function useProfileForm(
   const errorToastId = useRef<ReturnType<typeof toast.error> | null>(null);
   const form = useForm<ProfilePreferences>({
     resolver: zodResolver(profilePreferencesSchema),
-    mode: 'onTouched',
-    reValidateMode: 'onChange',
+    ...FORM_VALIDATION_OPTIONS,
     defaultValues: {
       avatarPresetId: profile.avatarPresetId,
       bio: profile.bio ?? '',

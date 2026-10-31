@@ -7,6 +7,7 @@ import {
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
+import { SKELETON_DEFAULTS } from '../constants';
 import { TextSkeleton } from './text-skeleton';
 
 type ListSkeletonProps = {
@@ -16,8 +17,8 @@ type ListSkeletonProps = {
 };
 
 export function ListSkeleton({
-  items = 1,
-  descriptionLines = 1,
+  items = SKELETON_DEFAULTS.items,
+  descriptionLines = SKELETON_DEFAULTS.descriptionLines,
   className,
 }: ListSkeletonProps) {
   const itemCount = Number.isFinite(items) ? Math.max(0, Math.floor(items)) : 0;

@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/feedback';
 import { PageContainer, PageSection } from '@/components/layout';
 import { PageHeading } from '@/components/typography';
 import { Button } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { Link } from '@/i18n/navigation';
 
 export function RankingPageContent() {
@@ -23,7 +24,7 @@ export function RankingPageContent() {
           description={t('emptyDescription')}
           action={
             <Button asChild variant='outline'>
-              <Link href='/'>{common('actions.backHome')}</Link>
+              <Link href={APP_ROUTES.home}>{common('actions.backHome')}</Link>
             </Button>
           }
         />

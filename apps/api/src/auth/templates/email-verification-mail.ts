@@ -1,3 +1,4 @@
+import { SECONDS_PER_MINUTE } from '../../common/constants/time.js';
 import type { SendMailInput } from '../../mail/index.js';
 
 type EmailVerificationMailInput = {
@@ -9,7 +10,7 @@ export function createEmailVerificationMail({
     code,
     expiresInSeconds,
 }: EmailVerificationMailInput): Pick<SendMailInput, 'subject' | 'text'> {
-    const expiresInMinutes = expiresInSeconds / 60;
+    const expiresInMinutes = expiresInSeconds / SECONDS_PER_MINUTE;
 
     return {
         subject: 'Confirma tu correo en Ludora',

@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { ErrorState } from '@/components/feedback';
 import { Button } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { Link } from '@/i18n/navigation';
 
 export default function AccountError({ retry }: { retry: () => void }) {
@@ -21,7 +22,7 @@ export default function AccountError({ retry }: { retry: () => void }) {
       }
       secondaryAction={
         <Button asChild variant='outline'>
-          <Link href='/'>{common('actions.backHome')}</Link>
+          <Link href={APP_ROUTES.home}>{common('actions.backHome')}</Link>
         </Button>
       }
     />

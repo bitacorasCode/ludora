@@ -1,0 +1,16 @@
+export const APP_ROUTES = {
+    home: '/',
+    games: '/games',
+    ranking: '/ranking',
+    login: '/login',
+    register: '/register',
+    verifyEmail: '/verify-email',
+    forgotPassword: '/forgot-password',
+    resetPassword: '/reset-password',
+    preferences: '/preferences',
+    account: '/account',
+    accountProfile: '/account/profile',
+    accountActivity: '/account/activity',
+    accountSettings: '/account/settings',
+    accountPreferences: '/account/preferences',
+} as const;

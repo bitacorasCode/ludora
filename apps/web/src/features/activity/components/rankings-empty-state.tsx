@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { EmptyState } from '@/components/feedback';
 import { Button } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { Link } from '@/i18n/navigation';
 
 export function RankingsEmptyState() {
@@ -17,7 +18,7 @@ export function RankingsEmptyState() {
       description={t('emptyDescription')}
       action={
         <Button asChild variant='outline'>
-          <Link href='/ranking'>{t('viewRankings')}</Link>
+          <Link href={APP_ROUTES.ranking}>{t('viewRankings')}</Link>
         </Button>
       }
     />

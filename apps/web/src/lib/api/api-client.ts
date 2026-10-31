@@ -9,8 +9,11 @@ import { apiRequest } from './api-request';
 import { getInternalApiSecret } from './config';
 import {
     API_ERROR_CODES,
+    API_HEADERS,
     API_METHOD,
+    API_REQUEST_DEFAULTS,
     API_RESERVED_HEADERS,
+    AUTHORIZATION_SCHEME,
     JSON_MEDIA_TYPE,
 } from './constants';
 import type { ApiClient, ApiOptions, PublicApiOptions } from './types';
@@ -33,7 +36,7 @@ function createApiClient<TOptions extends PublicApiOptions>(
             };
         }
 
-        headers.set('Accept', JSON_MEDIA_TYPE);
+        headers.set(API_HEADERS.accept, JSON_MEDIA_TYPE);
 
         let serializedBody: string | undefined;
 
@@ -49,9 +52,9 @@ function createApiClient<TOptions extends PublicApiOptions>(
         }
 
         if (serializedBody) {
-            headers.set('Content-Type', JSON_MEDIA_TYPE);
+            headers.set(API_HEADERS.contentType, JSON_MEDIA_TYPE);
         } else {
-            headers.delete('Content-Type');
+            headers.delete(API_HEADERS.contentType);
         }
 
         if (requiresAuthentication) {
@@ -64,7 +67,10 @@ function createApiClient<TOptions extends PublicApiOptions>(
                 };
             }
 
-            headers.set('Authorization', `Bearer ${accessToken}`);
+            headers.set(
+                API_HEADERS.authorization,
+                `${AUTHORIZATION_SCHEME} ${accessToken}`,
+            );
         }
 
         headers.set(
@@ -73,8 +79,8 @@ function createApiClient<TOptions extends PublicApiOptions>(
         );
 
         const cache = requiresAuthentication || method === API_METHOD.post
-            ? 'no-store'
-            : options.cache ?? 'no-store';
+            ? API_REQUEST_DEFAULTS.cache
+            : options.cache ?? API_REQUEST_DEFAULTS.cache;
 
         return apiRequest(path, {
             method,

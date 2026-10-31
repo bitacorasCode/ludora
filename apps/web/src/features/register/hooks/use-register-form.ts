@@ -5,12 +5,18 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { APP_ROUTES } from '@/config/routes';
+import {
+    EMAIL_VERIFICATION_DELIVERY,
+    EMAIL_VERIFICATION_QUERY_PARAMS,
+} from '@/features/email-verification/config';
 import { useActionErrorToast } from '@/hooks';
 import { useRouter } from '@/i18n/navigation';
 import {
     ACTION_ERROR_CODES,
     OPERATION_STATUS,
 } from '@/lib/actions';
+import { FORM_ERROR_TYPES, FORM_VALIDATION_OPTIONS } from '@/lib/forms';
 import {
     createRegisterSchema,
     type RegisterFormData,
@@ -32,8 +38,7 @@ export default function useRegisterForm() {
     const [isPending, startTransition] = useTransition();
 
     const form = useForm<RegisterFormData>({
-        mode: 'onTouched',
-        reValidateMode: 'onChange',
+        ...FORM_VALIDATION_OPTIONS,
         resolver: zodResolver(createRegisterSchema(validation)),
         defaultValues: userDefaultValues,
     });
@@ -45,7 +50,7 @@ export default function useRegisterForm() {
         }
 
         const fieldName = [...REGISTER_FIELD_ERRORS.values()].find(
-            (name) => getFieldState(name).error?.type === 'server',
+            (name) => getFieldState(name).error?.type === FORM_ERROR_TYPES.server,
         );
 
         if (fieldName) {
@@ -78,7 +83,7 @@ export default function useRegisterForm() {
 
                 if (fieldName && errors.has(errorCode)) {
                     form.setError(fieldName, {
-                        type: 'server',
+                        type: FORM_ERROR_TYPES.server,
                         message: errors(errorCode),
                     });
                     return;
@@ -93,11 +98,13 @@ export default function useRegisterForm() {
             form.reset();
 
             router.push({
-                pathname: '/verify-email',
+                pathname: APP_ROUTES.verifyEmail,
                 query: {
                     verificationId,
                     resendAvailableAt,
-                    ...(!emailSent && { delivery: 'unconfirmed' }),
+                    ...(!emailSent && {
+                        [EMAIL_VERIFICATION_QUERY_PARAMS.delivery]: EMAIL_VERIFICATION_DELIVERY.unconfirmed,
+                    }),
                 },
             });
         });

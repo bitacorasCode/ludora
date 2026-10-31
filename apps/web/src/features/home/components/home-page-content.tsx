@@ -3,6 +3,7 @@ import { useTranslations } from 'next-intl';
 import { PageContainer } from '@/components/layout';
 import { PageHeading } from '@/components/typography';
 import { Button, Card, CardFooter, CardHeader } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { Link } from '@/i18n/navigation';
 
 export function HomePageContent() {
@@ -20,7 +21,7 @@ export function HomePageContent() {
         </CardHeader>
         <CardFooter>
           <Button asChild size='lg'>
-            <Link href='/games'>{t('exploreLudora')}</Link>
+            <Link href={APP_ROUTES.games}>{t('exploreLudora')}</Link>
           </Button>
         </CardFooter>
       </Card>

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { APP_ROUTES } from '@/config/routes';
 import { useActionErrorToast, useCountdown } from '@/hooks';
 import { useRouter } from '@/i18n/navigation';
 import {
@@ -13,6 +14,7 @@ import {
     OPERATION_STATUS,
 } from '@/lib/actions';
 import { HTTP_STATUS } from '@/lib/api/constants';
+import { FORM_ERROR_TYPES, FORM_VALIDATION_OPTIONS } from '@/lib/forms';
 import {
     createEmailVerificationSchema,
     type EmailVerificationFormData,
@@ -56,8 +58,7 @@ export default function useEmailVerificationForm({
     const focusCodeAfterResend = useRef(false);
 
     const form = useForm<EmailVerificationFormData>({
-        mode: 'onTouched',
-        reValidateMode: 'onChange',
+        ...FORM_VALIDATION_OPTIONS,
         resolver: zodResolver(createEmailVerificationSchema(validation)),
         defaultValues: {
             verificationId,
@@ -77,7 +78,7 @@ export default function useEmailVerificationForm({
     useEffect(() => {
         if (isPending || isResending) return;
 
-        if (focusCodeAfterResend.current || getFieldState('code').error?.type === 'server') {
+        if (focusCodeAfterResend.current || getFieldState('code').error?.type === FORM_ERROR_TYPES.server) {
             focusCodeAfterResend.current = false;
             setFocus('code');
         }
@@ -110,7 +111,7 @@ export default function useEmailVerificationForm({
 
                     if (errorCode === EMAIL_VERIFICATION_ERROR_CODES.codeInvalid) {
                         form.setError('code', {
-                            type: 'server',
+                            type: FORM_ERROR_TYPES.server,
                             message: errors(errorCode),
                         });
                         return;
@@ -121,7 +122,7 @@ export default function useEmailVerificationForm({
                 }
 
                 form.reset();
-                router.replace('/account/profile');
+                router.replace(APP_ROUTES.accountProfile);
                 router.refresh();
             } catch {
                 showError({

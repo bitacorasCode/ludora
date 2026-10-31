@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageContainer, PageSection } from '@/components/layout';
 import { PageHeading } from '@/components/typography';
 import { Button } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { getPathname } from '@/i18n/navigation';
 import type { Locale } from '@/i18n/routing';
 
@@ -27,12 +28,12 @@ export async function NotFoundPageContent({ locale }: NotFoundPageContentProps) 
         />
         <div className='flex flex-col gap-3 sm:flex-row'>
           <Button asChild size='lg'>
-            <Link href={getPathname({ locale, href: '/' })}>
+            <Link href={getPathname({ locale, href: APP_ROUTES.home })}>
               {common('actions.backHome')}
             </Link>
           </Button>
           <Button asChild variant='outline' size='lg'>
-            <Link href={getPathname({ locale, href: '/games' })}>
+            <Link href={getPathname({ locale, href: APP_ROUTES.games })}>
               {t('exploreGames')}
             </Link>
           </Button>

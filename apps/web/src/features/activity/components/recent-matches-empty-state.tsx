@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { EmptyState } from '@/components/feedback';
 import { Button } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { Link } from '@/i18n/navigation';
 
 export function RecentMatchesEmptyState() {
@@ -17,7 +18,7 @@ export function RecentMatchesEmptyState() {
       description={t('emptyDescription')}
       action={
         <Button asChild variant='outline'>
-          <Link href='/games'>{t('exploreGames')}</Link>
+          <Link href={APP_ROUTES.games}>{t('exploreGames')}</Link>
         </Button>
       }
     />

@@ -3,10 +3,13 @@ import type { ReactNode } from 'react';
 import { Card, CardContent } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
+import { SKELETON_DEFAULTS } from './constants';
 import { HeadingSkeleton } from './variants/heading-skeleton';
 import { ListSkeleton } from './variants/list-skeleton';
 import { RowSkeleton, type RowSkeletonProps } from './variants/row-skeleton';
 import { TextSkeleton } from './variants/text-skeleton';
+
+const MINIMUM_LIST_ITEMS = 1;
 
 type ContentSkeletonProps = {
   label: string;
@@ -28,7 +31,7 @@ export function ContentSkeleton(props: ContentSkeletonProps) {
     label,
     withCard = false,
     withHeading = false,
-    descriptionLines = 1,
+    descriptionLines = SKELETON_DEFAULTS.descriptionLines,
     className,
   } = props;
 
@@ -48,15 +51,18 @@ export function ContentSkeleton(props: ContentSkeletonProps) {
         />
       );
       break;
-    case 'list':
-      if (!Number.isFinite(props.items ?? 1) || (props.items ?? 1) < 1) {
+    case 'list': {
+      const items = props.items ?? SKELETON_DEFAULTS.items;
+
+      if (!Number.isFinite(items) || items < MINIMUM_LIST_ITEMS) {
         return null;
       }
 
       content = (
-        <ListSkeleton items={props.items} descriptionLines={descriptionLines} />
+        <ListSkeleton items={items} descriptionLines={descriptionLines} />
       );
       break;
+    }
   }
 
   return (

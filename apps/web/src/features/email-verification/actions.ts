@@ -12,6 +12,7 @@ import { API_ERROR_CODES, HTTP_STATUS, publicApi } from '@/lib/api';
 import { authResponseSchema, emailVerificationResponseSchema } from '@/lib/auth';
 import { createEmailVerificationSchema } from '@/lib/schemas';
 import { createSession } from '@/lib/session';
+import { MILLISECONDS_PER_SECOND } from '@/lib/time';
 
 const VERIFY_EMAIL_ENDPOINT = '/auth/verify-email';
 const RESEND_VERIFICATION_ENDPOINT = '/auth/resend-verification';
@@ -63,7 +64,7 @@ export async function resendVerification(
             && Number.isInteger(retryAfterSeconds)
             && retryAfterSeconds > 0
         ) {
-            const retryAt = new Date(Date.now() + retryAfterSeconds * 1_000);
+            const retryAt = new Date(Date.now() + retryAfterSeconds * MILLISECONDS_PER_SECOND);
 
             if (Number.isFinite(retryAt.getTime())) {
                 return {
@@ -99,7 +100,7 @@ export async function resendVerification(
 
     const retryAfterSeconds = Math.max(
         0,
-        Math.ceil((Date.parse(resendAvailableAt) - Date.now()) / 1_000),
+        Math.ceil((Date.parse(resendAvailableAt) - Date.now()) / MILLISECONDS_PER_SECOND),
     );
 
     return {

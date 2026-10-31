@@ -1,6 +1,7 @@
 import { Skeleton } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
+import { SKELETON_DEFAULTS } from '../constants';
 import { TextSkeleton } from './text-skeleton';
 
 export type RowSkeletonProps = {
@@ -12,7 +13,7 @@ export type RowSkeletonProps = {
 };
 
 export function RowSkeleton({
-  descriptionLines = 1,
+  descriptionLines = SKELETON_DEFAULTS.descriptionLines,
   withAvatar = false,
   withAction = false,
   size = 'default',

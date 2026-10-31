@@ -10,6 +10,7 @@ import {
     SubmitButton,
 } from '@/components/forms';
 import { Button, FieldGroup, FieldSet } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { Link } from '@/i18n/navigation';
 import { EMAIL_VERIFICATION_CODE_LENGTH } from '@/lib/schemas';
 
@@ -92,7 +93,7 @@ export function EmailVerificationPageContent({
                         <FormActions
                             secondaryAction={
                                 <Button asChild variant='link'>
-                                    <Link href='/login'>{t('backToLogin')}</Link>
+                                    <Link href={APP_ROUTES.login}>{t('backToLogin')}</Link>
                                 </Button>
                             }
                         >

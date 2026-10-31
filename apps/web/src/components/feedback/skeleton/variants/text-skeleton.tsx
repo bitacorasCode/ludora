@@ -1,6 +1,8 @@
 import { Skeleton } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
+import { SKELETON_DEFAULTS } from '../constants';
+
 type TextSkeletonProps = {
   lines?: number;
   withTitle?: boolean;
@@ -9,7 +11,7 @@ type TextSkeletonProps = {
 };
 
 export function TextSkeleton({
-  lines = 1,
+  lines = SKELETON_DEFAULTS.descriptionLines,
   withTitle = false,
   size = 'default',
   className,

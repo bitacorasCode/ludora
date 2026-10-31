@@ -10,6 +10,7 @@ import {
   SubmitButton,
 } from '@/components/forms';
 import { Button, FieldGroup, FieldSet } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { Link } from '@/i18n/navigation';
 
 import { LOGIN_ERROR_CODES } from '../config';
@@ -66,7 +67,7 @@ export function LoginPageContent() {
               />
 
               <Button asChild variant='link' className='mt-2 px-0'>
-                <Link href='/forgot-password'>{t('forgotPassword')}</Link>
+                <Link href={APP_ROUTES.forgotPassword}>{t('forgotPassword')}</Link>
               </Button>
 
               <TransitionAlert
@@ -80,7 +81,7 @@ export function LoginPageContent() {
             <FormActions
               secondaryAction={
                 <Button asChild variant='link'>
-                  <Link href='/register'>{t('register')}</Link>
+                  <Link href={APP_ROUTES.register}>{t('register')}</Link>
                 </Button>
               }
             >

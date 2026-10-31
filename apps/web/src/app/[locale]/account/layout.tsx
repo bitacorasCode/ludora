@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { type ReactNode, Suspense } from 'react';
 
 import { PageContainer, PageSection } from '@/components/layout';
+import { APP_ROUTES } from '@/config/routes';
 import { AccountContentSkeleton, AccountShell } from '@/features/account';
 import { redirect } from '@/i18n/navigation';
 import { getCurrentUser } from '@/lib/auth';
@@ -23,7 +24,7 @@ async function AuthenticatedAccount({
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect({ href: '/login', locale });
+    redirect({ href: APP_ROUTES.login, locale });
   }
 
   return <AccountShell>{children}</AccountShell>;

@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 
 import { SideMenu } from '@/components/overlays';
 import { Button, Skeleton } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { Link } from '@/i18n/navigation';
 
 import { HeaderAccountLinks } from './header-account-links';
@@ -27,7 +28,7 @@ export function Header() {
         className='mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8'
       >
         <Button asChild variant='link' size='sm'>
-          <Link href='/'>
+          <Link href={APP_ROUTES.home}>
             <span
               aria-hidden='true'
               className='grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground'

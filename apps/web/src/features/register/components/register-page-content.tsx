@@ -8,6 +8,7 @@ import {
   SubmitButton,
 } from '@/components/forms';
 import { Button, FieldSet } from '@/components/ui';
+import { APP_ROUTES } from '@/config/routes';
 import { Link } from '@/i18n/navigation';
 
 import useRegisterForm from '../hooks/use-register-form';
@@ -44,7 +45,7 @@ export function RegisterPageContent() {
           <FormActions
             secondaryAction={
               <Button asChild variant='link'>
-                <Link href='/login'>{t('signIn')}</Link>
+                <Link href={APP_ROUTES.login}>{t('signIn')}</Link>
               </Button>
             }
           >

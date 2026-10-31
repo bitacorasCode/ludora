@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, type JwtModuleOptions } from '@nestjs/jwt';
 
+import { InternalRequestModule } from '../common/internal-request.module.js';
 import { MailModule } from '../mail/index.js';
 import { PrismaModule } from '../prisma/prisma.module.js';
 import { UsersModule } from '../users/users.module.js';
@@ -21,6 +22,7 @@ const { algorithm, issuer, audience } = JWT_CONFIG;
 
 @Module({
     imports: [
+        InternalRequestModule,
         MailModule,
         PrismaModule,
         UsersModule,
