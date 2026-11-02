@@ -46,5 +46,15 @@ se definen en `index.js`.
 El formato de un secreto no demuestra su aleatoriedad. `INTERNAL_API_SECRET` y
 `EMAIL_VERIFICATION_SECRET` deben conservar valores independientes.
 
+## Utilidades de servidor
+
+`@ludora/security/server` expone `isValidIp()` y `parseHttpUrl()` para ambas apps.
+Este punto de entrada utiliza Node y se importa únicamente desde código de servidor.
+
+`parseHttpUrl(value, nodeEnvironment)` devuelve una URL válida o `null`. Exige
+HTTPS sin credenciales; permite HTTP sobre loopback únicamente en desarrollo y
+tests. El consumidor debe proporcionar el valor desde configuración confiable y
+aplicar sus restricciones adicionales de ruta, query o fragmento.
+
 En los despliegues de Vercel y Render se debe conservar el workspace e instalar
 desde la raíz, incluyendo `packages/security` y el lockfile.

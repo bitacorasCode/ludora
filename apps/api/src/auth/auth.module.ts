@@ -10,11 +10,16 @@ import { PrismaModule } from '../prisma/prisma.module.js';
 import { UsersModule } from '../users/users.module.js';
 import { AuthController } from './auth.controller.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
-import { EmailVerificationRepository } from './repositories/index.js';
+import {
+    EmailVerificationRepository,
+    PasswordResetRepository,
+} from './repositories/index.js';
 import {
     AuthService,
     EmailVerificationCodeService,
     EmailVerificationService,
+    PasswordRecoveryService,
+    PasswordResetTokenService,
     PasswordService,
 } from './services/index.js';
 
@@ -54,8 +59,11 @@ const { algorithm, issuer, audience } = JWT_CONFIG;
     controllers: [AuthController],
     providers: [
         EmailVerificationRepository,
+        PasswordResetRepository,
         AuthService,
         PasswordService,
+        PasswordResetTokenService,
+        PasswordRecoveryService,
         JwtAuthGuard,
         RateLimitGuard,
         EmailVerificationCodeService,

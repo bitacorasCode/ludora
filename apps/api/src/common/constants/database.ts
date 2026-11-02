@@ -7,4 +7,4 @@ export const DATABASE_CONSTRAINTS = {
     usersEmailUnique: 'users_email_key',
 } as const;
 
-export const SINGLE_RECORD_UPDATE_COUNT = 1;
+export const SINGLE_RECORD_COUNT = 1;

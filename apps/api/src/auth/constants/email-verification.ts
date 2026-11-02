@@ -1,5 +1,6 @@
 import { EMAIL_VERIFICATION_CODE_LENGTH } from '@ludora/security';
 
+import { CRYPTO_ENCODING, HASH_ALGORITHM } from '../../common/constants/crypto.js';
 import { SECONDS_PER_MINUTE } from '../../common/constants/time.js';
 
 export const EMAIL_VERIFICATION_CONFIG = {
@@ -11,6 +12,6 @@ export const EMAIL_VERIFICATION_CONFIG = {
 } as const;
 
 export const EMAIL_VERIFICATION_HASH_CONFIG = {
-    algorithm: 'sha256',
-    encoding: 'hex',
+    algorithm: HASH_ALGORITHM.sha256,
+    encoding: CRYPTO_ENCODING.hex,
 } as const;

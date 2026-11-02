@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { SINGLE_RECORD_UPDATE_COUNT } from '../../common/constants/database.js';
+import { SINGLE_RECORD_COUNT } from '../../common/constants/database.js';
 import type { Prisma, User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
@@ -64,7 +64,7 @@ export class UsersRepository {
             },
         });
 
-        return count === SINGLE_RECORD_UPDATE_COUNT;
+        return count === SINGLE_RECORD_COUNT;
     }
 
     count(transaction: Prisma.TransactionClient = this.prisma) {
