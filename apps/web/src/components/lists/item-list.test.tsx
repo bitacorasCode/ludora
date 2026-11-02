@@ -13,9 +13,9 @@ afterEach(() => {
 describe('ItemList', () => {
   it('renders an empty named list without separators', () => {
     const { container } = render(
-      <ItemList ariaLabel='Preferencias' items={[]} />,
+      <ItemList ariaLabel='Preferences' items={[]} />,
     );
-    expect(screen.getByRole('list', { name: 'Preferencias' })).toBeTruthy();
+    expect(screen.getByRole('list', { name: 'Preferences' })).toBeTruthy();
     expect(screen.queryAllByRole('listitem')).toHaveLength(0);
     expect(container.querySelectorAll('[data-slot="separator"]')).toHaveLength(
       0,
@@ -25,20 +25,20 @@ describe('ItemList', () => {
   it('renders one item without a separator or optional description', () => {
     const { container } = render(
       <ItemList
-        ariaLabel='Preferencias'
+        ariaLabel='Preferences'
         items={[
           {
             id: 'theme',
-            title: 'Tema',
-            content: <button type='button'>Cambiar tema</button>,
+            title: 'Theme',
+            content: <button type='button'>Change theme</button>,
           },
         ]}
       />,
     );
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
     expect(
-      within(screen.getByRole('group', { name: 'Tema' })).getByRole('button', {
-        name: 'Cambiar tema',
+      within(screen.getByRole('group', { name: 'Theme' })).getByRole('button', {
+        name: 'Change theme',
       }),
     ).toBeTruthy();
     expect(container.querySelectorAll('[data-slot="separator"]')).toHaveLength(
@@ -49,26 +49,26 @@ describe('ItemList', () => {
   it('places separators only between items and preserves description associations', async () => {
     const { container } = render(
       <ItemList
-        ariaLabel='Cuenta'
+        ariaLabel='Account'
         items={[
           {
             id: 'email',
-            title: 'Correo',
-            description: 'Tu correo privado',
+            title: 'Email',
+            description: 'Your private email',
             content: 'jugador@example.com',
           },
           {
             id: 'password',
-            title: 'Contraseña',
-            description: 'Disponible próximamente',
+            title: 'Password',
+            description: 'Coming soon',
             descriptionId: 'password-help',
             content: (
               <button type='button' aria-describedby='password-help'>
-                Cambiar contraseña
+                Change password
               </button>
             ),
           },
-          { id: 'theme', title: 'Tema', content: 'Oscuro' },
+          { id: 'theme', title: 'Theme', content: 'Dark' },
         ]}
       />,
     );
@@ -81,8 +81,8 @@ describe('ItemList', () => {
     expect(items[2].lastElementChild?.getAttribute('data-slot')).toBe('field');
     expect(
       screen.getByRole('button', {
-        name: 'Cambiar contraseña',
-        description: 'Disponible próximamente',
+        name: 'Change password',
+        description: 'Coming soon',
       }),
     ).toBeTruthy();
     const results = await axe(container);

@@ -1,140 +1,137 @@
-# Arquitectura de acceso a datos
+# Data access architecture
 
-## Imports e índices
+## Imports and indexes
 
-- Utilizar `index.ts` como punto de entrada de una carpeta cuando agrupe exports
-  relacionados y simplifique sus consumidores, como los DTOs de autenticación.
-- Declarar los exports explícitamente y utilizar `export type` o `import type`
-  para los símbolos que solo representan tipos.
-- Dentro de una carpeta, importar las dependencias de archivos vecinos
-  directamente; evitar importar un índice que también exporte al consumidor.
-- Conservar los imports relativos con archivo y extensión `.js` para NodeNext.
-- Revisar las dependencias transitivas al ampliar un índice: reexportar un módulo
-  también puede cargar sus dependencias e introducir un ciclo.
+- Use `index.ts` as a folder entry point when it groups related exports and
+  simplifies its consumers, as with the authentication DTOs.
+- Declare exports explicitly and use `export type` or `import type` for symbols
+  that only represent types.
+- Within a folder, import dependencies directly from neighboring files. Avoid
+  importing an index that also exports the consumer.
+- Keep the explicit filename and `.js` extension in relative imports for NodeNext.
+- Review transitive dependencies when extending an index: re-exporting a module
+  can also load its dependencies and introduce a cycle.
 
-## Configuración criptográfica
+## Cryptographic configuration
 
-Los nombres compartidos de algoritmos y codificaciones se declaran en
-`common/constants/crypto.ts`. Las configuraciones de cada flujo seleccionan
-estos valores y mantienen sus propias longitudes, caducidades y reglas.
-La autenticación interna convierte el secreto a bytes UTF-8 para comparar
-exactamente su representación de texto.
+Shared algorithm and encoding names are declared in `common/constants/crypto.ts`.
+Each flow selects those values while keeping its own lengths, expiration periods,
+and rules. Internal authentication converts the secret to UTF-8 bytes to compare
+its exact text representation.
 
-## Responsabilidades
+## Responsibilities
 
-| Capa | Responsabilidad |
+| Layer | Responsibility |
 | --- | --- |
-| Controller y DTO | Recibir HTTP, validar la entrada y delegar el caso de uso. |
-| Service | Aplicar reglas, normalizar datos y coordinar operaciones. |
-| Repository | Ejecutar las consultas Prisma del módulo propietario de los datos. |
-| PrismaService | Crear el cliente y su pool, e inicializar y cerrar sus recursos. |
+| Controller and DTO | Receive HTTP requests, validate input, and delegate the use case. |
+| Service | Apply rules, normalize data, and coordinate operations. |
+| Repository | Run Prisma queries within the module that owns the data. |
+| PrismaService | Create the client and its pool, and initialize and close their resources. |
 
-`UsersRepository` concentra las consultas sobre usuarios.
-`EmailVerificationRepository` concentra las consultas sobre verificaciones.
-`PasswordResetRepository` concentra las consultas sobre recuperaciones de contraseña.
-Los repositorios son providers internos de sus módulos; otros módulos utilizan
-sus servicios públicos.
+`UsersRepository` centralizes user queries.
+`EmailVerificationRepository` centralizes email verification queries.
+`PasswordResetRepository` centralizes password recovery queries.
+Repositories are internal providers of their modules; other modules use their
+public services.
 
-Por ejemplo, `UsersService.create()` normaliza el nickname y el correo, y luego
-delega la escritura en `UsersRepository.create()`.
+For example, `UsersService.create()` normalizes the nickname and email, then
+delegates persistence to `UsersRepository.create()`.
 
-## Transacciones
+## Transactions
 
-El servicio que coordina un caso de uso abre su transacción con
-`PrismaService.$transaction()`. Los servicios y repositorios involucrados reciben
-el mismo `Prisma.TransactionClient` mediante el argumento `transaction`.
+The service coordinating a use case opens its transaction with
+`PrismaService.$transaction()`. All participating services and repositories receive
+the same `Prisma.TransactionClient` through the `transaction` argument.
 
-- `AuthService` coordina la creación del usuario y su verificación.
-- `EmailVerificationService` coordina el consumo del código y la activación del usuario.
-- La activación del usuario pasa por `UsersService` y `UsersRepository`.
-- La reserva de un intento y el consumo del código requieren una transacción explícita.
-- El reenvío reserva `lastSentAt` con una actualización condicional y renueva el
-  código dentro de la misma transacción. Ese bloqueo también coordina los reenvíos
-  simultáneos y la confirmación del correo.
-- `lastSentAt` representa la reserva del envío, incluso si SMTP no confirma la
-  entrega. Cada reenvío genera un código aleatorio, renueva su caducidad
-  y reinicia sus intentos sin cambiar el identificador de verificación.
-- En la confirmación, los errores de validación se lanzan después de terminar
-  la transacción para conservar los intentos fallidos.
-- El envío SMTP se realiza después de confirmar la transacción de registro.
-- Los reenvíos también contactan SMTP después de confirmar su transacción.
+- `AuthService` coordinates creation of the user and their verification.
+- `EmailVerificationService` coordinates code consumption and account activation.
+- Account activation goes through `UsersService` and `UsersRepository`.
+- Reserving an attempt and consuming a code require an explicit transaction.
+- Resending reserves `lastSentAt` with a conditional update and renews the code
+  within the same transaction. That lock also coordinates concurrent resends
+  and email confirmation.
+- `lastSentAt` represents the delivery reservation, even if SMTP does not confirm
+  delivery. Each resend generates a random code, renews its expiration, and resets
+  its attempts without changing the verification identifier.
+- During confirmation, validation errors are thrown after the transaction
+  finishes so failed attempts remain recorded.
+- SMTP delivery happens after the registration transaction commits.
+- Resends also contact SMTP after their transaction commits.
 
-Los servicios conservan las decisiones del proceso. Los repositorios reciben
-datos preparados, fechas y límites para construir las consultas correspondientes.
+Services own process decisions. Repositories receive prepared data, timestamps,
+and limits to build the corresponding queries.
 
-## Lecturas y respuestas
+## Reads and responses
 
-La creación y lectura pública de usuarios seleccionan `id`, `nickname`, `email`
-y `createdAt`. La búsqueda por correo usada para autenticar incluye el hash de
-contraseña; esa fila completa pertenece al flujo interno de autenticación y no
-se devuelve directamente en una respuesta HTTP.
+User creation and public reads select `id`, `nickname`, `email`, and `createdAt`.
+The email lookup used for authentication includes the password hash. That complete
+row belongs to the internal authentication flow and is never returned directly
+in an HTTP response.
 
-El login comprueba la contraseña antes de devolver el siguiente paso:
+Login checks the password before returning the next step:
 
-- `authenticated` incluye el JWT y los datos públicos del usuario verificado.
-- `verifyEmail` incluye únicamente el identificador de verificación, su
-  caducidad y la fecha disponible para reenviar. No crea una sesión.
+- `authenticated` includes the JWT and the public fields of the verified user.
+- `verifyEmail` includes only the verification identifier, its expiration, and
+  the next available resend time. It does not create a session.
 
-`EmailVerificationService.getPending()` consulta el repositorio por el usuario
-único y exige que su correo siga pendiente. Retomar este flujo es una lectura:
-no renueva el código, no envía correo ni cambia intentos o tiempos de espera.
-La lectura incluye verificaciones caducadas para permitir el reenvío existente.
-Si no encuentra una verificación pendiente, el login conserva el error de correo
-sin verificar y no emite un JWT. Una confirmación concurrente puede volver
-obsoleta esta lectura; el cliente podrá repetir el login sin saltarse la
-verificación.
+`EmailVerificationService.getPending()` queries the repository using the unique
+user identifier and requires the email to remain unverified. Resuming this flow
+is a read: it does not renew the code, send email, or change attempts or waiting
+periods. The read includes expired verifications so the existing resend flow
+remains available.
+If no pending verification is found, login keeps the unverified-email error
+and does not issue a JWT. A concurrent confirmation can make this read stale;
+the client can repeat login without bypassing verification.
 
-## Modelo de recuperación de contraseña
+## Password recovery model
 
-`PasswordResetTokenService.create()` genera una credencial temporal con su token,
-hash y caducidad. La configuración inicial utiliza 32 bytes aleatorios en
-`base64url`, un hash SHA-256 en hexadecimal y una vigencia de 30 minutos.
-`hash(token)` comparte la misma transformación para la futura búsqueda de la solicitud.
-El token original deberá utilizarse exclusivamente para el enlace del correo;
-no deberá persistirse, registrarse en logs ni devolverse en la respuesta pública
-de solicitud de recuperación.
+`PasswordResetTokenService.create()` generates a temporary credential containing
+its token, hash, and expiration. The initial configuration uses 32 random bytes
+encoded as `base64url`, a hexadecimal SHA-256 hash, and a 30-minute lifetime.
+`hash(token)` applies the same transformation for the future request lookup.
+The original token must be used exclusively in the email link. It must not be
+persisted, logged, or returned in the public recovery-request response.
 
-`PasswordReset` define como máximo una solicitud por usuario. `tokenHash` permite
-buscar la solicitud sin guardar el token que se enviará en el enlace del correo.
-Una renovación deberá sustituir el hash y la caducidad, invalidando el enlace anterior.
-`lastSentAt` representa la reserva del envío, como en la verificación de correo;
-no garantiza que SMTP haya entregado el mensaje.
+`PasswordReset` defines at most one request per user. `tokenHash` allows lookup
+without storing the token sent in the email link. Renewal must replace the hash
+and expiration, invalidating the previous link. As in email verification,
+`lastSentAt` represents the delivery reservation; it does not guarantee that SMTP
+delivered the message.
 
-El consumo deberá eliminar la solicitud de forma condicional por hash y
-caducidad, dentro de la misma transacción que cambie la contraseña. Solo podrá
-continuar si se ha eliminado una fila. Así se evitarán la reutilización y los
-consumos concurrentes del mismo enlace.
+Consumption must conditionally delete the request by hash and expiration within
+the same transaction that changes the password. It may proceed only if one row
+was deleted. This prevents reuse and concurrent consumption of the same link.
 
-`PasswordResetRepository.reserveRequest()` intenta insertar la solicitud omitiendo
-duplicados. Si ya existe, la renueva únicamente cuando `lastSentAt` cumple el
-límite temporal recibido. Tanto la reserva como el consumo requieren que el
-servicio les pase una transacción. La búsqueda por hash devuelve únicamente el
-usuario asociado y la caducidad.
+`PasswordResetRepository.reserveRequest()` attempts insertion while skipping
+duplicates. If a request already exists, it renews it only when `lastSentAt`
+satisfies the supplied time limit. Both reservation and consumption require the
+service to pass a transaction. Lookup by hash returns only the associated user
+and expiration.
 
-El servicio deberá calcular `lastSentAt` y el límite de reserva desde la misma
-hora. Para consumir el token, deberá tomar una hora actual dentro de la
-transacción, después de calcular el hash de la nueva contraseña.
+The service must calculate `lastSentAt` and the reservation cutoff from the same
+instant. To consume a token, it must capture the current time inside the
+transaction, after hashing the new password.
 
-## Solicitud del enlace de recuperación
+## Requesting a recovery link
 
-`PasswordRecoveryService.request(email)` programa el procesamiento y termina sin
-esperar a la búsqueda de la cuenta, la reserva o SMTP. No devuelve datos del
-usuario ni el estado del correo. Esto permite que el futuro endpoint responda
-igual ante una cuenta existente, desconocida o dentro de su espera entre solicitudes.
+`PasswordRecoveryService.request(email)` schedules processing and returns without
+waiting for account lookup, reservation, or SMTP. It does not return user data
+or email-delivery status. This lets the future endpoint use the same response
+for an existing account, an unknown account, or an account within its waiting
+period between requests.
 
-El procesamiento busca al usuario mediante `UsersService`, genera la credencial
-y reserva la solicitud en una transacción. La espera inicial por cuenta es de
-60 segundos. El correo se envía después del commit; un fallo de SMTP conserva
-la reserva y solo produce un log genérico, sin correos, enlaces ni tokens.
-Solicitar recuperación no modifica la contraseña ni verifica el correo.
+Processing looks up the user through `UsersService`, generates the credential,
+and reserves the request in a transaction. The initial waiting period per account
+is 60 seconds. Email is sent after commit. An SMTP failure keeps the reservation
+and produces only a generic log, without email addresses, links, or tokens.
+Requesting recovery does not change the password or verify the email.
 
-`PASSWORD_RESET_URL` es una URL completa obtenida de configuración confiable.
-En local apunta a `http://localhost:3000/reset-password`, dejando la elección
-del idioma al proxy de Next. Se valida con `parseHttpUrl()` compartido entre
-ambas apps, más el rechazo de query y fragmento iniciales. El token se añade
-con `URLSearchParams`. En producción se exige HTTPS; HTTP solo se admite para
-loopback en desarrollo y tests.
+`PASSWORD_RESET_URL` is a complete URL from trusted configuration. Locally, it
+points to `http://localhost:3000/reset-password`, leaving language selection to
+the Next proxy. Both apps share `parseHttpUrl()` validation; recovery additionally
+rejects an initial query or fragment. The token is added with `URLSearchParams`.
+Production requires HTTPS. HTTP is allowed only for loopback hosts during
+development and tests.
 
-El procesamiento actual vive en memoria de la API. Un reinicio o despliegue
-puede perder solicitudes pendientes; una cola persistente será necesaria para
-garantizar reintentos y durabilidad del trabajo.
+Current processing runs in API memory. A restart or deployment can lose pending
+requests. A persistent queue will be needed for durable work and retries.

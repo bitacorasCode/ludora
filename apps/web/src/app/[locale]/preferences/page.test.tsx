@@ -36,7 +36,7 @@ vi.mock('next-intl/server', () => ({
     }),
 }));
 vi.mock('@/features/preferences', () => ({
-  PreferencesPageContent: () => <p>Preferencias públicas</p>,
+  PreferencesPageContent: () => <p>Public preferences</p>,
 }));
 
 beforeEach(() => {
@@ -66,7 +66,7 @@ describe('PreferencesPage access', () => {
   it('renders public preferences for a guest', async () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
     render(await getContent());
-    expect(screen.getByText('Preferencias públicas')).toBeTruthy();
+    expect(screen.getByText('Public preferences')).toBeTruthy();
     expect(redirect).not.toHaveBeenCalled();
   });
 

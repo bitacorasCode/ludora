@@ -6,7 +6,7 @@ const MAILPIT_URL = new URL(
 );
 const SEARCH_PAGE_SIZE = 100;
 const VERIFICATION_EMAIL_TIMEOUT_MS = 10_000;
-const VERIFICATION_CODE = /Tu código de verificación es:\s*(\d{6})\b/u;
+const VERIFICATION_CODE = /Your verification code is:\s*(\d{6})\b/u;
 const temporaryEmail = /^e2e-[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}@example\.test$/;
 
 if (

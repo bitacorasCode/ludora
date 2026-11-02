@@ -15,13 +15,13 @@ describe('Alert', () => {
     render(
       <Alert
         status='success'
-        title='Guardado'
-        message='Los cambios se guardaron.'
+        title='Saved'
+        message='Changes were saved.'
       />,
     );
-    expect(screen.getByRole('status').textContent).toContain('Guardado');
+    expect(screen.getByRole('status').textContent).toContain('Saved');
     expect(screen.getByRole('status').textContent).toContain(
-      'Los cambios se guardaron.',
+      'Changes were saved.',
     );
     expect(screen.queryByRole('alert')).toBeNull();
   });
@@ -30,13 +30,13 @@ describe('Alert', () => {
     render(
       <Alert
         status='warning'
-        title='Atención'
-        message='Revisa los datos.'
+        title='Warning'
+        message='Check the details.'
       />,
     );
-    expect(screen.getByRole('alert').textContent).toContain('Atención');
+    expect(screen.getByRole('alert').textContent).toContain('Warning');
     expect(screen.getByRole('alert').textContent).toContain(
-      'Revisa los datos.',
+      'Check the details.',
     );
   });
 
@@ -45,11 +45,11 @@ describe('Alert', () => {
       <Alert
         status='error'
         title='Error'
-        message='No se pudo guardar.'
+        message='Could not save.'
       />,
     );
     expect(screen.getByRole('alert').textContent).toContain(
-      'No se pudo guardar.',
+      'Could not save.',
     );
     const results = await axe(container);
     expect(results).toHaveNoViolations();

@@ -13,16 +13,16 @@ export function createPasswordResetMail({
     const expiresInMinutes = expiresInSeconds / SECONDS_PER_MINUTE;
 
     return {
-        subject: 'Recupera tu contraseña en Ludora',
+        subject: 'Reset your Ludora password',
         text: [
-            'Recibimos una solicitud para restablecer la contraseña de tu cuenta de Ludora.',
+            'We received a request to reset the password for your Ludora account.',
             '',
-            'Abre este enlace para elegir una nueva contraseña:',
+            'Open this link to choose a new password:',
             resetUrl,
             '',
-            `El enlace caduca ${expiresInMinutes} minutos después de generarse y solo puede utilizarse una vez.`,
+            `The link expires ${expiresInMinutes} minutes after it is generated and can only be used once.`,
             '',
-            'Si no solicitaste este cambio, puedes ignorar este mensaje.',
+            'If you did not request a password reset, you can ignore this email.',
         ].join('\n'),
     };
 }

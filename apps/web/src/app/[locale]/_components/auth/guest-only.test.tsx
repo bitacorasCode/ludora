@@ -33,7 +33,7 @@ beforeEach(() => {
 describe('GuestOnly access', () => {
   it('renders its content for a guest', async () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
-    const children = <p>Formulario público</p>;
+    const children = <p>Public form</p>;
     expect(
       await resolveSuspendedComponent(GuestOnly({ locale: 'es', children })),
     ).toBe(children);

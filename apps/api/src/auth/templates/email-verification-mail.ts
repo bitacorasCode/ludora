@@ -13,16 +13,16 @@ export function createEmailVerificationMail({
     const expiresInMinutes = expiresInSeconds / SECONDS_PER_MINUTE;
 
     return {
-        subject: 'Confirma tu correo en Ludora',
+        subject: 'Verify your email address for Ludora',
         text: [
-            'Estás a un paso de completar tu registro en Ludora.',
+            'You are one step away from completing your Ludora registration.',
             '',
-            `Tu código de verificación es: ${code}`,
+            `Your verification code is: ${code}`,
             '',
-            `El código caduca ${expiresInMinutes} minutos después de generarse.`,
-            'Puedes introducirlo en la pantalla de verificación de Ludora.',
+            `The code expires ${expiresInMinutes} minutes after it is generated.`,
+            'Enter it on the Ludora email verification page.',
             '',
-            'Si no solicitaste este registro, puedes ignorar este mensaje.',
+            'If you did not request this registration, you can ignore this email.',
         ].join('\n'),
     };
 }

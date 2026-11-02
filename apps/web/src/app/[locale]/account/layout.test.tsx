@@ -17,7 +17,7 @@ const { redirect } = vi.hoisted(() => ({
 
 vi.mock('@/lib/auth', () => ({ getCurrentUser: vi.fn() }));
 vi.mock('@/features/logout', () => ({
-  LogoutButton: () => <button>Cerrar sesión</button>,
+  LogoutButton: () => <button>Log out</button>,
 }));
 vi.mock('@/i18n/navigation', () => ({
   redirect,
@@ -42,7 +42,7 @@ afterEach(() => cleanup());
 
 async function getContent() {
   const layout = await AccountLayout({
-    children: <p>Privado</p>,
+    children: <p>Private</p>,
     params: Promise.resolve({ locale: 'es' }),
   });
   return resolveSuspendedComponent(layout);
@@ -64,7 +64,7 @@ describe('AccountLayout access', () => {
         {await getContent()}
       </NextIntlClientProvider>,
     );
-    expect(screen.getByText('Privado')).toBeTruthy();
+    expect(screen.getByText('Private')).toBeTruthy();
     expect(
       screen.getByRole('navigation', {
         name: esMessages.Account.navigationLabel,

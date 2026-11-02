@@ -1,15 +1,15 @@
-# Reglas compartidas de ESLint
+# Shared ESLint rules
 
-Web y API consumen este paquete mediante `@ludora/eslint-config`.
+The web app and API consume this package through `@ludora/eslint-config`.
 
-- Ordena imports y exports.
-- Elimina imports sin uso al aplicar correcciones.
-- Advierte sobre variables y argumentos sin uso; permite nombres que comienzan por `_`.
-- Desactiva las reglas de formato que puedan entrar en conflicto con Prettier. El formato sigue siendo responsabilidad de Prettier.
+- Sorts imports and exports.
+- Removes unused imports when applying fixes.
+- Warns about unused variables and arguments; allows names starting with `_`.
+- Disables formatting rules that could conflict with Prettier. Prettier remains responsible for formatting.
 
-Cada aplicación añade sus comprobaciones específicas en su `eslint.config.mjs`: Next.js y React en web; Node.js y TypeScript en API, incluyendo promesas sin gestionar.
+Each app adds its own checks in `eslint.config.mjs`: Next.js and React for the web app; Node.js and TypeScript for the API, including unhandled promises.
 
-Desde la raíz del repositorio:
+From the repository root:
 
 ```sh
 pnpm --filter api lint
@@ -18,4 +18,4 @@ pnpm --filter web lint
 pnpm --filter web lint:fix
 ```
 
-La configuración de `.vscode/settings.json` aplica las correcciones de ESLint al guardar manualmente. Requiere la extensión ESLint de VS Code.
+The configuration in `.vscode/settings.json` applies ESLint fixes when saving manually. It requires the VS Code ESLint extension.

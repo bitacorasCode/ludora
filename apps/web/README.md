@@ -35,53 +35,53 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## Pruebas de navegador con Playwright
+## Browser tests with Playwright
 
-Las pruebas de autenticación utilizan la API de Nest, PostgreSQL y Mailpit reales.
-Ejecuta los comandos desde la raíz del monorepo, con las dependencias instaladas
-y las migraciones existentes aplicadas en tu base de desarrollo local.
+Authentication tests use the real Nest API, PostgreSQL, and Mailpit.
+Run these commands from the monorepo root after installing dependencies and
+applying the existing migrations to your local development database.
 
-1. Abre Docker Desktop y levanta PostgreSQL y Mailpit:
+1. Open Docker Desktop and start PostgreSQL and Mailpit:
 
    ```bash
    docker compose up -d
    ```
 
-2. Comprueba que la configuración SMTP de la API apunta a Mailpit:
-   `SMTP_HOST=127.0.0.1`, `SMTP_PORT=1025` y `SMTP_SECURE=false`.
+2. Check that the API's SMTP configuration points to Mailpit:
+   `SMTP_HOST=127.0.0.1`, `SMTP_PORT=1025`, and `SMTP_SECURE=false`.
 
-3. Instala Chromium si todavía no está disponible:
+3. Install Chromium if it is not already available:
 
    ```bash
    pnpm --filter web exec playwright install chromium
    ```
 
-4. Ejecuta los recorridos de registro y verificación:
+4. Run the registration and verification flows:
 
    ```bash
    pnpm --filter web test:e2e e2e/email-verification.spec.ts --project=guest
    ```
 
-   Para ejecutar toda la suite de navegador:
+   To run the entire browser test suite:
 
    ```bash
    pnpm --filter web test:e2e
    ```
 
-Playwright inicia la API si no está disponible y levanta una web independiente
-en el puerto `3100`, con el proxy de pruebas en `3102`. La API utiliza `3001` y
-Mailpit expone su bandeja y API en `8025`. La web de pruebas usa `.next-e2e`
-para mantener su compilación separada del servidor de desarrollo habitual.
+Playwright starts the API if it is unavailable and launches a separate web app
+on port `3100`, with the test proxy on `3102`. The API uses `3001`, and Mailpit
+exposes its inbox and API on `8025`. The test web app uses `.next-e2e` to keep
+its build separate from the regular development server.
 
-Las cuentas usan correos únicos con el formato `e2e-<uuid>@example.test`. Al
-terminar se eliminan únicamente esas cuentas y sus mensajes. No se vacía la
-base de datos ni la bandeja de Mailpit. La limpieza exige una base PostgreSQL
-local y un destinatario temporal válido.
+Accounts use unique email addresses in the form `e2e-<uuid>@example.test`.
+Cleanup removes only those accounts and their messages. It does not clear the
+database or the Mailpit inbox. Cleanup requires a local PostgreSQL database
+and a valid temporary recipient.
 
-El recorrido de reenvío espera el plazo real del servidor; tarda aproximadamente
-un minuto. No modifica el reloj, las fechas de la base de datos ni los límites
-de la aplicación. Las pruebas leen el código del correo capturado en Mailpit y
-comprueban que la cookie `HttpOnly` aparece solamente después de confirmar.
+The resend flow waits for the server's actual cooldown, which takes about one
+minute. It does not change the clock, database timestamps, or application limits.
+The tests read the code from the email captured by Mailpit and check that the
+`HttpOnly` cookie appears only after confirmation.
 
-Los tests de autenticación desactivan las trazas y capturas, que pueden incluir
-credenciales, códigos de verificación o tokens.
+Authentication tests disable traces and screenshots because they may contain
+credentials, verification codes, or tokens.
