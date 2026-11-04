@@ -85,3 +85,37 @@ The tests read the code from the email captured by Mailpit and check that the
 
 Authentication tests disable traces and screenshots because they may contain
 credentials, verification codes, or tokens.
+
+## Password recovery
+
+The recovery request form calls a Server Action that validates its input and
+sends the email address to `POST /auth/forgot-password` through the server API
+client. The action validates the `{ "accepted": true }` response and returns no
+account information or recovery token to the browser.
+
+The form shows a generic confirmation after acceptance. The shared error toast
+handles API failures and the waiting period returned by the server for `429` responses.
+The request sends a real recovery email when the account exists and its waiting
+period allows it.
+
+The reset page reads the token from the email link without consuming it. Its
+route loading UI wraps the request-time query access. Missing, malformed, or
+repeated token parameters show a recovery-link error with an action to request
+a new link. The API checks expiration and previous use when the form is submitted.
+The page disables indexing and uses `no-referrer` metadata to keep the token out
+of navigation referrers.
+
+The reset Server Action validates the token, new password, and confirmation, then
+sends only `token` and `password` to `POST /auth/reset-password`. The API consumes
+the token, updates the password, and invalidates previous JWTs. Only after
+validating `{ "reset": true }` does the action delete the browser's session cookie.
+The form clears its password fields, shows a confirmation toast, and replaces
+the current URL with the localized login route. It does not create a session.
+After commit, the API schedules a separate email notifying the user of the
+password change. Sending this notice does not delay or alter the reset response.
+Expired or consumed links show the same recovery-link error; other failures use
+the shared error toast, including the waiting period for `429` responses.
+
+This flow does not write recovery tokens to local storage, application logs,
+toast messages, or secondary links. The token and form values are revalidated in
+the Server Action even after the browser has validated them.

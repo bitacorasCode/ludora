@@ -22,7 +22,7 @@ if (account.id !== undefined && (typeof account.id !== 'string' || !uuid.test(ac
   throw new Error('The temporary E2E account ID must be a UUID.');
 }
 
-if (process.argv[2] === 'delete') {
+function getLocalDatabaseUrl() {
   if (!process.env.DATABASE_URL) throw new Error('Missing DATABASE_URL for the local API fixture.');
   const database = new URL(process.env.DATABASE_URL);
   if (
@@ -30,8 +30,14 @@ if (process.argv[2] === 'delete') {
     || !['localhost', '127.0.0.1', '[::1]'].includes(database.hostname)
     || process.env.NODE_ENV === 'production'
   ) {
-    throw new Error('Temporary E2E accounts can only be deleted from a local development database.');
+    throw new Error('Temporary E2E accounts can only be accessed in a local development database.');
   }
+
+  return database;
+}
+
+if (process.argv[2] === 'delete') {
+  const database = getLocalDatabaseUrl();
   const pool = new pg.Pool({ connectionString: database.href });
   try {
     if (account.id) {
@@ -46,11 +52,26 @@ if (process.argv[2] === 'delete') {
 } else if (process.argv[2] === 'expired-token') {
   if (!account.id) throw new Error('A temporary E2E account ID is required to create an expired token.');
   if (!process.env.JWT_SECRET) throw new Error('Missing JWT_SECRET for the local API fixture.');
-  const jwt = new JwtService({ secret: process.env.JWT_SECRET });
-  const token = await jwt.signAsync({ sub: account.id }, {
-    algorithm: 'HS256', expiresIn: -60, issuer: 'ludora-api', audience: 'ludora-web',
-  });
-  process.stdout.write(token);
+  const database = getLocalDatabaseUrl();
+  const pool = new pg.Pool({ connectionString: database.href });
+
+  try {
+    const { rows: [user] } = await pool.query(
+      'SELECT auth_version AS "authVersion" FROM users WHERE id = $1::uuid AND email = $2',
+      [account.id, account.email],
+    );
+
+    if (!user) throw new Error('The temporary E2E account does not exist.');
+
+    const { authVersion } = user;
+    const jwt = new JwtService({ secret: process.env.JWT_SECRET });
+    const token = await jwt.signAsync({ sub: account.id, authVersion }, {
+      algorithm: 'HS256', expiresIn: -60, issuer: 'ludora-api', audience: 'ludora-web',
+    });
+    process.stdout.write(token);
+  } finally {
+    await pool.end();
+  }
 } else {
   throw new Error('Unsupported auth fixture operation.');
 }

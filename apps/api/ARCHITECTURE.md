@@ -83,12 +83,34 @@ If no pending verification is found, login keeps the unverified-email error
 and does not issue a JWT. A concurrent confirmation can make this read stale;
 the client can repeat login without bypassing verification.
 
+## Authentication version
+
+`User.authVersion` is an internal counter stored in `users.auth_version` with an
+initial value of zero. JWTs include this version alongside the user identifier.
+`JwtAuthGuard` verifies the signature and payload, then uses
+`UsersService.findAuthenticationById()` to require an existing user, a verified
+email, and a version matching the database. This read is performed for each
+protected request and must not use a cache shared across requests.
+
+`UsersRepository.updatePassword()` requires a transaction and changes the
+password hash and increments `authVersion` in one update. Once that transaction
+commits, JWTs carrying an earlier version are rejected on subsequent requests.
+Requests already authorized before the commit may still finish.
+
+Login signs the version read together with the password hash it verified. It
+must not reload a newer version after checking an older password. Email
+confirmation reads the internal authentication fields after confirmation.
+The public user selection remains unchanged and excludes the counter.
+
+JWTs issued before this claim was introduced are rejected. Users with those
+tokens must sign in again after deployment.
+
 ## Password recovery model
 
 `PasswordResetTokenService.create()` generates a temporary credential containing
 its token, hash, and expiration. The initial configuration uses 32 random bytes
 encoded as `base64url`, a hexadecimal SHA-256 hash, and a 30-minute lifetime.
-`hash(token)` applies the same transformation for the future request lookup.
+`hash(token)` applies the same transformation when looking up a recovery link.
 The original token must be used exclusively in the email link. It must not be
 persisted, logged, or returned in the public recovery-request response.
 
@@ -114,11 +136,27 @@ transaction, after hashing the new password.
 
 ## Requesting a recovery link
 
+`POST /auth/forgot-password` is a public endpoint that accepts a JSON body with
+only `email`. `forgotPasswordSchema` reuses the shared email schema to trim,
+lowercase, and validate the address. The global `StandardSchemaValidationPipe`
+rejects missing or invalid emails and unexpected fields with `400 Bad Request`.
+
+Requests that pass validation and rate limiting receive `202 Accepted` with
+`{ "accepted": true }`. This acknowledges the request, not account existence or
+email delivery. The response stays the same for unknown accounts, accounts
+within their waiting period, and SMTP failures. It never includes a token or link.
+
+The controller delegates directly to `PasswordRecoveryService`. Its
+`AUTH_RATE_LIMIT_CONFIG.forgotPassword` policy allows five requests per client IP
+within 15 minutes, followed by a 15-minute block when exceeded. The existing
+`RateLimitGuard` returns `429 Too Many Requests`, `RATE_LIMIT_EXCEEDED`, and
+`retryAfterSeconds`. This is separate from the reservation waiting period per
+account.
+
 `PasswordRecoveryService.request(email)` schedules processing and returns without
 waiting for account lookup, reservation, or SMTP. It does not return user data
-or email-delivery status. This lets the future endpoint use the same response
-for an existing account, an unknown account, or an account within its waiting
-period between requests.
+or email-delivery status. Processing those operations after scheduling keeps
+their results out of the HTTP response.
 
 Processing looks up the user through `UsersService`, generates the credential,
 and reserves the request in a transaction. The initial waiting period per account
@@ -135,3 +173,48 @@ development and tests.
 
 Current processing runs in API memory. A restart or deployment can lose pending
 requests. A persistent queue will be needed for durable work and retries.
+
+## Resetting a password
+
+`POST /auth/reset-password` accepts only `token` and `password` in its JSON body.
+The DTO requires a nonempty base64url token and reuses the password minimum from
+`AUTH_VALIDATION`. Password confirmation belongs to the web form and is not
+part of this endpoint's body.
+
+`PasswordRecoveryService.reset()` hashes the token and checks its stored
+expiration before hashing the new password with `PasswordService`. Argon2 runs
+outside the database transaction to keep locks short.
+
+The service then opens one transaction. The repository conditionally consumes
+the token using its hash and a fresh timestamp, and the user repository updates
+the password hash and authentication version within that same transaction. If
+consumption fails or the password update throws, the transaction rolls back.
+Two concurrent submissions of the same link cannot both consume it.
+
+The endpoint returns `200 OK` with `{ "reset": true }` only after commit. Unrecognized,
+expired, renewed, or consumed links receive `400 Bad Request` with the shared
+`AUTH_PASSWORD_RESET_INVALID` code. Invalid body shapes are rejected by the
+global validation pipe. The endpoint's rate limit is five requests per client IP
+within 15 minutes, with a 15-minute block when exceeded.
+
+Resetting the password does not mark the email as verified and does not issue a
+JWT. The user must sign in through the usual login flow afterward.
+
+### Password change notification
+
+`UsersRepository.updatePassword()` returns the identifier and email of the
+updated user. The reset transaction returns that result so the service can use
+the recipient captured by the update, without another database query. These
+fields remain internal; the endpoint still returns only `{ "reset": true }`.
+
+Only after the transaction commits does the service schedule a notification
+using `setImmediate` and the existing `MailService`. The English template tells
+the user that the password changed, that previous sessions are invalid, and
+what to do if they did not make the change. It includes no password, hash, token,
+or recovery link.
+
+SMTP is not awaited by the HTTP request. A delivery failure produces a generic
+log without recipient details or credentials. It does not undo the change or
+turn a committed reset into an HTTP error. As with recovery requests, this task
+runs in memory; a process restart can lose it. Durable delivery and retries
+require a persistent queue.

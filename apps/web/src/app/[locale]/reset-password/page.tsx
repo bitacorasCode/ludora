@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
-import { ResetPasswordPageContent } from '@/features/password-recovery';
+import {
+  passwordResetTokenSchema,
+  ResetPasswordPageContent,
+} from '@/features/password-recovery';
 
 export async function generateMetadata({
   params,
@@ -9,9 +12,19 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'PasswordRecovery.reset' });
 
-  return { title: t('title'), description: t('description') };
+  return {
+    title: t('title'),
+    description: t('description'),
+    referrer: 'no-referrer',
+    robots: { index: false, follow: false },
+  };
 }
 
-export default function ResetPasswordPage() {
-  return <ResetPasswordPageContent />;
+export default async function ResetPasswordPage({
+  searchParams,
+}: PageProps<'/[locale]/reset-password'>) {
+  const { token } = await searchParams;
+  const validation = passwordResetTokenSchema.safeParse(token);
+
+  return <ResetPasswordPageContent token={validation.success ? validation.data : null} />;
 }

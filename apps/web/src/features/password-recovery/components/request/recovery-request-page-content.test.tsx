@@ -10,16 +10,25 @@ import { NextIntlClientProvider } from 'next-intl';
 import { toast } from 'sonner';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { OPERATION_STATUS } from '@/lib/actions';
 import esMessages from '@/messages/es.json';
 
+import { requestPasswordRecovery } from '../../actions';
 import { RecoveryRequestPageContent } from './recovery-request-page-content';
 
 vi.mock('@/i18n/navigation', () => ({ Link: 'a' }));
+vi.mock('../../actions', () => ({ requestPasswordRecovery: vi.fn() }));
 
 expect.extend(toHaveNoViolations);
 
 beforeEach(() => {
-  vi.spyOn(toast, 'warning').mockReturnValue('recovery-request-validated');
+  vi.clearAllMocks();
+  vi.mocked(requestPasswordRecovery).mockReset();
+  vi.mocked(requestPasswordRecovery).mockResolvedValue({
+    status: OPERATION_STATUS.success,
+    data: null,
+  });
+  vi.spyOn(toast, 'success').mockReturnValue('recovery-request-success');
 });
 
 beforeAll(() => {
@@ -57,7 +66,7 @@ describe('RecoveryRequestPageContent integration', () => {
     expect(screen.getByRole('link', { name: esMessages.PasswordRecovery.backToLogin }).getAttribute('href')).toContain('/login');
   });
 
-  it('shows an email error and keeps the preview link available for invalid data', async () => {
+  it('shows an email error without requesting recovery for invalid data', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <RecoveryRequestPageContent />
@@ -67,13 +76,16 @@ describe('RecoveryRequestPageContent integration', () => {
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
       target: { value: 'not-an-email' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    fireEvent.click(screen.getByRole('button', {
+      name: esMessages.PasswordRecovery.request.submit,
+    }));
 
     expect(await screen.findByText(esMessages.PasswordRecovery.validation.emailInvalid)).toBeTruthy();
-    expect(screen.getByRole('link', { name: esMessages.PasswordRecovery.request.previewReset })).toBeTruthy();
+    expect(requestPasswordRecovery).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
-  it('shows validation feedback and keeps the preview link when the email changes', async () => {
+  it('requests recovery and shows generic feedback when the request is accepted', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <RecoveryRequestPageContent />
@@ -83,21 +95,32 @@ describe('RecoveryRequestPageContent integration', () => {
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
       target: { value: 'juan@example.com' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    fireEvent.click(screen.getByRole('button', {
+      name: esMessages.PasswordRecovery.request.submit,
+    }));
 
-    await waitFor(() => expect(toast.warning).toHaveBeenCalledExactlyOnceWith(
-      esMessages.PasswordRecovery.request.validatedMessage,
-      { id: 'recovery-request-validated' },
+    await waitFor(() => expect(requestPasswordRecovery).toHaveBeenCalledExactlyOnceWith(
+      'es',
+      { email: 'juan@example.com' },
+    ));
+    await waitFor(() => expect(toast.success).toHaveBeenCalledExactlyOnceWith(
+      esMessages.PasswordRecovery.request.successTitle,
+      {
+        id: 'recovery-request-success',
+        description: esMessages.PasswordRecovery.request.successMessage,
+      },
     ));
 
-    const preview = await screen.findByRole('link', {
-      name: esMessages.PasswordRecovery.request.previewReset,
-    });
-    expect(preview.getAttribute('href')).toContain('/reset-password');
+    await waitFor(() => expect(
+      screen.getByRole('button', {
+        name: esMessages.PasswordRecovery.request.submit,
+      }).hasAttribute('disabled'),
+    ).toBe(false));
 
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
       target: { value: 'not-an-email' },
     });
-    expect(screen.getByRole('link', { name: esMessages.PasswordRecovery.request.previewReset })).toBeTruthy();
+    expect(requestPasswordRecovery).toHaveBeenCalledOnce();
+    expect(toast.success).toHaveBeenCalledOnce();
   });
 });

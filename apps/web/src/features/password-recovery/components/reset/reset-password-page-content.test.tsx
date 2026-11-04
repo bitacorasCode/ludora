@@ -7,15 +7,30 @@ import {
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { NextIntlClientProvider } from 'next-intl';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { OPERATION_STATUS } from '@/lib/actions';
 import esMessages from '@/messages/es.json';
 
+import { resetPassword } from '../../actions';
 import { ResetPasswordPageContent } from './reset-password-page-content';
 
-vi.mock('@/i18n/navigation', () => ({ Link: 'a' }));
+const token = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+const router = vi.hoisted(() => ({ replace: vi.fn(), refresh: vi.fn() }));
+
+vi.mock('@/i18n/navigation', () => ({ Link: 'a', useRouter: () => router }));
+vi.mock('../../actions', () => ({ resetPassword: vi.fn() }));
 
 expect.extend(toHaveNoViolations);
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(resetPassword).mockReset();
+  vi.mocked(resetPassword).mockResolvedValue({
+    status: OPERATION_STATUS.success,
+    data: null,
+  });
+});
 
 beforeAll(() => {
   if (!HTMLElement.prototype.scrollIntoView) {
@@ -31,7 +46,7 @@ describe('ResetPasswordPageContent integration', () => {
   it('didnt have accessibility violations', async () => {
     const { container } = render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordPageContent />
+        <ResetPasswordPageContent token={token} />
       </NextIntlClientProvider>,
     );
 
@@ -43,7 +58,7 @@ describe('ResetPasswordPageContent integration', () => {
   it('renders a skip link and a link back to login', () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordPageContent />
+        <ResetPasswordPageContent token={token} />
       </NextIntlClientProvider>,
     );
 
@@ -54,7 +69,7 @@ describe('ResetPasswordPageContent integration', () => {
   it('shows errors for a short password and empty confirmation', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordPageContent />
+        <ResetPasswordPageContent token={token} />
       </NextIntlClientProvider>,
     );
 
@@ -70,7 +85,7 @@ describe('ResetPasswordPageContent integration', () => {
   it('shows the mismatch error on the confirmation field', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordPageContent />
+        <ResetPasswordPageContent token={token} />
       </NextIntlClientProvider>,
     );
 
@@ -90,7 +105,7 @@ describe('ResetPasswordPageContent integration', () => {
     const user = userEvent.setup();
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordPageContent />
+        <ResetPasswordPageContent token={token} />
       </NextIntlClientProvider>,
     );
 

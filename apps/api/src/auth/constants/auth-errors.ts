@@ -51,4 +51,8 @@ export const AUTH_ERRORS = {
         errorCode: AUTH_ERROR_CODES.nicknameAlreadyExists,
         message: 'Nickname already in use.',
     },
+    passwordResetInvalid: {
+        errorCode: AUTH_ERROR_CODES.passwordResetInvalid,
+        message: 'Password reset link is invalid or has expired.',
+    },
 } as const satisfies Record<string, ApiErrorDefinition>;

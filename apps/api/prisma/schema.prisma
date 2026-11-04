@@ -14,6 +14,7 @@ model User {
   nickname        String    @unique
   email           String    @unique
   passwordHash    String    @map("password_hash")
+  authVersion     Int       @default(0) @map("auth_version")
   emailVerifiedAt DateTime? @map("email_verified_at")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")

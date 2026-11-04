@@ -21,6 +21,7 @@ describe('AuthService', () => {
         nickname: 'player',
         email: credentials.email,
         passwordHash: 'stored-password-hash',
+        authVersion: 0,
         emailVerifiedAt: null,
         createdAt: new Date('2026-10-20T12:00:00.000Z'),
         updatedAt: new Date('2026-10-20T12:00:00.000Z'),
@@ -30,6 +31,11 @@ describe('AuthService', () => {
         nickname: user.nickname,
         email: user.email,
         createdAt: user.createdAt,
+    };
+    const authenticationUser = {
+        ...publicUser,
+        authVersion: user.authVersion,
+        emailVerifiedAt: user.createdAt,
     };
     const verification = {
         id: '25f2ce15-8c54-46b2-96f8-cdd77889ac6f',
@@ -41,6 +47,9 @@ describe('AuthService', () => {
         findById: vi.fn<(
             ...args: Parameters<UsersService['findById']>
         ) => Promise<Awaited<ReturnType<UsersService['findById']>>>>(),
+        findAuthenticationById: vi.fn<(
+            ...args: Parameters<UsersService['findAuthenticationById']>
+        ) => Promise<Awaited<ReturnType<UsersService['findAuthenticationById']>>>>(),
     };
     const passwordService = {
         hash: vi.fn<PasswordService['hash']>(),
@@ -59,6 +68,7 @@ describe('AuthService', () => {
         vi.resetAllMocks();
         usersService.findByEmail.mockResolvedValue(user);
         usersService.findById.mockResolvedValue(publicUser);
+        usersService.findAuthenticationById.mockResolvedValue(authenticationUser);
         passwordService.hash.mockResolvedValue('unused-password-hash');
         passwordService.verify.mockResolvedValue(true);
         jwtService.signAsync.mockResolvedValue('signed-access-token');
@@ -140,7 +150,10 @@ describe('AuthService', () => {
                 user: publicUser,
             });
 
-            expect(jwtService.signAsync).toHaveBeenCalledExactlyOnceWith({ sub: user.id });
+            expect(jwtService.signAsync).toHaveBeenCalledExactlyOnceWith({
+                sub: user.id,
+                authVersion: user.authVersion,
+            });
             expect(verificationService.getPending).not.toHaveBeenCalled();
         });
 
@@ -162,14 +175,14 @@ describe('AuthService', () => {
         it('should confirm the code and load the user before issuing a JWT', async () => {
             verificationService.confirm.mockImplementation(async () => {
                 await Promise.resolve();
-                expect(usersService.findById).not.toHaveBeenCalled();
+                expect(usersService.findAuthenticationById).not.toHaveBeenCalled();
                 expect(jwtService.signAsync).not.toHaveBeenCalled();
                 return user.id;
             });
-            usersService.findById.mockImplementation(async () => {
+            usersService.findAuthenticationById.mockImplementation(async () => {
                 await Promise.resolve();
                 expect(jwtService.signAsync).not.toHaveBeenCalled();
-                return publicUser;
+                return authenticationUser;
             });
 
             await expect(service.verifyEmail({ verificationId: verification.id, code: '123456' })).resolves.toEqual({
@@ -178,10 +191,13 @@ describe('AuthService', () => {
             });
 
             expect(verificationService.confirm).toHaveBeenCalledWith(verification.id, '123456');
-            expect(usersService.findById).toHaveBeenCalledWith(user.id);
-            expect(verificationService.confirm).toHaveBeenCalledBefore(usersService.findById);
-            expect(usersService.findById).toHaveBeenCalledBefore(jwtService.signAsync);
-            expect(jwtService.signAsync).toHaveBeenCalledExactlyOnceWith({ sub: user.id });
+            expect(usersService.findAuthenticationById).toHaveBeenCalledWith(user.id);
+            expect(verificationService.confirm).toHaveBeenCalledBefore(usersService.findAuthenticationById);
+            expect(usersService.findAuthenticationById).toHaveBeenCalledBefore(jwtService.signAsync);
+            expect(jwtService.signAsync).toHaveBeenCalledExactlyOnceWith({
+                sub: user.id,
+                authVersion: user.authVersion,
+            });
         });
 
         it('should propagate a rejected code without looking up the user or creating a JWT', async () => {
@@ -192,12 +208,12 @@ describe('AuthService', () => {
 
             await expect(service.verifyEmail({ verificationId: verification.id, code: '999999' })).rejects.toBe(error);
 
-            expect(usersService.findById).not.toHaveBeenCalled();
+            expect(usersService.findAuthenticationById).not.toHaveBeenCalled();
             expect(jwtService.signAsync).not.toHaveBeenCalled();
         });
 
         it('should not issue a JWT when the user no longer exists after confirmation', async () => {
-            usersService.findById.mockResolvedValue(null);
+            usersService.findAuthenticationById.mockResolvedValue(null);
 
             await expect(service.verifyEmail({ verificationId: verification.id, code: '123456' })).rejects.toMatchObject({
                 status: 401,

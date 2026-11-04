@@ -31,6 +31,21 @@ export class UsersService {
         return this.usersRepository.findById(id);
     }
 
+    findAuthenticationById(
+        id: string,
+        transaction?: Prisma.TransactionClient,
+    ) {
+        return this.usersRepository.findAuthenticationById(id, transaction);
+    }
+
+    updatePassword(
+        id: string,
+        passwordHash: string,
+        transaction: Prisma.TransactionClient,
+    ) {
+        return this.usersRepository.updatePassword(id, passwordHash, transaction);
+    }
+
     markEmailVerifiedIfPending(
         id: string,
         transaction: Prisma.TransactionClient,

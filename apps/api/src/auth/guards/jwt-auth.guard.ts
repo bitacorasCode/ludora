@@ -7,6 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { z } from 'zod';
 
+import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
 import type { AuthenticatedRequest } from '../types/authenticated-request.js';
 
@@ -15,11 +16,15 @@ const BEARER_TOKEN_PATTERN = /^Bearer (\S+)$/i;
 const tokenPayloadSchema = z.object({
     sub: z.uuid(),
     exp: z.number().int(),
+    authVersion: z.number().int().nonnegative(),
 });
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-    constructor(private readonly jwtService: JwtService) { }
+    constructor(
+        private readonly jwtService: JwtService,
+        private readonly usersService: UsersService,
+    ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context
@@ -59,9 +64,16 @@ export class JwtAuthGuard implements CanActivate {
             });
         }
 
-        request.auth = {
-            userId: result.data.sub,
-        };
+        const { sub: userId, authVersion } = result.data;
+        const user = await this.usersService.findAuthenticationById(userId);
+
+        if (!user?.emailVerifiedAt || user.authVersion !== authVersion) {
+            const { message, errorCode } = AUTH_ERRORS.invalidToken;
+
+            throw new UnauthorizedException(message, { errorCode });
+        }
+
+        request.auth = { userId };
 
         return true;
     }

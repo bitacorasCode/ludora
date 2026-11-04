@@ -178,23 +178,31 @@
         "confirmPasswordPlaceholder": "Repeat your new password",
         "email": "Email address",
         "emailPlaceholder": "you@example.com",
+        "errors": {
+            "AUTH_PASSWORD_RESET_INVALID": "This recovery link is invalid, expired, or already used. Request a new one."
+        },
         "password": "New password",
         "passwordPlaceholder": "Create a new password",
         "request": {
-            "description": "Enter your email to preview how account recovery will work.",
-            "feedbackMessage": "This screen is a preview. Recovery emails are not available yet.",
-            "feedbackTitle": "Recovery is not available yet",
-            "previewReset": "View new password screen",
-            "title": "Recover your password",
-            "validatedMessage": "Validation completed. No recovery email has been sent."
+            "description": "Enter your email address to request a password reset link.",
+            "errorTitle": "Could not request password recovery",
+            "submit": "Send recovery link",
+            "submitting": "Sending link…",
+            "successMessage": "If an account exists for that email address, you will receive a link to reset your password.",
+            "successTitle": "Check your email",
+            "title": "Recover your password"
         },
         "reset": {
-            "description": "Preview of the last recovery step. There is no recovery link or associated account yet.",
-            "feedbackMessage": "This screen is a preview and does not change your password. Password changes are not available yet.",
-            "feedbackTitle": "Password changes are not available yet",
+            "description": "Choose a new password for your account.",
+            "errorTitle": "Could not reset your password",
+            "invalidLinkTitle": "This recovery link is not valid",
+            "loading": "Loading password reset form",
+            "requestNewLink": "Request a new recovery link",
             "submit": "Change password",
-            "title": "Create a new password",
-            "validatedMessage": "Validation completed. No password has been changed."
+            "submitting": "Changing password…",
+            "successMessage": "Your password has been changed. Sign in with your new password.",
+            "successTitle": "Password changed",
+            "title": "Create a new password"
         },
         "skipToForm": "Skip to recovery form",
         "validation": {

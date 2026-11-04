@@ -88,7 +88,13 @@ export class AuthService {
             code,
         );
 
-        const { user } = await this.getCurrentUser(userId);
+        const user = await this.usersService.findAuthenticationById(userId);
+
+        if (!user?.emailVerifiedAt) {
+            const { message, errorCode } = AUTH_ERRORS.authenticationRequired;
+
+            throw new UnauthorizedException(message, { errorCode });
+        }
 
         return this.createAuthResponse(user);
     }
@@ -155,12 +161,13 @@ export class AuthService {
     }
 
     private async createAuthResponse(
-        user: Pick<User, 'id' | 'nickname' | 'email' | 'createdAt'>,
+        user: Pick<User, 'id' | 'nickname' | 'email' | 'createdAt' | 'authVersion'>,
     ) {
-        const { id, nickname, email, createdAt } = user;
+        const { id, nickname, email, createdAt, authVersion } = user;
 
         const accessToken = await this.jwtService.signAsync({
             sub: id,
+            authVersion,
         });
 
         return {

@@ -24,6 +24,7 @@ export declare const AUTH_ERROR_CODES: Readonly<{
     emailVerificationAttemptsExceeded: string;
     emailVerificationResendTooSoon: string;
     nicknameAlreadyExists: string;
+    passwordResetInvalid: string;
 }>;
 
 export declare const AUTH_VALIDATION: Readonly<{

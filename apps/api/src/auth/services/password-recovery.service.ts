@@ -1,16 +1,19 @@
 import { setImmediate } from 'node:timers';
 
 import { parseHttpUrl } from '@ludora/security/server';
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { MILLISECONDS_PER_SECOND } from '../../common/constants/time.js';
 import { MailService } from '../../mail/index.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
+import { AUTH_ERRORS } from '../constants/auth-errors.js';
 import { PASSWORD_RESET_CONFIG } from '../constants/password-reset.js';
 import { PasswordResetRepository } from '../repositories/password-reset.repository.js';
+import { createPasswordChangedMail } from '../templates/password-changed-mail.js';
 import { createPasswordResetMail } from '../templates/password-reset-mail.js';
+import { PasswordService } from './password.service.js';
 import { PasswordResetTokenService } from './password-reset-token.service.js';
 
 @Injectable()
@@ -25,6 +28,7 @@ export class PasswordRecoveryService {
         private readonly tokenService: PasswordResetTokenService,
         private readonly resetRepository: PasswordResetRepository,
         private readonly mailService: MailService,
+        private readonly passwordService: PasswordService,
     ) {
         const resetUrl = parseHttpUrl(
             config.get<string>('PASSWORD_RESET_URL'),
@@ -47,6 +51,45 @@ export class PasswordRecoveryService {
                 this.logger.error('Could not process password recovery request.');
             });
         });
+    }
+
+    async reset(token: string, password: string): Promise<void> {
+        const { message, errorCode } = AUTH_ERRORS.passwordResetInvalid;
+        const tokenHash = this.tokenService.hash(token);
+        const reset = await this.resetRepository.findByTokenHash(tokenHash);
+
+        if (!reset || reset.expiresAt.getTime() <= Date.now()) {
+            throw new BadRequestException(message, { errorCode });
+        }
+
+        const { userId } = reset;
+        const passwordHash = await this.passwordService.hash(password);
+
+        const { email: recipient } = await this.prisma.$transaction(async (transaction) => {
+            const consumed = await this.resetRepository.consume(
+                { tokenHash, now: new Date() },
+                transaction,
+            );
+
+            if (!consumed) {
+                throw new BadRequestException(message, { errorCode });
+            }
+
+            return this.usersService.updatePassword(userId, passwordHash, transaction);
+        });
+
+        // The change is committed; SMTP must not delay or fail its HTTP response.
+        setImmediate(() => {
+            void this.sendPasswordChangedNotice(recipient).catch(() => {
+                this.logger.error('Could not send password change notification.');
+            });
+        });
+    }
+
+    private async sendPasswordChangedNotice(to: string): Promise<void> {
+        const message = createPasswordChangedMail();
+
+        await this.mailService.send({ to, ...message });
     }
 
     private async processRequest(email: string): Promise<void> {

@@ -49,6 +49,35 @@ export class UsersRepository {
         });
     }
 
+    findAuthenticationById(
+        id: string,
+        transaction: Prisma.TransactionClient = this.prisma,
+    ) {
+        return transaction.user.findUnique({
+            where: { id },
+            select: {
+                ...userResponseSelect,
+                authVersion: true,
+                emailVerifiedAt: true,
+            },
+        });
+    }
+
+    updatePassword(
+        id: string,
+        passwordHash: string,
+        transaction: Prisma.TransactionClient,
+    ) {
+        return transaction.user.update({
+            where: { id },
+            data: {
+                passwordHash,
+                authVersion: { increment: 1 },
+            },
+            select: { id: true, email: true },
+        });
+    }
+
     async markEmailVerifiedIfPending(
         id: string,
         verifiedAt: Date,
