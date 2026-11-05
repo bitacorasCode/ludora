@@ -24,6 +24,9 @@ Covered areas:
 - Navigation: session-dependent links, active sections, access decisions, and redirects.
 - Registration: Server Action validation and the locale used to translate errors.
 - Authentication: login and logout actions, pending states, translated errors, cookies, and current-user lookup.
+- Password recovery: request and reset actions, confirmation validation, API errors,
+  response validation, session removal, invalid links, pending states, duplicate
+  submissions, and responses received after navigation or a locale change.
 - HTTP client: per-request tokens, reserved headers, network failures, invalid responses, and HTTP/HTTPS policy.
 - Shared components: alerts, error states, lists, and accessible textareas.
 
@@ -65,6 +68,43 @@ The scenarios check successful and unsuccessful login, the HttpOnly cookie, pers
 Disconnections are simulated only in the test proxy: the developer's API is neither stopped nor modified. The proxy returns to normal mode after each test.
 
 The server runs `next dev`. Next's `instant` checks may show development warnings when executing redirects or `notFound()`. For final release validation, repeat the flows against a production build.
+
+### Password recovery with Mailpit
+
+Run the complete recovery scenarios with:
+
+```sh
+pnpm --filter web test:e2e e2e/password-recovery.spec.ts --project=guest
+```
+
+These tests create separate verified accounts for each recovery scenario so
+changing a password cannot affect the shared authentication account. They check
+the real recovery email, password change notification, login with the new
+password, rejection of the old password and JWT, token reuse, and two concurrent
+submissions of one link.
+
+The expiration scenario changes only `expires_at` on the reset row belonging to
+its temporary account. The fixture requires a local development database and
+matches both the account UUID and its `e2e-<uuid>@example.test` email. It does not
+change application limits, the server clock, or other users' records. Test
+cleanup removes only the temporary accounts and their captured messages.
+
+Recovery traces and screenshots are disabled because they can contain passwords
+or tokens. The email links are checked for a local origin and opened on the test
+web server, preserving their path and query. The tests also check missing,
+malformed, and repeated token parameters and the page's referrer metadata.
+
+API unit tests run separately, without a database or SMTP connection:
+
+```sh
+pnpm --filter api test
+```
+
+They cover recovery scheduling, token expiration, conditional consumption,
+password update coordination, notification failures, authentication versions,
+JWT guard decisions, token generation, and email templates. Mocked transactions
+check coordination; the concurrent browser scenario checks single consumption
+against PostgreSQL itself.
 
 Failures generate screenshots and traces in `test-results/`. The HTML report is saved in `playwright-report/`:
 

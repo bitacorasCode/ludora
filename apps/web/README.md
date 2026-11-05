@@ -62,6 +62,12 @@ applying the existing migrations to your local development database.
    pnpm --filter web test:e2e e2e/email-verification.spec.ts --project=guest
    ```
 
+   To run password recovery, notification, and session revocation scenarios:
+
+   ```bash
+   pnpm --filter web test:e2e e2e/password-recovery.spec.ts --project=guest
+   ```
+
    To run the entire browser test suite:
 
    ```bash

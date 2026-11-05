@@ -18,12 +18,12 @@ export default defineConfig({
   projects: [
     {
       name: 'signed-in',
-      testIgnore: ['**/guest.spec.ts', '**/auth.spec.ts', '**/email-verification.spec.ts'],
+      testIgnore: ['**/guest.spec.ts', '**/auth.spec.ts', '**/email-verification.spec.ts', '**/password-recovery.spec.ts'],
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'guest',
-      testMatch: ['**/guest.spec.ts', '**/auth.spec.ts', '**/email-verification.spec.ts'],
+      testMatch: ['**/guest.spec.ts', '**/auth.spec.ts', '**/email-verification.spec.ts', '**/password-recovery.spec.ts'],
       use: { ...devices['Desktop Chrome'] },
     },
   ],

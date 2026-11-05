@@ -49,6 +49,22 @@ if (process.argv[2] === 'delete') {
   } finally {
     await pool.end();
   }
+} else if (process.argv[2] === 'expire-password-reset') {
+  if (!account.id) throw new Error('A temporary E2E account ID is required to expire a recovery link.');
+  const database = getLocalDatabaseUrl();
+  const pool = new pg.Pool({ connectionString: database.href });
+  const expiredAt = new Date(0);
+
+  try {
+    const { rowCount } = await pool.query(
+      'UPDATE password_resets AS resets SET expires_at = $3 FROM users WHERE resets.user_id = users.id AND users.id = $1::uuid AND users.email = $2',
+      [account.id, account.email, expiredAt],
+    );
+
+    if (rowCount !== 1) throw new Error('Exactly one temporary recovery link must exist.');
+  } finally {
+    await pool.end();
+  }
 } else if (process.argv[2] === 'expired-token') {
   if (!account.id) throw new Error('A temporary E2E account ID is required to create an expired token.');
   if (!process.env.JWT_SECRET) throw new Error('Missing JWT_SECRET for the local API fixture.');

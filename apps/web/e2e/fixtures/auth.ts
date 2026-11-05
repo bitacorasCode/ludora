@@ -46,7 +46,7 @@ function createCredentials(): TestCredentials {
 }
 
 function runAccountFixture(
-  operation: 'delete' | 'expired-token',
+  operation: 'delete' | 'expired-token' | 'expire-password-reset',
   account: Pick<TestCredentials, 'email'> & { id?: string },
 ): Promise<string> {
   const apiDirectory = path.resolve(process.cwd(), '../api');
@@ -70,6 +70,10 @@ function runAccountFixture(
 
 export function createExpiredToken(account: TestAccount) {
   return runAccountFixture('expired-token', account);
+}
+
+export function expirePasswordReset(account: TestAccount) {
+  return runAccountFixture('expire-password-reset', account);
 }
 
 export const test = base.extend<
