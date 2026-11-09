@@ -11,6 +11,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { toast } from 'sonner';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { NavigationGuardProvider } from '@/components/navigation';
 import esMessages from '@/messages/es.json';
 
 import { type Profile } from '../../config';
@@ -39,7 +40,13 @@ describe('ProfileEditor integration', () => {
   it('renders current values without accessibility violations', async () => {
     const { container } = render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ProfileEditor profile={profile} onSave={vi.fn()} onCancel={vi.fn()} />
+        <NavigationGuardProvider>
+          <ProfileEditor
+            profile={profile}
+            onSave={vi.fn()}
+            onCancel={vi.fn()}
+          />
+        </NavigationGuardProvider>
       </NextIntlClientProvider>,
     );
     expect(
@@ -62,11 +69,15 @@ describe('ProfileEditor integration', () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+        <NavigationGuardProvider>
+          <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+        </NavigationGuardProvider>
       </NextIntlClientProvider>,
     );
     fireEvent.click(
-      screen.getByRole('radio', { name: esMessages.Profile.avatar.options.planet }),
+      screen.getByRole('radio', {
+        name: esMessages.Profile.avatar.options.planet,
+      }),
     );
     fireEvent.change(screen.getByLabelText(esMessages.Profile.bio.label), {
       target: { value: '  Otra biografía  ' },
@@ -88,7 +99,9 @@ describe('ProfileEditor integration', () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+        <NavigationGuardProvider>
+          <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+        </NavigationGuardProvider>
       </NextIntlClientProvider>,
     );
     fireEvent.click(
@@ -114,7 +127,9 @@ describe('ProfileEditor integration', () => {
     const onSave = vi.fn();
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+        <NavigationGuardProvider>
+          <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+        </NavigationGuardProvider>
       </NextIntlClientProvider>,
     );
     fireEvent.change(screen.getByLabelText(esMessages.Profile.bio.label), {
@@ -136,7 +151,9 @@ describe('ProfileEditor integration', () => {
       .mockResolvedValueOnce(undefined);
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+        <NavigationGuardProvider>
+          <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+        </NavigationGuardProvider>
       </NextIntlClientProvider>,
     );
     const bio = screen.getByLabelText(
@@ -175,7 +192,9 @@ describe('ProfileEditor integration', () => {
     );
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+        <NavigationGuardProvider>
+          <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+        </NavigationGuardProvider>
       </NextIntlClientProvider>,
     );
     const save = screen.getByRole('button', {
@@ -201,7 +220,13 @@ describe('ProfileEditor integration', () => {
     const onCancel = vi.fn();
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ProfileEditor profile={profile} onSave={onSave} onCancel={onCancel} />
+        <NavigationGuardProvider>
+          <ProfileEditor
+            profile={profile}
+            onSave={onSave}
+            onCancel={onCancel}
+          />
+        </NavigationGuardProvider>
       </NextIntlClientProvider>,
     );
     fireEvent.click(
@@ -211,14 +236,77 @@ describe('ProfileEditor integration', () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
+  it('asks before discarding changed values and lets the user keep editing', async () => {
+    const onSave = vi.fn();
+    const onCancel = vi.fn();
+    render(
+      <NextIntlClientProvider locale='es' messages={esMessages}>
+        <NavigationGuardProvider>
+          <ProfileEditor
+            profile={profile}
+            onSave={onSave}
+            onCancel={onCancel}
+          />
+        </NavigationGuardProvider>
+      </NextIntlClientProvider>,
+    );
+    fireEvent.change(
+      screen.getByRole('textbox', { name: esMessages.Profile.bio.label }),
+      {
+        target: { value: 'Cambio pendiente' },
+      },
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Common.actions.cancel }),
+    );
+    expect(
+      await screen.findByRole('alertdialog', {
+        name: esMessages.Common.unsavedChanges.title,
+      }),
+    ).toBeTruthy();
+    expect(onCancel).not.toHaveBeenCalled();
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: esMessages.Common.unsavedChanges.cancel,
+      }),
+    );
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(
+      (
+        screen.getByRole('textbox', {
+          name: esMessages.Profile.bio.label,
+        }) as HTMLTextAreaElement
+      ).value,
+    ).toBe('Cambio pendiente');
+
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Common.actions.cancel }),
+    );
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: esMessages.Common.unsavedChanges.confirm,
+      }),
+    );
+    expect(onCancel).toHaveBeenCalledOnce();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
   it('lets the user select an avatar with the keyboard', async () => {
     const user = userEvent.setup();
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ProfileEditor profile={profile} onSave={vi.fn()} onCancel={vi.fn()} />
+        <NavigationGuardProvider>
+          <ProfileEditor
+            profile={profile}
+            onSave={vi.fn()}
+            onCancel={vi.fn()}
+          />
+        </NavigationGuardProvider>
       </NextIntlClientProvider>,
     );
-    screen.getByRole('radio', { name: esMessages.Profile.avatar.useInitial }).focus();
+    screen
+      .getByRole('radio', { name: esMessages.Profile.avatar.useInitial })
+      .focus();
     await user.keyboard('{ArrowRight>}');
     await waitFor(() =>
       expect(

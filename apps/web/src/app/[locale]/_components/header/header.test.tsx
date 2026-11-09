@@ -3,11 +3,23 @@ import { createTranslator, NextIntlClientProvider } from 'next-intl';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { NavigationGuardProvider } from '@/components/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import esMessages from '@/messages/es.json';
 
 import { currentUser } from '../../../../../test/fixtures/current-user';
 import { Header } from './header';
+
+const router = vi.hoisted(() => ({
+  refresh: vi.fn(),
+  push: vi.fn(),
+  replace: vi.fn(),
+}));
+
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  useRouter: () => router,
+}));
 
 let accountLinks: ReactNode;
 
@@ -40,8 +52,10 @@ async function renderHeader() {
   >('./header-account-links');
   accountLinks = await HeaderAccountLinks({});
   render(
-    <NextIntlClientProvider locale="es" messages={esMessages}>
-      <Header />
+    <NextIntlClientProvider locale='es' messages={esMessages}>
+      <NavigationGuardProvider>
+        <Header />
+      </NavigationGuardProvider>
     </NextIntlClientProvider>,
   );
 }
@@ -110,7 +124,9 @@ describe('Header navigation', () => {
     vi.mocked(getCurrentUser).mockRejectedValue(error);
     vi.spyOn(console, 'error').mockImplementation(() => {});
     await renderHeader();
-    expect(screen.getByText(esMessages.Header.session.unavailable)).toBeTruthy();
+    expect(
+      screen.getByText(esMessages.Header.session.unavailable),
+    ).toBeTruthy();
     expect(
       screen.getByRole('link', { name: esMessages.Header.games }),
     ).toBeTruthy();

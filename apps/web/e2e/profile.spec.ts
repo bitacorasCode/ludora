@@ -86,6 +86,19 @@ test.describe('Profile persistence', () => {
     await page
       .getByRole('button', { name: esMessages.Common.actions.cancel })
       .click();
+    const confirmation = page.getByRole('alertdialog', {
+      name: esMessages.Common.unsavedChanges.title,
+    });
+    await expect(confirmation).toBeVisible();
+    await confirmation.getByRole('button', {
+      name: esMessages.Common.unsavedChanges.cancel,
+    }).click();
+    await expect(page.getByRole('textbox', { name: esMessages.Profile.bio.label }))
+      .toHaveValue('Cambio descartado');
+    await page.getByRole('button', { name: esMessages.Common.actions.cancel }).click();
+    await confirmation.getByRole('button', {
+      name: esMessages.Common.unsavedChanges.confirm,
+    }).click();
     await expect(page.getByText(esMessages.Profile.bio.empty)).toBeVisible();
     await page.evaluate(() => localStorage.clear());
     await page.reload();
@@ -96,7 +109,7 @@ test.describe('Profile persistence', () => {
     await expect(page.getByText('Cambio descartado')).toHaveCount(0);
   });
 
-  test('closes the editor and discards drafts after link and browser-back navigation', async ({
+  test('confirms leaving a dirty profile and closes the editor after navigation', async ({
     page,
   }) => {
     await page.goto('/es/account/profile');
@@ -116,6 +129,22 @@ test.describe('Profile persistence', () => {
     await page.locator('header')
       .getByRole('link', { name: esMessages.Header.games, exact: true })
       .click();
+    const confirmation = page.getByRole('alertdialog', {
+      name: esMessages.Common.unsavedChanges.title,
+    });
+    await expect(confirmation).toBeVisible();
+    await expect(page).toHaveURL('/es/account/profile');
+    await confirmation.getByRole('button', {
+      name: esMessages.Common.unsavedChanges.cancel,
+    }).click();
+    await expect(page.getByRole('textbox', { name: esMessages.Profile.bio.label }))
+      .toHaveValue('Borrador sin guardar');
+    await page.locator('header')
+      .getByRole('link', { name: esMessages.Header.games, exact: true })
+      .click();
+    await confirmation.getByRole('button', {
+      name: esMessages.Common.unsavedChanges.confirm,
+    }).click();
     await expect(page).toHaveURL('/es/games');
     await expect(page.getByRole('heading', { name: esMessages.Catalog.title, exact: true }))
       .toBeVisible();
@@ -135,7 +164,6 @@ test.describe('Profile persistence', () => {
     await page.getByRole('button', { name: esMessages.Profile.edit }).click();
     const biography = page.getByRole('textbox', { name: esMessages.Profile.bio.label });
     await expect(biography).toHaveValue('Biografía guardada');
-    await biography.fill('Otro borrador sin guardar');
     await page.locator('header')
       .getByRole('link', { name: esMessages.Header.games, exact: true })
       .click();
@@ -147,5 +175,41 @@ test.describe('Profile persistence', () => {
     await expect(page.getByRole('form', { name: esMessages.Profile.edit })).toHaveCount(0);
     await page.getByRole('button', { name: esMessages.Profile.edit }).click();
     await expect(biography).toHaveValue('Biografía guardada');
+  });
+
+  test('uses the browser confirmation when reloading a dirty profile', async ({ page }) => {
+    await page.goto('/es/account/profile');
+    await page.getByRole('button', { name: esMessages.Profile.edit }).click();
+    const biography = page.getByRole('textbox', { name: esMessages.Profile.bio.label });
+    await biography.fill('Borrador antes de recargar');
+
+    const pendingDialog = page.waitForEvent('dialog');
+    const reload = page.evaluate(() => window.location.reload());
+    const dialog = await pendingDialog;
+    expect(dialog.type()).toBe('beforeunload');
+    await dialog.dismiss();
+    await reload;
+
+    await expect(page).toHaveURL('/es/account/profile');
+    await expect(biography).toHaveValue('Borrador antes de recargar');
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  });
+
+  test('recovers an expired session without a profile error toast or discard dialog', async ({
+    page,
+    context,
+  }) => {
+    await page.goto('/es/account/profile');
+    await page.getByRole('button', { name: esMessages.Profile.edit }).click();
+    await page.getByRole('textbox', { name: esMessages.Profile.bio.label })
+      .fill('Cambio pendiente');
+    await context.clearCookies({ name: SESSION_COOKIE });
+    await page.getByRole('button', { name: esMessages.Common.actions.saveChanges }).click();
+
+    await expect(page).toHaveURL('/es/login');
+    await expect(page.getByRole('heading', { name: esMessages.Login.title, exact: true }))
+      .toBeVisible();
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
+    await expect(page.getByText(esMessages.Profile.saveError, { exact: true })).toHaveCount(0);
   });
 });

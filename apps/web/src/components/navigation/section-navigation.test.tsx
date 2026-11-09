@@ -1,12 +1,32 @@
 import { cleanup, render, screen } from '@testing-library/react';
+import { NextIntlClientProvider } from 'next-intl';
+import type { ComponentProps } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import esMessages from '@/messages/es.json';
+
+import { NavigationGuardProvider } from './navigation-guard-provider';
 import { SectionNavigation } from './section-navigation';
+
+const router = vi.hoisted(() => ({
+  refresh: vi.fn(),
+  push: vi.fn(),
+  replace: vi.fn(),
+}));
+
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  useRouter: () => router,
+}));
 
 const route = vi.hoisted(() => ({ pathname: '/account/profile' }));
 
 vi.mock('@/i18n/navigation', () => ({
-  Link: 'a',
+  Link: (props: ComponentProps<'a'> & { onNavigate?: unknown }) => {
+    const anchorProps = { ...props };
+    delete anchorProps.onNavigate;
+    return <a {...anchorProps} />;
+  },
   usePathname: () => route.pathname,
 }));
 
@@ -23,11 +43,15 @@ describe('SectionNavigation', () => {
   it('marks the current page and provides an accessible navigation name', () => {
     route.pathname = '/account/profile';
     render(
-      <SectionNavigation
-        items={items}
-        ariaLabel='Secciones de cuenta'
-        title='Mi cuenta'
-      />,
+      <NextIntlClientProvider locale='es' messages={esMessages}>
+        <NavigationGuardProvider>
+          <SectionNavigation
+            items={items}
+            ariaLabel='Secciones de cuenta'
+            title='Mi cuenta'
+          />
+        </NavigationGuardProvider>
+      </NextIntlClientProvider>,
     );
     expect(
       screen.getByRole('navigation', { name: 'Secciones de cuenta' }),
@@ -44,7 +68,13 @@ describe('SectionNavigation', () => {
 
   it('keeps the parent section active on nested routes', () => {
     route.pathname = '/account/profile/edit';
-    render(<SectionNavigation items={items} ariaLabel='Cuenta' />);
+    render(
+      <NextIntlClientProvider locale='es' messages={esMessages}>
+        <NavigationGuardProvider>
+          <SectionNavigation items={items} ariaLabel='Cuenta' />
+        </NavigationGuardProvider>
+      </NextIntlClientProvider>,
+    );
     expect(
       screen.getByRole('link', { name: 'Perfil' }).getAttribute('aria-current'),
     ).toBe('page');
@@ -52,7 +82,13 @@ describe('SectionNavigation', () => {
 
   it('does not confuse similarly prefixed routes with nested routes', () => {
     route.pathname = '/account/profile-other';
-    render(<SectionNavigation items={items} ariaLabel='Cuenta' />);
+    render(
+      <NextIntlClientProvider locale='es' messages={esMessages}>
+        <NavigationGuardProvider>
+          <SectionNavigation items={items} ariaLabel='Cuenta' />
+        </NavigationGuardProvider>
+      </NextIntlClientProvider>,
+    );
     expect(
       screen.getByRole('link', { name: 'Perfil' }).getAttribute('aria-current'),
     ).toBeNull();
