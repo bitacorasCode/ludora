@@ -177,6 +177,108 @@ test.describe('Profile persistence', () => {
     await expect(biography).toHaveValue('Biografía guardada');
   });
 
+  test('navigates Back and Forward without confirmation when the editor has no changes', async ({
+    page,
+  }) => {
+    await page.goto('/es/games');
+    await page.locator('header')
+      .getByRole('link', { name: esMessages.Header.account, exact: true })
+      .click();
+    await page.getByRole('button', { name: esMessages.Profile.edit }).click();
+
+    await page.goBack();
+    await expect(page).toHaveURL('/es/games');
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
+
+    await page.goForward();
+    await expect(page).toHaveURL('/es/account/profile');
+    await expect(page.getByRole('button', { name: esMessages.Profile.edit })).toBeVisible();
+    await expect(page.getByRole('form', { name: esMessages.Profile.edit })).toHaveCount(0);
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  });
+
+  test('keeps a draft when Back is cancelled and discards it only after confirmation', async ({
+    page,
+  }) => {
+    await page.goto('/es/games');
+    await page.locator('header')
+      .getByRole('link', { name: esMessages.Header.account, exact: true })
+      .click();
+    await page.getByRole('button', { name: esMessages.Profile.edit }).click();
+    const biography = page.getByRole('textbox', { name: esMessages.Profile.bio.label });
+    await biography.fill('Borrador antes de volver');
+
+    // A cancelled traversal has no navigation completion for Playwright to await.
+    await page.evaluate(() => window.history.back());
+    const confirmation = page.getByRole('alertdialog', {
+      name: esMessages.Common.unsavedChanges.title,
+    });
+    await expect(confirmation).toBeVisible();
+    await expect(page).toHaveURL('/es/account/profile');
+    await confirmation.getByRole('button', {
+      name: esMessages.Common.unsavedChanges.cancel,
+    }).click();
+    await expect(confirmation).toBeHidden();
+    await expect(biography).toHaveValue('Borrador antes de volver');
+
+    const backNavigation = page.goBack();
+    await expect(confirmation).toBeVisible();
+    await confirmation.getByRole('button', {
+      name: esMessages.Common.unsavedChanges.confirm,
+    }).click();
+    await backNavigation;
+    await expect(page).toHaveURL('/es/games');
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
+
+    await page.goForward();
+    await expect(page).toHaveURL('/es/account/profile');
+    await expect(page.getByRole('button', { name: esMessages.Profile.edit })).toBeVisible();
+    await expect(page.getByRole('form', { name: esMessages.Profile.edit })).toHaveCount(0);
+    await expect(page.getByText(esMessages.Profile.bio.empty)).toBeVisible();
+  });
+
+  test('keeps a draft when Forward is cancelled and discards it only after confirmation', async ({
+    page,
+  }) => {
+    await page.goto('/es/account/profile');
+    await expect(page.getByRole('button', { name: esMessages.Profile.edit })).toBeVisible();
+    await page.locator('header')
+      .getByRole('link', { name: esMessages.Header.games, exact: true })
+      .click();
+    await expect(page).toHaveURL('/es/games');
+    await page.goBack();
+    await page.getByRole('button', { name: esMessages.Profile.edit }).click();
+    const biography = page.getByRole('textbox', { name: esMessages.Profile.bio.label });
+    await biography.fill('Borrador antes de avanzar');
+
+    await page.evaluate(() => window.history.forward());
+    const confirmation = page.getByRole('alertdialog', {
+      name: esMessages.Common.unsavedChanges.title,
+    });
+    await expect(confirmation).toBeVisible();
+    await expect(page).toHaveURL('/es/account/profile');
+    await confirmation.getByRole('button', {
+      name: esMessages.Common.unsavedChanges.cancel,
+    }).click();
+    await expect(confirmation).toBeHidden();
+    await expect(biography).toHaveValue('Borrador antes de avanzar');
+
+    const forwardNavigation = page.goForward();
+    await expect(confirmation).toBeVisible();
+    await confirmation.getByRole('button', {
+      name: esMessages.Common.unsavedChanges.confirm,
+    }).click();
+    await forwardNavigation;
+    await expect(page).toHaveURL('/es/games');
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
+
+    await page.goBack();
+    await expect(page).toHaveURL('/es/account/profile');
+    await expect(page.getByRole('button', { name: esMessages.Profile.edit })).toBeVisible();
+    await expect(page.getByRole('form', { name: esMessages.Profile.edit })).toHaveCount(0);
+    await expect(page.getByText(esMessages.Profile.bio.empty)).toBeVisible();
+  });
+
   test('uses the browser confirmation when reloading a dirty profile', async ({ page }) => {
     await page.goto('/es/account/profile');
     await page.getByRole('button', { name: esMessages.Profile.edit }).click();

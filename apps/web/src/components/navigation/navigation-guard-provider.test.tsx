@@ -3,11 +3,47 @@ import { NextIntlClientProvider } from 'next-intl';
 import { Activity } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { APP_ROUTES } from '@/config/routes';
 import esMessages from '@/messages/es.json';
 
 import { NavigationGuardProvider, useUnsavedChanges } from './navigation-guard-provider';
 
 const messages = esMessages.Common.unsavedChanges;
+const originalNavigation = Object.getOwnPropertyDescriptor(window, 'navigation');
+
+function createHistoryNavigation() {
+  const currentEntry = { key: 'profile-entry', sameDocument: true };
+  const destination = {
+    key: 'games-entry',
+    sameDocument: true,
+    url: new URL(APP_ROUTES.games, window.location.origin).href,
+  };
+  const navigation = Object.assign(new EventTarget(), {
+    currentEntry,
+    entries: () => [currentEntry, destination],
+    traverseTo: vi.fn((_key: string, _options?: { info?: unknown }) => ({
+      committed: Promise.resolve(),
+      finished: Promise.resolve(),
+    })),
+  });
+
+  Object.defineProperty(window, 'navigation', {
+    configurable: true,
+    value: navigation,
+  });
+
+  function navigate(info?: unknown) {
+    const event = Object.assign(new Event('navigate', { cancelable: true }), {
+      navigationType: 'traverse',
+      destination,
+      info,
+    });
+    act(() => { navigation.dispatchEvent(event); });
+    return event;
+  }
+
+  return { navigation, destination, navigate };
+}
 
 function Form({ dirty, onLeave }: { dirty: boolean; onLeave: () => void }) {
   const { requestNavigation } = useUnsavedChanges(dirty);
@@ -17,6 +53,11 @@ function Form({ dirty, onLeave }: { dirty: boolean; onLeave: () => void }) {
 
 afterEach(() => {
   cleanup();
+  if (originalNavigation) {
+    Object.defineProperty(window, 'navigation', originalNavigation);
+  } else {
+    Reflect.deleteProperty(window, 'navigation');
+  }
   vi.restoreAllMocks();
 });
 
@@ -150,5 +191,66 @@ describe('NavigationGuardProvider', () => {
     act(() => { window.dispatchEvent(unload); });
     expect(unload.defaultPrevented).toBe(false);
     expect(onLeave).not.toHaveBeenCalled();
+  });
+
+  it('allows cancelling and then confirming a later history traversal', async () => {
+    const { navigation, destination, navigate } = createHistoryNavigation();
+    render(
+      <NextIntlClientProvider locale='es' messages={esMessages}>
+        <NavigationGuardProvider>
+          <Form dirty onLeave={vi.fn()} />
+        </NavigationGuardProvider>
+      </NextIntlClientProvider>,
+    );
+
+    const event = navigate();
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(screen.getByRole('alertdialog', { name: messages.title })).toBeTruthy();
+    expect(navigation.traverseTo).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: messages.cancel }));
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+    expect(navigation.traverseTo).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Salir' })).toBeTruthy();
+
+    const retryEvent = navigate();
+
+    expect(retryEvent.defaultPrevented).toBe(true);
+    expect(screen.getByRole('alertdialog', { name: messages.title })).toBeTruthy();
+    expect(navigation.traverseTo).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: messages.confirm }));
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+    expect(navigation.traverseTo).toHaveBeenCalledExactlyOnceWith(
+      destination.key,
+      { info: expect.any(Symbol) },
+    );
+  });
+
+  it('continues the original history traversal once after confirmation', async () => {
+    const { navigation, destination, navigate } = createHistoryNavigation();
+    render(
+      <NextIntlClientProvider locale='es' messages={esMessages}>
+        <NavigationGuardProvider>
+          <Form dirty onLeave={vi.fn()} />
+        </NavigationGuardProvider>
+      </NextIntlClientProvider>,
+    );
+    navigate();
+    navigate();
+
+    fireEvent.click(screen.getByRole('button', { name: messages.confirm }));
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+    expect(navigation.traverseTo).toHaveBeenCalledExactlyOnceWith(
+      destination.key,
+      { info: expect.any(Symbol) },
+    );
+    const [, options] = navigation.traverseTo.mock.calls[0];
+    const approvedEvent = navigate(options?.info);
+    expect(approvedEvent.defaultPrevented).toBe(false);
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(navigation.traverseTo).toHaveBeenCalledOnce();
   });
 });
