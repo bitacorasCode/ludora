@@ -14,6 +14,8 @@ import {
 
 import { ConfirmationDialog } from '@/components/overlays';
 
+import { installBrowserHistoryGuard } from './browser-history-guard';
+
 type NavigationAction = () => void;
 
 type NavigationGuardContextValue = {
@@ -82,6 +84,15 @@ export function NavigationGuardProvider({ children }: { children: ReactNode }) {
       setIsOpen(true);
     },
     [isBlocked],
+  );
+
+  useEffect(
+    () =>
+      installBrowserHistoryGuard({
+        isBlocked,
+        requestNavigation,
+      }),
+    [isBlocked, requestNavigation],
   );
 
   function closeDialog() {
