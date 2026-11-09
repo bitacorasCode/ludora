@@ -6,6 +6,7 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 import { RATE_LIMIT_CONFIG } from './config/rate-limit.js';
+import { ProfileModule } from './profile/profile.module.js';
 import { UsersModule } from './users/users.module.js';
 
 @Module({
@@ -15,7 +16,8 @@ import { UsersModule } from './users/users.module.js';
         }),
         ThrottlerModule.forRoot([RATE_LIMIT_CONFIG]),
         UsersModule,
-        AuthModule],
+        AuthModule,
+        ProfileModule],
     controllers: [AppController],
     providers: [AppService],
 })

@@ -66,9 +66,9 @@ export default function useRecoveryRequestForm() {
                     return;
                 }
 
-                toast.success(feedback('successTitle'), {
+                toast.success(feedback('success.title'), {
                     id: RECOVERY_REQUEST_SUCCESS_TOAST_ID,
-                    description: feedback('successMessage'),
+                    description: feedback('success.message'),
                 });
             } catch {
                 if (requestVersion.current !== version) return;

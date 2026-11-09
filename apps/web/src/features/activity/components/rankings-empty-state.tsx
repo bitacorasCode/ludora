@@ -14,8 +14,8 @@ export function RankingsEmptyState() {
     <EmptyState
       variant='inline'
       icon={<HugeiconsIcon icon={TrophyIcon} size={24} />}
-      title={t('emptyTitle')}
-      description={t('emptyDescription')}
+      title={t('empty.title')}
+      description={t('empty.description')}
       action={
         <Button asChild variant='outline'>
           <Link href={APP_ROUTES.ranking}>{t('viewRankings')}</Link>

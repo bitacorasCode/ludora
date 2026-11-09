@@ -15,14 +15,14 @@ export function UserSettingsPageContent() {
   const items = [
     {
       id: 'email',
-      title: t('emailTitle'),
-      description: t('emailDescription'),
+      title: t('email.title'),
+      description: t('email.description'),
       content: <EmailSettingsContent email={previewUserSettings.email} isPreview />,
     },
     {
       id: 'password',
-      title: t('passwordTitle'),
-      description: t('passwordUnavailable'),
+      title: t('password.title'),
+      description: t('password.unavailable'),
       descriptionId: passwordDescriptionId,
       content: <PasswordSettingsContent descriptionId={passwordDescriptionId} />,
     },

@@ -10,7 +10,7 @@ import { ProfileSkeleton } from './profile-skeleton';
 type ProfileIdentityProps = {
   profile: Profile | null;
   isEditing: boolean;
-  onEdit: () => void;
+  onEdit?: () => void;
 };
 
 export function ProfileIdentity({
@@ -37,10 +37,10 @@ export function ProfileIdentity({
             {profile.nickname}
           </SectionTitle>
           <BodyText className='whitespace-pre-wrap break-words'>
-            {profile.bio?.trim() || t('emptyBio')}
+            {profile.bio?.trim() || t('bio.empty')}
           </BodyText>
         </div>
-        {!isEditing && (
+        {!isEditing && onEdit && (
           <Button
             type='button'
             variant='outline'

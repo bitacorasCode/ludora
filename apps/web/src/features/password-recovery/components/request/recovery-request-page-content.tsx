@@ -42,8 +42,8 @@ export function RecoveryRequestPageContent() {
               name='email'
               inputType='email'
               autoComplete='email'
-              label={t('email')}
-              placeholder={t('emailPlaceholder')}
+              label={t('fields.email.label')}
+              placeholder={t('fields.email.placeholder')}
             />
             <FormActions
               secondaryAction={

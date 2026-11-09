@@ -18,7 +18,7 @@ export function PasswordSettingsContent({
       disabled
       aria-describedby={descriptionId}
     >
-      {t('changePassword')}
+      {t('password.change')}
     </Button>
   );
 }

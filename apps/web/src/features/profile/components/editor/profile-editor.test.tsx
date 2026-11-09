@@ -13,8 +13,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import esMessages from '@/messages/es.json';
 
-import { type Profile } from '../config';
-import { BIO_MAX_LENGTH } from '../schema';
+import { type Profile } from '../../config';
+import { BIO_MAX_LENGTH } from '../../schema';
 import { ProfileEditor } from './profile-editor';
 
 const profile: Profile = {
@@ -45,13 +45,13 @@ describe('ProfileEditor integration', () => {
     expect(
       (
         screen.getByLabelText(
-          esMessages.Profile.bioLabel,
+          esMessages.Profile.bio.label,
         ) as HTMLTextAreaElement
       ).value,
     ).toBe(profile.bio);
     expect(
       screen
-        .getByRole('radio', { name: esMessages.Profile.avatars.fox })
+        .getByRole('radio', { name: esMessages.Profile.avatar.options.fox })
         .getAttribute('aria-checked'),
     ).toBe('true');
     const results = await axe(container);
@@ -66,13 +66,15 @@ describe('ProfileEditor integration', () => {
       </NextIntlClientProvider>,
     );
     fireEvent.click(
-      screen.getByRole('radio', { name: esMessages.Profile.avatars.planet }),
+      screen.getByRole('radio', { name: esMessages.Profile.avatar.options.planet }),
     );
-    fireEvent.change(screen.getByLabelText(esMessages.Profile.bioLabel), {
+    fireEvent.change(screen.getByLabelText(esMessages.Profile.bio.label), {
       target: { value: '  Otra biografía  ' },
     });
     fireEvent.click(
-      screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
+      screen.getByRole('button', {
+        name: esMessages.Common.actions.saveChanges,
+      }),
     );
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledExactlyOnceWith({
@@ -90,13 +92,15 @@ describe('ProfileEditor integration', () => {
       </NextIntlClientProvider>,
     );
     fireEvent.click(
-      screen.getByRole('radio', { name: esMessages.Profile.useInitial }),
+      screen.getByRole('radio', { name: esMessages.Profile.avatar.useInitial }),
     );
-    fireEvent.change(screen.getByLabelText(esMessages.Profile.bioLabel), {
+    fireEvent.change(screen.getByLabelText(esMessages.Profile.bio.label), {
       target: { value: '   ' },
     });
     fireEvent.click(
-      screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
+      screen.getByRole('button', {
+        name: esMessages.Common.actions.saveChanges,
+      }),
     );
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledExactlyOnceWith({
@@ -113,11 +117,13 @@ describe('ProfileEditor integration', () => {
         <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
       </NextIntlClientProvider>,
     );
-    fireEvent.change(screen.getByLabelText(esMessages.Profile.bioLabel), {
+    fireEvent.change(screen.getByLabelText(esMessages.Profile.bio.label), {
       target: { value: 'a'.repeat(BIO_MAX_LENGTH + 1) },
     });
     fireEvent.click(
-      screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
+      screen.getByRole('button', {
+        name: esMessages.Common.actions.saveChanges,
+      }),
     );
     expect(await screen.findByRole('alert')).toBeTruthy();
     expect(onSave).not.toHaveBeenCalled();
@@ -134,23 +140,27 @@ describe('ProfileEditor integration', () => {
       </NextIntlClientProvider>,
     );
     const bio = screen.getByLabelText(
-      esMessages.Profile.bioLabel,
+      esMessages.Profile.bio.label,
     ) as HTMLTextAreaElement;
     fireEvent.change(bio, { target: { value: 'Mi cambio' } });
     fireEvent.click(
-      screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
-    );
-    await waitFor(() => expect(toast.error).toHaveBeenCalledExactlyOnceWith(
-      esMessages.Profile.saveError,
-      { duration: Infinity },
-    ));
-    expect(bio.value).toBe('Mi cambio');
-    fireEvent.click(
-      screen.getByRole('button', { name: esMessages.Common.actions.saveChanges }),
+      screen.getByRole('button', {
+        name: esMessages.Common.actions.saveChanges,
+      }),
     );
     await waitFor(() =>
-      expect(onSave).toHaveBeenCalledTimes(2),
+      expect(toast.error).toHaveBeenCalledExactlyOnceWith(
+        esMessages.Profile.saveError,
+        { duration: Infinity },
+      ),
     );
+    expect(bio.value).toBe('Mi cambio');
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: esMessages.Common.actions.saveChanges,
+      }),
+    );
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(2));
     expect(toast.dismiss).toHaveBeenCalledOnce();
     expect(toast.dismiss).toHaveBeenLastCalledWith('profile-save-error');
   });
@@ -168,12 +178,14 @@ describe('ProfileEditor integration', () => {
         <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
       </NextIntlClientProvider>,
     );
-    const save = screen.getByRole('button', { name: esMessages.Common.actions.saveChanges });
+    const save = screen.getByRole('button', {
+      name: esMessages.Common.actions.saveChanges,
+    });
     fireEvent.click(save);
     await waitFor(() => expect(onSave).toHaveBeenCalledOnce());
     expect(save.matches(':disabled')).toBe(true);
     expect(
-      screen.getByLabelText(esMessages.Profile.bioLabel).matches(':disabled'),
+      screen.getByLabelText(esMessages.Profile.bio.label).matches(':disabled'),
     ).toBe(true);
     expect(
       screen
@@ -206,12 +218,12 @@ describe('ProfileEditor integration', () => {
         <ProfileEditor profile={profile} onSave={vi.fn()} onCancel={vi.fn()} />
       </NextIntlClientProvider>,
     );
-    screen.getByRole('radio', { name: esMessages.Profile.useInitial }).focus();
+    screen.getByRole('radio', { name: esMessages.Profile.avatar.useInitial }).focus();
     await user.keyboard('{ArrowRight>}');
     await waitFor(() =>
       expect(
         screen
-          .getByRole('radio', { name: esMessages.Profile.avatars.comet })
+          .getByRole('radio', { name: esMessages.Profile.avatar.options.comet })
           .getAttribute('aria-checked'),
       ).toBe('true'),
     );

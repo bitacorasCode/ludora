@@ -14,15 +14,19 @@
         "loading": "Cargando actividad",
         "matches": {
             "description": "Consulta las partidas que has jugado y sus resultados.",
-            "emptyDescription": "Cuando juegues en Ludora, encontrarás aquí tus partidas recientes.",
-            "emptyTitle": "Todavía no hay partidas para mostrar",
+            "empty": {
+                "description": "Cuando juegues en Ludora, encontrarás aquí tus partidas recientes.",
+                "title": "Todavía no hay partidas para mostrar"
+            },
             "exploreGames": "Explorar juegos",
             "title": "Partidas recientes"
         },
         "rankings": {
             "description": "Consulta tu posición en las clasificaciones de los juegos en los que participas.",
-            "emptyDescription": "Tus posiciones aparecerán aquí cuando participes en juegos con clasificación.",
-            "emptyTitle": "Todavía no participas en ninguna clasificación",
+            "empty": {
+                "description": "Tus posiciones aparecerán aquí cuando participes en juegos con clasificación.",
+                "title": "Todavía no participas en ninguna clasificación"
+            },
             "title": "Mis clasificaciones",
             "viewRankings": "Ver clasificaciones"
         },
@@ -30,8 +34,10 @@
     },
     "Catalog": {
         "description": "El catálogo de Ludora aún está vacío. Pronto encontrarás aquí juegos para explorar.",
-        "emptyDescription": "Estamos preparando este espacio para los primeros juegos de la plataforma.",
-        "emptyTitle": "Aún no hay juegos",
+        "empty": {
+            "description": "Estamos preparando este espacio para los primeros juegos de la plataforma.",
+            "title": "Aún no hay juegos"
+        },
         "eyebrow": "Explora Ludora",
         "title": "Catálogo de juegos"
     },
@@ -39,7 +45,6 @@
         "actions": {
             "backHome": "Volver al inicio",
             "cancel": "Cancelar",
-            "continue": "Continuar",
             "retry": "Reintentar",
             "saveChanges": "Guardar cambios"
         },
@@ -56,14 +61,15 @@
         "status": {
             "checkingSession": "Comprobando sesión",
             "retryAfter": "{seconds, plural, one {Podrás volver a intentarlo en # segundo.} other {Podrás volver a intentarlo en # segundos.}}",
-            "saving": "Guardando...",
-            "validating": "Validando..."
+            "saving": "Guardando..."
         }
     },
     "EmailVerification": {
         "backToLogin": "Volver a iniciar sesión",
-        "codeLabel": "Código de verificación",
-        "codePlaceholder": "000000",
+        "code": {
+            "label": "Código de verificación",
+            "placeholder": "000000"
+        },
         "description": "Introduce el código recibido por correo para confirmar tu dirección, activar tu cuenta e iniciar sesión.",
         "errors": {
             "AUTH_EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED": "Has alcanzado el límite de intentos para este código. Usa «Reenviar código» para solicitar uno nuevo.",
@@ -73,8 +79,10 @@
             "AUTH_EMAIL_VERIFICATION_RESEND_TOO_SOON": "Espera un momento antes de solicitar otro código de verificación."
         },
         "feedback": {
-            "deliveryUnconfirmedMessage": "No pudimos confirmar el envío del correo. Si recibes un código, puedes introducirlo aquí. También puedes solicitar otro cuando termine la espera.",
-            "deliveryUnconfirmedTitle": "No pudimos confirmar el envío del correo",
+            "deliveryUnconfirmed": {
+                "message": "No pudimos confirmar el envío del correo. Si recibes un código, puedes introducirlo aquí. También puedes solicitar otro cuando termine la espera.",
+                "title": "No pudimos confirmar el envío del correo"
+            },
             "errorTitle": "No pudimos confirmar tu correo"
         },
         "resend": {
@@ -83,8 +91,10 @@
             "errorTitle": "No pudimos reenviar el código",
             "hint": "¿No recibiste el correo? Puedes solicitar otro código.",
             "pending": "Reenviando...",
-            "successMessage": "Revisa tu correo e introduce el código más reciente.",
-            "successTitle": "Código enviado"
+            "success": {
+                "message": "Revisa tu correo e introduce el código más reciente.",
+                "title": "Código enviado"
+            }
         },
         "skipToForm": "Saltar al formulario de confirmación",
         "submit": "Confirmar correo",
@@ -102,19 +112,24 @@
     },
     "Header": {
         "account": "Mi cuenta",
-        "exploreCatalog": "Explorar catálogo",
         "games": "Juegos",
         "login": "Iniciar sesión",
-        "mainNavigation": "Navegación principal",
-        "menu": "Menú",
-        "menuDescription": "Accede a las secciones de la plataforma.",
-        "menuTitle": "Menú de Ludora",
-        "mobileNavigation": "Navegación móvil",
+        "menu": {
+            "description": "Accede a las secciones de la plataforma.",
+            "label": "Menú",
+            "title": "Menú de Ludora"
+        },
+        "navigation": {
+            "main": "Navegación principal",
+            "mobile": "Navegación móvil"
+        },
         "preferences": "Preferencias",
         "ranking": "Ranking",
         "register": "Registro",
-        "sessionLoading": "Comprobando sesión",
-        "sessionUnavailable": "No pudimos comprobar tu sesión."
+        "session": {
+            "loading": "Comprobando sesión",
+            "unavailable": "No pudimos comprobar tu sesión."
+        }
     },
     "Home": {
         "description": "Descubre juegos, reúne a tus amigos y comparte nuevas partidas desde un solo lugar.",
@@ -132,8 +147,6 @@
     },
     "Login": {
         "description": "Accede a tu cuenta de Ludora con tu correo y contraseña.",
-        "email": "Correo electrónico",
-        "emailPlaceholder": "tu@ejemplo.com",
         "errors": {
             "AUTH_EMAIL_NOT_VERIFIED": "Confirma tu correo electrónico para iniciar sesión.",
             "AUTH_INVALID_CREDENTIALS": "El correo o la contraseña son incorrectos."
@@ -141,9 +154,17 @@
         "feedback": {
             "errorTitle": "No pudimos iniciar sesión"
         },
+        "fields": {
+            "email": {
+                "label": "Correo electrónico",
+                "placeholder": "tu@ejemplo.com"
+            },
+            "password": {
+                "label": "Contraseña",
+                "placeholder": "Introduce tu contraseña"
+            }
+        },
         "forgotPassword": "¿Olvidaste tu contraseña?",
-        "password": "Contraseña",
-        "passwordPlaceholder": "Introduce tu contraseña",
         "register": "Crear una cuenta",
         "skipToForm": "Saltar al formulario de acceso",
         "submit": "Iniciar sesión",
@@ -174,34 +195,48 @@
     },
     "PasswordRecovery": {
         "backToLogin": "Volver a iniciar sesión",
-        "confirmPassword": "Confirmar contraseña nueva",
-        "confirmPasswordPlaceholder": "Repite la contraseña nueva",
-        "email": "Correo electrónico",
-        "emailPlaceholder": "tu@ejemplo.com",
         "errors": {
             "AUTH_PASSWORD_RESET_INVALID": "Este enlace de recuperación no es válido, ha caducado o ya se ha utilizado. Solicita uno nuevo."
         },
-        "password": "Contraseña nueva",
-        "passwordPlaceholder": "Crea una contraseña nueva",
+        "fields": {
+            "confirmPassword": {
+                "label": "Confirmar contraseña nueva",
+                "placeholder": "Repite la contraseña nueva"
+            },
+            "email": {
+                "label": "Correo electrónico",
+                "placeholder": "tu@ejemplo.com"
+            },
+            "password": {
+                "label": "Contraseña nueva",
+                "placeholder": "Crea una contraseña nueva"
+            }
+        },
         "request": {
             "description": "Escribe tu correo electrónico para solicitar un enlace para restablecer tu contraseña.",
             "errorTitle": "No se pudo solicitar la recuperación de contraseña",
             "submit": "Enviar enlace de recuperación",
             "submitting": "Enviando enlace…",
-            "successMessage": "Si existe una cuenta con ese correo electrónico, recibirás un enlace para restablecer tu contraseña.",
-            "successTitle": "Revisa tu correo",
+            "success": {
+                "message": "Si existe una cuenta con ese correo electrónico, recibirás un enlace para restablecer tu contraseña.",
+                "title": "Revisa tu correo"
+            },
             "title": "Recuperar contraseña"
         },
         "reset": {
             "description": "Elige una contraseña nueva para tu cuenta.",
             "errorTitle": "No se pudo restablecer tu contraseña",
-            "invalidLinkTitle": "Este enlace de recuperación no es válido",
+            "invalidLink": {
+                "requestNewLink": "Solicitar un enlace de recuperación nuevo",
+                "title": "Este enlace de recuperación no es válido"
+            },
             "loading": "Cargando el formulario de nueva contraseña",
-            "requestNewLink": "Solicitar un enlace de recuperación nuevo",
             "submit": "Cambiar contraseña",
             "submitting": "Cambiando contraseña…",
-            "successMessage": "Tu contraseña se ha cambiado. Inicia sesión con tu contraseña nueva.",
-            "successTitle": "Contraseña cambiada",
+            "success": {
+                "message": "Tu contraseña se ha cambiado. Inicia sesión con tu contraseña nueva.",
+                "title": "Contraseña cambiada"
+            },
             "title": "Crear una contraseña nueva"
         },
         "skipToForm": "Saltar al formulario de recuperación",
@@ -213,42 +248,53 @@
         }
     },
     "Preferences": {
-        "appearanceDescription": "Activa o desactiva el modo oscuro.",
-        "appearanceTitle": "Apariencia",
+        "appearance": {
+            "description": "Activa o desactiva el modo oscuro.",
+            "title": "Apariencia"
+        },
         "description": "Elige cómo quieres ver y usar Ludora. Los cambios se aplican automáticamente y se recuerdan en este navegador.",
         "eyebrow": "Ludora a tu manera",
-        "languageDescription": "Elige el idioma de los textos y de la navegación.",
-        "languageTitle": "Idioma de la plataforma",
+        "language": {
+            "description": "Elige el idioma de los textos y de la navegación.",
+            "title": "Idioma de la plataforma"
+        },
         "loading": "Cargando preferencias",
         "title": "Preferencias"
     },
     "Profile": {
-        "avatarLabel": "Elige un avatar",
-        "avatars": {
-            "castle": "Castillo",
-            "clover": "Trébol",
-            "comet": "Cometa",
-            "die": "Dado",
-            "fox": "Zorro",
-            "planet": "Planeta"
+        "avatar": {
+            "label": "Elige un avatar",
+            "options": {
+                "castle": "Castillo",
+                "clover": "Trébol",
+                "comet": "Cometa",
+                "dice": "Dado",
+                "fox": "Zorro",
+                "planet": "Planeta"
+            },
+            "useInitial": "Usar mi inicial"
         },
-        "bioCounter": "{count}/{max} caracteres",
-        "bioLabel": "Biografía",
-        "bioPlaceholder": "Cuéntanos algo sobre ti…",
+        "bio": {
+            "counter": "{count}/{max} caracteres",
+            "empty": "Todavía no agregaste una biografía.",
+            "label": "Biografía",
+            "placeholder": "Cuéntanos algo sobre ti…"
+        },
         "description": "Tu identidad dentro de Ludora.",
         "edit": "Editar perfil",
-        "emptyBio": "Todavía no agregaste una biografía.",
         "eyebrow": "Tu cuenta",
+        "loadError": "No pudimos cargar tu perfil",
         "loading": "Cargando perfil",
         "saveError": "No se pudieron guardar los cambios. Inténtalo de nuevo.",
-        "saved": "Perfil actualizado en este navegador.",
-        "title": "Mi perfil",
-        "useInitial": "Usar mi inicial"
+        "saved": "Perfil actualizado.",
+        "title": "Mi perfil"
     },
     "Ranking": {
         "description": "Aquí aparecerán las clasificaciones de los juegos cuando comiencen las partidas.",
-        "emptyDescription": "Todavía no se han registrado partidas. Vuelve cuando la comunidad empiece a jugar.",
-        "emptyTitle": "Aún no hay clasificaciones",
+        "empty": {
+            "description": "Todavía no se han registrado partidas. Vuelve cuando la comunidad empiece a jugar.",
+            "title": "Aún no hay clasificaciones"
+        },
         "eyebrow": "Comunidad",
         "title": "Ranking"
     },
@@ -302,15 +348,19 @@
         "label": "Modo oscuro"
     },
     "UserSettings": {
-        "changePassword": "Cambiar contraseña",
         "description": "Consulta tu correo privado y las opciones de acceso a Ludora.",
-        "emailDescription": "Tu correo es privado y no se muestra en el perfil visible.",
-        "emailTitle": "Correo electrónico",
+        "email": {
+            "description": "Tu correo es privado y no se muestra en el perfil visible.",
+            "preview": "Correo de ejemplo para esta vista previa.",
+            "title": "Correo electrónico"
+        },
         "eyebrow": "Acceso y privacidad",
         "loading": "Cargando ajustes de cuenta",
-        "passwordTitle": "Contraseña",
-        "passwordUnavailable": "Esta opción estará disponible cuando puedas iniciar sesión en tu cuenta.",
-        "previewEmail": "Correo de ejemplo para esta vista previa.",
+        "password": {
+            "change": "Cambiar contraseña",
+            "title": "Contraseña",
+            "unavailable": "Esta opción estará disponible cuando puedas iniciar sesión en tu cuenta."
+        },
         "title": "Cuenta"
     }
 }

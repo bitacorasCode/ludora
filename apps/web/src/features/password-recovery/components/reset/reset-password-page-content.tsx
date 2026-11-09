@@ -42,15 +42,15 @@ export function ResetPasswordPageContent({ token }: ResetPasswordPageContentProp
         <PageSection
           ref={invalidLinkRegion}
           tabIndex={-1}
-          aria-label={t('reset.invalidLinkTitle')}
+          aria-label={t('reset.invalidLink.title')}
         >
           <PageTitle>{t('reset.title')}</PageTitle>
           <ErrorState
-            title={t('reset.invalidLinkTitle')}
+            title={t('reset.invalidLink.title')}
             description={t(`errors.${AUTH_ERROR_CODES.passwordResetInvalid}`)}
             primaryAction={
               <Button asChild>
-                <Link href={APP_ROUTES.forgotPassword}>{t('reset.requestNewLink')}</Link>
+                <Link href={APP_ROUTES.forgotPassword}>{t('reset.invalidLink.requestNewLink')}</Link>
               </Button>
             }
             secondaryAction={
@@ -86,16 +86,16 @@ export function ResetPasswordPageContent({ token }: ResetPasswordPageContentProp
               name='password'
               inputType='password'
               autoComplete='new-password'
-              label={t('password')}
-              placeholder={t('passwordPlaceholder')}
+              label={t('fields.password.label')}
+              placeholder={t('fields.password.placeholder')}
             />
             <FormTextField
               control={form.control}
               name='confirmPassword'
               inputType='password'
               autoComplete='new-password'
-              label={t('confirmPassword')}
-              placeholder={t('confirmPasswordPlaceholder')}
+              label={t('fields.confirmPassword.label')}
+              placeholder={t('fields.confirmPassword.placeholder')}
             />
             <FormActions
               secondaryAction={

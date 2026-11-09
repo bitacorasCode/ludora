@@ -1,0 +1,16 @@
+{
+    "name": "@ludora/contracts",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "exports": {
+        "./profile": {
+            "types": "./profile.d.ts",
+            "import": "./profile.js"
+        }
+    },
+    "files": [
+        "profile.js",
+        "profile.d.ts"
+    ]
+}

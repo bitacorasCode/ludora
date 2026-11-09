@@ -72,7 +72,7 @@ describe('EmailVerificationPageContent integration', () => {
   }
 
   function enterCode(code = '123456') {
-    fireEvent.change(screen.getByLabelText(messages.codeLabel), {
+    fireEvent.change(screen.getByLabelText(messages.code.label), {
       target: { value: code },
     });
   }
@@ -84,7 +84,7 @@ describe('EmailVerificationPageContent integration', () => {
 
   it('renders accessible code, resend, skip and login controls', async () => {
     const { container } = renderVerification();
-    const code = screen.getByLabelText(messages.codeLabel);
+    const code = screen.getByLabelText(messages.code.label);
 
     expect(code.getAttribute('autocomplete')).toBe('one-time-code');
     expect(code.getAttribute('inputmode')).toBe('numeric');
@@ -137,8 +137,8 @@ describe('EmailVerificationPageContent integration', () => {
     submitVerification();
 
     expect(await screen.findByText(messages.errors.AUTH_EMAIL_VERIFICATION_CODE_INVALID)).toBeTruthy();
-    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText(messages.codeLabel)));
-    expect(screen.getByLabelText(messages.codeLabel).getAttribute('aria-invalid')).toBe('true');
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText(messages.code.label)));
+    expect(screen.getByLabelText(messages.code.label).getAttribute('aria-invalid')).toBe('true');
     expect(toast.error).not.toHaveBeenCalled();
     expect(router.replace).not.toHaveBeenCalled();
   });
@@ -179,16 +179,16 @@ describe('EmailVerificationPageContent integration', () => {
     fireEvent.click(screen.getByRole('button', { name: messages.resend.action }));
 
     await waitFor(() => expect(toast.success).toHaveBeenCalledExactlyOnceWith(
-      messages.resend.successTitle,
-      { description: messages.resend.successMessage },
+      messages.resend.success.title,
+      { description: messages.resend.success.message },
     ));
     expect(resendVerification).toHaveBeenCalledExactlyOnceWith('es', { verificationId });
     expect(verifyEmail).not.toHaveBeenCalled();
-    expect((screen.getByLabelText(messages.codeLabel) as HTMLInputElement).value).toBe('');
+    expect((screen.getByLabelText(messages.code.label) as HTMLInputElement).value).toBe('');
     expect(screen.getByRole('button', { name: messages.resend.action }).hasAttribute('disabled')).toBe(true);
     expect(screen.getByText('Podrás reenviar en 60 segundos.')).toBeTruthy();
-    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText(messages.codeLabel)));
-    expect(screen.queryByText(messages.feedback.deliveryUnconfirmedTitle)).toBeNull();
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText(messages.code.label)));
+    expect(screen.queryByText(messages.feedback.deliveryUnconfirmed.title)).toBeNull();
     const url = new URL(window.location.href);
     expect(url.pathname).toBe('/es/verify-email');
     expect(url.searchParams.get('verificationId')).toBe(verificationId);
@@ -209,11 +209,11 @@ describe('EmailVerificationPageContent integration', () => {
     fireEvent.click(screen.getByRole('button', { name: messages.resend.action }));
 
     await waitFor(() => expect(toast.warning).toHaveBeenCalledExactlyOnceWith(
-      messages.feedback.deliveryUnconfirmedTitle,
-      { description: messages.feedback.deliveryUnconfirmedMessage },
+      messages.feedback.deliveryUnconfirmed.title,
+      { description: messages.feedback.deliveryUnconfirmed.message },
     ));
-    expect(screen.getByRole('status').textContent).toContain(messages.feedback.deliveryUnconfirmedMessage);
-    expect((screen.getByLabelText(messages.codeLabel) as HTMLInputElement).value).toBe('');
+    expect(screen.getByRole('status').textContent).toContain(messages.feedback.deliveryUnconfirmed.message);
+    expect((screen.getByLabelText(messages.code.label) as HTMLInputElement).value).toBe('');
     expect(new URL(window.location.href).searchParams.get('delivery')).toBe('unconfirmed');
     expect(screen.getByRole('button', { name: messages.resend.action }).hasAttribute('disabled')).toBe(true);
     expect(toast.success).not.toHaveBeenCalled();
@@ -241,7 +241,7 @@ describe('EmailVerificationPageContent integration', () => {
         duration: Infinity,
       },
     ));
-    expect((screen.getByLabelText(messages.codeLabel) as HTMLInputElement).value).toBe('123456');
+    expect((screen.getByLabelText(messages.code.label) as HTMLInputElement).value).toBe('123456');
     expect(screen.getByText('Podrás reenviar en 25 segundos.')).toBeTruthy();
     expect(screen.getByRole('button', { name: messages.resend.action }).hasAttribute('disabled')).toBe(true);
     expect(new URL(window.location.href).searchParams.get('resendAvailableAt')).toBe(resendAvailableAt);
@@ -261,7 +261,7 @@ describe('EmailVerificationPageContent integration', () => {
       messages.resend.errorTitle,
       { description: esMessages.Common.errors.API_UNAVAILABLE, duration: Infinity },
     ));
-    expect((screen.getByLabelText(messages.codeLabel) as HTMLInputElement).value).toBe('123456');
+    expect((screen.getByLabelText(messages.code.label) as HTMLInputElement).value).toBe('123456');
     expect(screen.getByRole('button', { name: messages.resend.action }).hasAttribute('disabled')).toBe(false);
   });
 
@@ -290,7 +290,7 @@ describe('EmailVerificationPageContent integration', () => {
 
     fireEvent.click(screen.getByRole('button', { name: messages.resend.action }));
     const resend = await screen.findByRole('button', { name: messages.resend.pending });
-    const code = screen.getByLabelText(messages.codeLabel);
+    const code = screen.getByLabelText(messages.code.label);
     expect(resend.hasAttribute('disabled')).toBe(true);
     expect(code.closest('fieldset')?.hasAttribute('disabled')).toBe(true);
     expect(screen.getByRole('form', { name: messages.title }).getAttribute('aria-busy')).toBe('true');

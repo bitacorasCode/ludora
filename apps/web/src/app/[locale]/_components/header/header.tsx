@@ -16,7 +16,7 @@ export function Header() {
 
   const sessionFallback = (
     <div role='status'>
-      <span className='sr-only'>{t('sessionLoading')}</span>
+      <span className='sr-only'>{t('session.loading')}</span>
       <Skeleton className='h-9 w-28' />
     </div>
   );
@@ -24,7 +24,7 @@ export function Header() {
   return (
     <header className='sticky top-0 z-40 border-b bg-card/90 backdrop-blur'>
       <nav
-        aria-label={t('mainNavigation')}
+        aria-label={t('navigation.main')}
         className='mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8'
       >
         <Button asChild variant='link' size='sm'>
@@ -50,12 +50,12 @@ export function Header() {
         <SideMenu
           trigger={
             <Button variant='outline' size='sm' className='lg:hidden'>
-              {t('menu')}
+              {t('menu.label')}
             </Button>
           }
-          title={t('menuTitle')}
-          description={t('menuDescription')}
-          navigationLabel={t('mobileNavigation')}
+          title={t('menu.title')}
+          description={t('menu.description')}
+          navigationLabel={t('navigation.mobile')}
         >
           <HeaderLinks isSideMenu />
 

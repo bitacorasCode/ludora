@@ -6,9 +6,9 @@ import { Controller } from 'react-hook-form';
 import { FormTextareaField, SubmitButton } from '@/components/forms';
 import { Button, Card, CardContent } from '@/components/ui';
 
-import type { Profile } from '../config';
-import { useProfileForm } from '../hooks/use-profile-form';
-import { BIO_MAX_LENGTH, type ProfilePreferences } from '../schema';
+import type { Profile } from '../../config';
+import { useProfileForm } from '../../hooks/use-profile-form';
+import { BIO_MAX_LENGTH, type ProfilePreferences } from '../../schema';
 import { AvatarPicker } from './avatar-picker';
 
 type ProfileEditorProps = {
@@ -35,7 +35,10 @@ export function ProfileEditor({
           onSubmit={form.handleSubmit(onSubmit)}
           noValidate
         >
-          <fieldset disabled={form.formState.isSubmitting} className='space-y-8'>
+          <fieldset
+            disabled={form.formState.isSubmitting}
+            className='space-y-8'
+          >
             <Controller
               control={form.control}
               name='avatarPresetId'
@@ -51,11 +54,11 @@ export function ProfileEditor({
             <FormTextareaField
               control={form.control}
               name='bio'
-              label={t('bioLabel')}
-              placeholder={t('bioPlaceholder')}
+              label={t('bio.label')}
+              placeholder={t('bio.placeholder')}
               maxLength={BIO_MAX_LENGTH}
               rows={4}
-              formatCounter={(count, max) => t('bioCounter', { count, max })}
+              formatCounter={(count, max) => t('bio.counter', { count, max })}
             />
 
             <div className='flex flex-wrap gap-3'>

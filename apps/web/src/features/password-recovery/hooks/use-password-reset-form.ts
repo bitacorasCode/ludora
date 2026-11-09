@@ -70,9 +70,9 @@ export default function usePasswordResetForm(token: string | null) {
                 }
 
                 form.reset();
-                toast.success(feedback('successTitle'), {
+                toast.success(feedback('success.title'), {
                     id: PASSWORD_RESET_SUCCESS_TOAST_ID,
-                    description: feedback('successMessage'),
+                    description: feedback('success.message'),
                 });
                 router.replace(APP_ROUTES.login);
                 router.refresh();

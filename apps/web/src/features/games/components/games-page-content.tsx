@@ -20,8 +20,8 @@ export function GamesPageContent() {
           description={t('description')}
         />
         <EmptyState
-          title={t('emptyTitle')}
-          description={t('emptyDescription')}
+          title={t('empty.title')}
+          description={t('empty.description')}
           action={
             <Button asChild variant='outline'>
               <Link href={APP_ROUTES.home}>{common('actions.backHome')}</Link>

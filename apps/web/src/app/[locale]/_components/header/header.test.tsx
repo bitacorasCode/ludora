@@ -110,7 +110,7 @@ describe('Header navigation', () => {
     vi.mocked(getCurrentUser).mockRejectedValue(error);
     vi.spyOn(console, 'error').mockImplementation(() => {});
     await renderHeader();
-    expect(screen.getByText(esMessages.Header.sessionUnavailable)).toBeTruthy();
+    expect(screen.getByText(esMessages.Header.session.unavailable)).toBeTruthy();
     expect(
       screen.getByRole('link', { name: esMessages.Header.games }),
     ).toBeTruthy();

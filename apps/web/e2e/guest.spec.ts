@@ -19,7 +19,7 @@ test.describe('Guest access', () => {
       esMessages.Preferences.title,
     );
     const navigation = page.getByRole('navigation', {
-      name: esMessages.Header.mainNavigation,
+      name: esMessages.Header.navigation.main,
     });
     await expect(
       navigation.getByRole('link', {

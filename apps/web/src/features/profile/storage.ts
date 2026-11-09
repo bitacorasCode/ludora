@@ -1,25 +1,41 @@
 import { createLocalStorageStore } from '@/lib/storage';
 
-import { type ProfilePreferences, profilePreferencesSchema } from './schema';
+import {
+    type ProfilePreferences,
+    profilePreferencesSchema,
+} from './schema';
 
-const STORAGE_KEY = 'ludora:preview-profile';
-const profileStorage = createLocalStorageStore(STORAGE_KEY);
+const PROFILE_STORAGE_KEY_PREFIX = 'ludora:profile:';
 
-export const getStoredProfile = profileStorage.getSnapshot;
-export const getServerProfileSnapshot = profileStorage.getServerSnapshot;
-export const subscribeToProfile = profileStorage.subscribe;
+export function createProfileStorage(userId: string) {
+    const store = createLocalStorageStore(
+        `${PROFILE_STORAGE_KEY_PREFIX}${userId}`,
+    );
 
-export function readPreferences(value: string | null): ProfilePreferences | null {
-  if (!value) return null;
+    return {
+        ...store,
 
-  try {
-    const result = profilePreferencesSchema.safeParse(JSON.parse(value));
-    return result.success ? result.data : null;
-  } catch {
-    return null;
-  }
+        save({ avatarPresetId, bio }: ProfilePreferences) {
+            store.set(JSON.stringify({
+                avatarPresetId,
+                bio,
+            }));
+        },
+    };
 }
 
-export function savePreferences(preferences: ProfilePreferences) {
-  profileStorage.set(JSON.stringify(preferences));
+export function readPreferences(
+    value: string | null,
+): ProfilePreferences | null {
+    if (!value) return null;
+
+    try {
+        const stored: unknown = JSON.parse(value);
+
+        const result = profilePreferencesSchema.safeParse(stored);
+
+        return result.success ? result.data : null;
+    } catch {
+        return null;
+    }
 }

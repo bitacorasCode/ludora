@@ -80,7 +80,7 @@ function createApiClient<TOptions extends PublicApiOptions>(
         );
 
         const usesVisitorContext =
-            requiresAuthentication || method === API_METHOD.post;
+            requiresAuthentication || method !== API_METHOD.get;
 
         if (usesVisitorContext) {
             const clientIp = await getClientIp();
@@ -111,6 +111,9 @@ function createApiClient<TOptions extends PublicApiOptions>(
         },
         post(path, body, options) {
             return request(API_METHOD.post, path, options, body);
+        },
+        put(path, body, options) {
+            return request(API_METHOD.put, path, options, body);
         },
     };
 }

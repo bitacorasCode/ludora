@@ -18,7 +18,7 @@ export function EmailSettingsContent({
       <BodyText className='break-all font-medium text-foreground'>
         {email}
       </BodyText>
-      {isPreview && <BodyText className='text-sm'>{t('previewEmail')}</BodyText>}
+      {isPreview && <BodyText className='text-sm'>{t('email.preview')}</BodyText>}
     </>
   );
 }

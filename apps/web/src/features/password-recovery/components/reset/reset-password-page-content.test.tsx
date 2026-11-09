@@ -47,10 +47,10 @@ function renderPasswordReset(nextToken: string | null = token) {
 }
 
 function submitValidPasswordReset() {
-  fireEvent.change(screen.getByLabelText(esMessages.PasswordRecovery.password), {
+  fireEvent.change(screen.getByLabelText(esMessages.PasswordRecovery.fields.password.label), {
     target: { value: newPassword },
   });
-  fireEvent.change(screen.getByLabelText(esMessages.PasswordRecovery.confirmPassword), {
+  fireEvent.change(screen.getByLabelText(esMessages.PasswordRecovery.fields.confirmPassword.label), {
     target: { value: newPassword },
   });
   fireEvent.submit(screen.getByRole('form', {
@@ -171,17 +171,17 @@ describe('ResetPasswordPageContent integration', () => {
       { password: newPassword, confirmPassword: newPassword },
     ));
     await waitFor(() => expect(toast.success).toHaveBeenCalledExactlyOnceWith(
-      esMessages.PasswordRecovery.reset.successTitle,
+      esMessages.PasswordRecovery.reset.success.title,
       {
         id: PASSWORD_RESET_SUCCESS_TOAST_ID,
-        description: esMessages.PasswordRecovery.reset.successMessage,
+        description: esMessages.PasswordRecovery.reset.success.message,
       },
     ));
     expect(router.replace).toHaveBeenCalledExactlyOnceWith(APP_ROUTES.login);
     expect(router.refresh).toHaveBeenCalledOnce();
     expect(toast.success).toHaveBeenCalledBefore(router.replace);
-    expect((screen.getByLabelText(esMessages.PasswordRecovery.password) as HTMLInputElement).value).toBe('');
-    expect((screen.getByLabelText(esMessages.PasswordRecovery.confirmPassword) as HTMLInputElement).value).toBe('');
+    expect((screen.getByLabelText(esMessages.PasswordRecovery.fields.password.label) as HTMLInputElement).value).toBe('');
+    expect((screen.getByLabelText(esMessages.PasswordRecovery.fields.confirmPassword.label) as HTMLInputElement).value).toBe('');
 
     unmount();
     expect(toast.dismiss).not.toHaveBeenCalledWith(PASSWORD_RESET_SUCCESS_TOAST_ID);
@@ -191,14 +191,14 @@ describe('ResetPasswordPageContent integration', () => {
     const { container } = renderPasswordReset(null);
 
     const alert = screen.getByRole('alert', {
-      name: esMessages.PasswordRecovery.reset.invalidLinkTitle,
+      name: esMessages.PasswordRecovery.reset.invalidLink.title,
     });
     expect(alert.textContent).toContain(esMessages.PasswordRecovery.errors.AUTH_PASSWORD_RESET_INVALID);
     expect(document.activeElement).toBe(screen.getByRole('region', {
-      name: esMessages.PasswordRecovery.reset.invalidLinkTitle,
+      name: esMessages.PasswordRecovery.reset.invalidLink.title,
     }));
     expect(screen.getByRole('link', {
-      name: esMessages.PasswordRecovery.reset.requestNewLink,
+      name: esMessages.PasswordRecovery.reset.invalidLink.requestNewLink,
     }).getAttribute('href')).toBe(APP_ROUTES.forgotPassword);
     expect(screen.queryByRole('form')).toBeNull();
     expect(resetPassword).not.toHaveBeenCalled();
@@ -214,15 +214,15 @@ describe('ResetPasswordPageContent integration', () => {
     submitValidPasswordReset();
 
     const alert = await screen.findByRole('alert', {
-      name: esMessages.PasswordRecovery.reset.invalidLinkTitle,
+      name: esMessages.PasswordRecovery.reset.invalidLink.title,
     });
     expect(alert.textContent).toContain(esMessages.PasswordRecovery.errors.AUTH_PASSWORD_RESET_INVALID);
     expect(screen.queryByRole('form')).toBeNull();
     expect(screen.getByRole('link', {
-      name: esMessages.PasswordRecovery.reset.requestNewLink,
+      name: esMessages.PasswordRecovery.reset.invalidLink.requestNewLink,
     }).getAttribute('href')).toBe(APP_ROUTES.forgotPassword);
     expect(document.activeElement).toBe(screen.getByRole('region', {
-      name: esMessages.PasswordRecovery.reset.invalidLinkTitle,
+      name: esMessages.PasswordRecovery.reset.invalidLink.title,
     }));
     expect(toast.error).not.toHaveBeenCalled();
     expect(router.replace).not.toHaveBeenCalled();
@@ -247,7 +247,7 @@ describe('ResetPasswordPageContent integration', () => {
     expect(screen.getByRole('form', {
       name: esMessages.PasswordRecovery.reset.title,
     })).toBeTruthy();
-    expect((screen.getByLabelText(esMessages.PasswordRecovery.password) as HTMLInputElement).value).toBe('');
+    expect((screen.getByLabelText(esMessages.PasswordRecovery.fields.password.label) as HTMLInputElement).value).toBe('');
   });
 
   it('disables fields and prevents duplicate submissions while the action is pending', async () => {
@@ -266,7 +266,7 @@ describe('ResetPasswordPageContent integration', () => {
     expect(button.hasAttribute('disabled')).toBe(true);
     expect(screen.getByRole('form').getAttribute('aria-busy')).toBe('true');
     expect(
-      screen.getByLabelText(esMessages.PasswordRecovery.password)
+      screen.getByLabelText(esMessages.PasswordRecovery.fields.password.label)
         .closest('fieldset')?.hasAttribute('disabled'),
     ).toBe(true);
 
@@ -289,7 +289,7 @@ describe('ResetPasswordPageContent integration', () => {
       esMessages.PasswordRecovery.reset.errorTitle,
       { description: esMessages.Common.errors.API_UNAVAILABLE, duration: Infinity },
     ));
-    expect((screen.getByLabelText(esMessages.PasswordRecovery.password) as HTMLInputElement).value).toBe(newPassword);
+    expect((screen.getByLabelText(esMessages.PasswordRecovery.fields.password.label) as HTMLInputElement).value).toBe(newPassword);
     expect(router.replace).not.toHaveBeenCalled();
     expect(toast.success).not.toHaveBeenCalled();
   });

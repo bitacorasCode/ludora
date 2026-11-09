@@ -52,8 +52,8 @@ export function LoginPageContent() {
               name='email'
               inputType='email'
               autoComplete='email'
-              label={t('email')}
-              placeholder={t('emailPlaceholder')}
+              label={t('fields.email.label')}
+              placeholder={t('fields.email.placeholder')}
             />
 
             <div>
@@ -62,8 +62,8 @@ export function LoginPageContent() {
                 name='password'
                 inputType='password'
                 autoComplete='current-password'
-                label={t('password')}
-                placeholder={t('passwordPlaceholder')}
+                label={t('fields.password.label')}
+                placeholder={t('fields.password.placeholder')}
               />
 
               <Button asChild variant='link' className='mt-2 px-0'>

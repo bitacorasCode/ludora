@@ -14,15 +14,19 @@
         "loading": "Loading activity",
         "matches": {
             "description": "View the matches you have played and their results.",
-            "emptyDescription": "When you play on Ludora, your recent matches will appear here.",
-            "emptyTitle": "No matches to show yet",
+            "empty": {
+                "description": "When you play on Ludora, your recent matches will appear here.",
+                "title": "No matches to show yet"
+            },
             "exploreGames": "Explore games",
             "title": "Recent matches"
         },
         "rankings": {
             "description": "View your position in rankings for the games you take part in.",
-            "emptyDescription": "Your positions will appear here when you take part in games with rankings.",
-            "emptyTitle": "You are not in any rankings yet",
+            "empty": {
+                "description": "Your positions will appear here when you take part in games with rankings.",
+                "title": "You are not in any rankings yet"
+            },
             "title": "My rankings",
             "viewRankings": "View rankings"
         },
@@ -30,8 +34,10 @@
     },
     "Catalog": {
         "description": "The Ludora catalog is empty for now. Soon you'll find games to explore here.",
-        "emptyDescription": "We're preparing this space for the platform's first games.",
-        "emptyTitle": "No games yet",
+        "empty": {
+            "description": "We're preparing this space for the platform's first games.",
+            "title": "No games yet"
+        },
         "eyebrow": "Explore Ludora",
         "title": "Game catalog"
     },
@@ -39,7 +45,6 @@
         "actions": {
             "backHome": "Back to home",
             "cancel": "Cancel",
-            "continue": "Continue",
             "retry": "Try again",
             "saveChanges": "Save changes"
         },
@@ -56,14 +61,15 @@
         "status": {
             "checkingSession": "Checking your session",
             "retryAfter": "{seconds, plural, one {You can try again in # second.} other {You can try again in # seconds.}}",
-            "saving": "Saving...",
-            "validating": "Validating..."
+            "saving": "Saving..."
         }
     },
     "EmailVerification": {
         "backToLogin": "Back to sign in",
-        "codeLabel": "Verification code",
-        "codePlaceholder": "000000",
+        "code": {
+            "label": "Verification code",
+            "placeholder": "000000"
+        },
         "description": "Enter the code you received by email to confirm your address, activate your account, and sign in.",
         "errors": {
             "AUTH_EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED": "You have reached the attempt limit for this code. Select “Resend code” to request a new one.",
@@ -73,8 +79,10 @@
             "AUTH_EMAIL_VERIFICATION_RESEND_TOO_SOON": "Please wait before requesting another verification code."
         },
         "feedback": {
-            "deliveryUnconfirmedMessage": "We couldn't confirm the email was sent. If you receive a code, you can enter it here. You can also request another when the waiting period ends.",
-            "deliveryUnconfirmedTitle": "We couldn't confirm the email was sent",
+            "deliveryUnconfirmed": {
+                "message": "We couldn't confirm the email was sent. If you receive a code, you can enter it here. You can also request another when the waiting period ends.",
+                "title": "We couldn't confirm the email was sent"
+            },
             "errorTitle": "We couldn't confirm your email"
         },
         "resend": {
@@ -83,8 +91,10 @@
             "errorTitle": "We couldn't resend the code",
             "hint": "Didn't receive the email? You can request another code.",
             "pending": "Resending...",
-            "successMessage": "Check your email and enter the latest code.",
-            "successTitle": "Code sent"
+            "success": {
+                "message": "Check your email and enter the latest code.",
+                "title": "Code sent"
+            }
         },
         "skipToForm": "Skip to confirmation form",
         "submit": "Confirm email",
@@ -102,19 +112,24 @@
     },
     "Header": {
         "account": "My account",
-        "exploreCatalog": "Explore catalog",
         "games": "Games",
         "login": "Sign in",
-        "mainNavigation": "Main navigation",
-        "menu": "Menu",
-        "menuDescription": "Browse the platform sections.",
-        "menuTitle": "Ludora menu",
-        "mobileNavigation": "Mobile navigation",
+        "menu": {
+            "description": "Browse the platform sections.",
+            "label": "Menu",
+            "title": "Ludora menu"
+        },
+        "navigation": {
+            "main": "Main navigation",
+            "mobile": "Mobile navigation"
+        },
         "preferences": "Preferences",
         "ranking": "Ranking",
         "register": "Register",
-        "sessionLoading": "Checking your session",
-        "sessionUnavailable": "We couldn't check your session."
+        "session": {
+            "loading": "Checking your session",
+            "unavailable": "We couldn't check your session."
+        }
     },
     "Home": {
         "description": "Discover games, meet up with friends, and share new games in one place.",
@@ -132,8 +147,6 @@
     },
     "Login": {
         "description": "Access your Ludora account with your email and password.",
-        "email": "Email address",
-        "emailPlaceholder": "you@example.com",
         "errors": {
             "AUTH_EMAIL_NOT_VERIFIED": "Verify your email address to sign in.",
             "AUTH_INVALID_CREDENTIALS": "The email or password is incorrect."
@@ -141,9 +154,17 @@
         "feedback": {
             "errorTitle": "We couldn't sign you in"
         },
+        "fields": {
+            "email": {
+                "label": "Email address",
+                "placeholder": "you@example.com"
+            },
+            "password": {
+                "label": "Password",
+                "placeholder": "Enter your password"
+            }
+        },
         "forgotPassword": "Forgot your password?",
-        "password": "Password",
-        "passwordPlaceholder": "Enter your password",
         "register": "Create an account",
         "skipToForm": "Skip to sign in form",
         "submit": "Sign in",
@@ -174,34 +195,48 @@
     },
     "PasswordRecovery": {
         "backToLogin": "Back to sign in",
-        "confirmPassword": "Confirm new password",
-        "confirmPasswordPlaceholder": "Repeat your new password",
-        "email": "Email address",
-        "emailPlaceholder": "you@example.com",
         "errors": {
             "AUTH_PASSWORD_RESET_INVALID": "This recovery link is invalid, expired, or already used. Request a new one."
         },
-        "password": "New password",
-        "passwordPlaceholder": "Create a new password",
+        "fields": {
+            "confirmPassword": {
+                "label": "Confirm new password",
+                "placeholder": "Repeat your new password"
+            },
+            "email": {
+                "label": "Email address",
+                "placeholder": "you@example.com"
+            },
+            "password": {
+                "label": "New password",
+                "placeholder": "Create a new password"
+            }
+        },
         "request": {
             "description": "Enter your email address to request a password reset link.",
             "errorTitle": "Could not request password recovery",
             "submit": "Send recovery link",
             "submitting": "Sending link…",
-            "successMessage": "If an account exists for that email address, you will receive a link to reset your password.",
-            "successTitle": "Check your email",
+            "success": {
+                "message": "If an account exists for that email address, you will receive a link to reset your password.",
+                "title": "Check your email"
+            },
             "title": "Recover your password"
         },
         "reset": {
             "description": "Choose a new password for your account.",
             "errorTitle": "Could not reset your password",
-            "invalidLinkTitle": "This recovery link is not valid",
+            "invalidLink": {
+                "requestNewLink": "Request a new recovery link",
+                "title": "This recovery link is not valid"
+            },
             "loading": "Loading password reset form",
-            "requestNewLink": "Request a new recovery link",
             "submit": "Change password",
             "submitting": "Changing password…",
-            "successMessage": "Your password has been changed. Sign in with your new password.",
-            "successTitle": "Password changed",
+            "success": {
+                "message": "Your password has been changed. Sign in with your new password.",
+                "title": "Password changed"
+            },
             "title": "Create a new password"
         },
         "skipToForm": "Skip to recovery form",
@@ -213,42 +248,53 @@
         }
     },
     "Preferences": {
-        "appearanceDescription": "Turn dark mode on or off.",
-        "appearanceTitle": "Appearance",
+        "appearance": {
+            "description": "Turn dark mode on or off.",
+            "title": "Appearance"
+        },
         "description": "Choose how you want to view and use Ludora. Changes apply automatically and are remembered in this browser.",
         "eyebrow": "Ludora your way",
-        "languageDescription": "Choose the language for text and navigation.",
-        "languageTitle": "Platform language",
+        "language": {
+            "description": "Choose the language for text and navigation.",
+            "title": "Platform language"
+        },
         "loading": "Loading preferences",
         "title": "Preferences"
     },
     "Profile": {
-        "avatarLabel": "Choose an avatar",
-        "avatars": {
-            "castle": "Castle",
-            "clover": "Clover",
-            "comet": "Comet",
-            "die": "Die",
-            "fox": "Fox",
-            "planet": "Planet"
+        "avatar": {
+            "label": "Choose an avatar",
+            "options": {
+                "castle": "Castle",
+                "clover": "Clover",
+                "comet": "Comet",
+                "dice": "Dice",
+                "fox": "Fox",
+                "planet": "Planet"
+            },
+            "useInitial": "Use my initial"
         },
-        "bioCounter": "{count}/{max} characters",
-        "bioLabel": "Biography",
-        "bioPlaceholder": "Tell us a little about yourself…",
+        "bio": {
+            "counter": "{count}/{max} characters",
+            "empty": "You haven't added a biography yet.",
+            "label": "Biography",
+            "placeholder": "Tell us a little about yourself…"
+        },
         "description": "Your identity on Ludora.",
         "edit": "Edit profile",
-        "emptyBio": "You haven't added a biography yet.",
         "eyebrow": "Your account",
+        "loadError": "We couldn't load your profile",
         "loading": "Loading profile",
         "saveError": "Your changes could not be saved. Please try again.",
-        "saved": "Profile updated in this browser.",
-        "title": "My profile",
-        "useInitial": "Use my initial"
+        "saved": "Profile updated.",
+        "title": "My profile"
     },
     "Ranking": {
         "description": "Game rankings will appear here once matches begin.",
-        "emptyDescription": "No matches have been recorded yet. Come back when the community starts playing.",
-        "emptyTitle": "No rankings yet",
+        "empty": {
+            "description": "No matches have been recorded yet. Come back when the community starts playing.",
+            "title": "No rankings yet"
+        },
         "eyebrow": "Community",
         "title": "Ranking"
     },
@@ -302,15 +348,19 @@
         "label": "Dark mode"
     },
     "UserSettings": {
-        "changePassword": "Change password",
         "description": "View your private email address and Ludora access options.",
-        "emailDescription": "Your email is private and is not shown on your visible profile.",
-        "emailTitle": "Email address",
+        "email": {
+            "description": "Your email is private and is not shown on your visible profile.",
+            "preview": "Example email address for this preview.",
+            "title": "Email address"
+        },
         "eyebrow": "Access and privacy",
         "loading": "Loading account settings",
-        "passwordTitle": "Password",
-        "passwordUnavailable": "This option will be available when you can sign in to your account.",
-        "previewEmail": "Example email address for this preview.",
+        "password": {
+            "change": "Change password",
+            "title": "Password",
+            "unavailable": "This option will be available when you can sign in to your account."
+        },
         "title": "Account"
     }
 }

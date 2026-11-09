@@ -65,8 +65,8 @@ export function EmailVerificationPageContent({
                     <Alert
                         status='warning'
                         role='status'
-                        title={t('feedback.deliveryUnconfirmedTitle')}
-                        message={t('feedback.deliveryUnconfirmedMessage')}
+                        title={t('feedback.deliveryUnconfirmed.title')}
+                        message={t('feedback.deliveryUnconfirmed.message')}
                     />
                 )}
 
@@ -75,8 +75,8 @@ export function EmailVerificationPageContent({
                         <FormTextField
                             control={form.control}
                             name='code'
-                            label={t('codeLabel')}
-                            placeholder={t('codePlaceholder')}
+                            label={t('code.label')}
+                            placeholder={t('code.placeholder')}
                             inputMode='numeric'
                             maxLength={EMAIL_VERIFICATION_CODE_LENGTH}
                             autoComplete='one-time-code'

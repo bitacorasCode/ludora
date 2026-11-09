@@ -1,12 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { type ProfilePreferences } from './schema';
-import {
-  getStoredProfile,
-  readPreferences,
-  savePreferences,
-  subscribeToProfile,
-} from './storage';
+import { createProfileStorage, readPreferences } from './storage';
+
+const PROFILE_USER_ID = 'd5a705f8-bffa-4c42-817f-aa61b901eab1';
+const OTHER_USER_ID = 'b2cd9d1f-b863-4640-bc42-94a3b69c7559';
+const profileStorage = createProfileStorage(PROFILE_USER_ID);
 
 const preferences: ProfilePreferences = {
   avatarPresetId: 'fox',
@@ -54,10 +53,10 @@ describe('profile storage', () => {
 
   it('round-trips saved preferences and announces the change', () => {
     const onChange = vi.fn();
-    const unsubscribe = subscribeToProfile(onChange);
+    const unsubscribe = profileStorage.subscribe(onChange);
     try {
-      savePreferences(preferences);
-      expect(readPreferences(getStoredProfile())).toEqual(preferences);
+      profileStorage.save(preferences);
+      expect(readPreferences(profileStorage.getSnapshot())).toEqual(preferences);
       expect(onChange).toHaveBeenCalledOnce();
     } finally {
       unsubscribe();
@@ -68,6 +67,32 @@ describe('profile storage', () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('Storage full');
     });
-    expect(() => savePreferences(preferences)).toThrow('Storage full');
+    expect(() => profileStorage.save(preferences)).toThrow('Storage full');
+  });
+
+  it('keeps preferences and change notifications isolated by user', () => {
+    const otherStorage = createProfileStorage(OTHER_USER_ID);
+    const onChange = vi.fn();
+    const unsubscribe = profileStorage.subscribe(onChange);
+    try {
+      otherStorage.save({ avatarPresetId: 'planet', bio: 'Otro perfil' });
+      expect(profileStorage.getSnapshot()).toBeNull();
+      expect(onChange).not.toHaveBeenCalled();
+      profileStorage.save(preferences);
+      expect(onChange).toHaveBeenCalledOnce();
+      expect(readPreferences(profileStorage.getSnapshot())).toEqual(preferences);
+      expect(readPreferences(otherStorage.getSnapshot())).toEqual({
+        avatarPresetId: 'planet',
+        bio: 'Otro perfil',
+      });
+    } finally {
+      unsubscribe();
+    }
+  });
+
+  it('stores only editable preferences from a server response', () => {
+    const response = { ...preferences, userId: PROFILE_USER_ID };
+    profileStorage.save(response);
+    expect(JSON.parse(profileStorage.getSnapshot()!)).toEqual(preferences);
   });
 });

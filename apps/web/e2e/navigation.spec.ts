@@ -9,12 +9,12 @@ test.describe('Platform navigation', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/es/games');
     const trigger = page.getByRole('button', {
-      name: esMessages.Header.menu,
+      name: esMessages.Header.menu.label,
       exact: true,
     });
     await trigger.click();
     const dialog = page.getByRole('dialog', {
-      name: esMessages.Header.menuTitle,
+      name: esMessages.Header.menu.title,
     });
     await expect(dialog).toBeVisible();
     await page.keyboard.press('Escape');

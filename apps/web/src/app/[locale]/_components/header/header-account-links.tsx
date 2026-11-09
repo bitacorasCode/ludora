@@ -52,6 +52,6 @@ export async function HeaderAccountLinks({
   } catch (error) {
     console.error('Unable to load the header session.', error);
 
-    return <span role='status'>{t('sessionUnavailable')}</span>;
+    return <span role='status'>{t('session.unavailable')}</span>;
   }
 }

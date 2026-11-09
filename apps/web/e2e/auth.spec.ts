@@ -23,7 +23,7 @@ test.describe('Real authentication', () => {
     await fillLogin(page, testAccount.email, testAccount.password);
     await expect(page).toHaveURL('/es');
     const navigation = page.getByRole('navigation', {
-      name: esMessages.Header.mainNavigation,
+      name: esMessages.Header.navigation.main,
     });
     await expect(
       navigation.getByRole('link', {
@@ -116,7 +116,7 @@ test.describe('Real authentication', () => {
       }),
     ).toBeDisabled();
     await expect(
-      page.getByLabel(esMessages.Login.email, { exact: true }),
+      page.getByLabel(esMessages.Login.fields.email.label, { exact: true }),
     ).toBeDisabled();
     await expect(page).toHaveURL('/es');
   });

@@ -125,3 +125,32 @@ the shared error toast, including the waiting period for `429` responses.
 This flow does not write recovery tokens to local storage, application logs,
 toast messages, or secondary links. The token and form values are revalidated in
 the Server Action even after the browser has validated them.
+
+## Profile persistence
+
+The profile displays validated, per-user local storage while `GET /api/profile`
+refreshes it through the Next.js server and Nest's authenticated `GET /profile`.
+Editing becomes available after a successful server read. The save Server Action
+validates the input and checks that the current session still belongs to the
+displayed user before calling Nest's `PUT /profile`.
+
+Only a successful server response updates the visible profile and browser cache.
+A failed save leaves the editor open with its entered values. Cache write failures
+do not turn a successful server operation into a failed save.
+
+Run the profile browser scenarios from the monorepo root:
+
+```bash
+pnpm --filter web test:e2e e2e/profile.spec.ts --project=signed-in
+```
+
+These tests reset only the temporary test account's profile, save through the
+editor, check synchronization with another tab, clear browser storage, and reload.
+The final read must restore the avatar and biography from the API without a
+browser cache. Cancelled edits must leave the server profile unchanged.
+
+To check this manually, sign in, edit the avatar and biography, save, then delete
+only the `ludora:profile:<user-id>` local storage entry in browser developer tools.
+Reload the profile and wait for editing to become available again. The same data
+must appear. The browser's `/api/profile` response can also be inspected to confirm
+the saved values returned by Nest.

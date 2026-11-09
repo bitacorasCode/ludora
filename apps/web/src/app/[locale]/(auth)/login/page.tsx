@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
 import { LoginPageContent } from '@/features/login';
-import { GuestOnly } from '../_components/auth/guest-only';
+
+import { GuestOnly } from '../../_components/auth/guest-only';
 
 export async function generateMetadata({
   params,

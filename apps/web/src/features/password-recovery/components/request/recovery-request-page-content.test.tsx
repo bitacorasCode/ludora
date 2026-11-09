@@ -40,7 +40,7 @@ function renderRecoveryRequest() {
 }
 
 function submitValidRecoveryRequest() {
-  fireEvent.change(screen.getByLabelText(esMessages.PasswordRecovery.email), {
+  fireEvent.change(screen.getByLabelText(esMessages.PasswordRecovery.fields.email.label), {
     target: { value: validEmail },
   });
   fireEvent.submit(screen.getByRole('form', {
@@ -133,10 +133,10 @@ describe('RecoveryRequestPageContent integration', () => {
       { email: 'juan@example.com' },
     ));
     await waitFor(() => expect(toast.success).toHaveBeenCalledExactlyOnceWith(
-      esMessages.PasswordRecovery.request.successTitle,
+      esMessages.PasswordRecovery.request.success.title,
       {
         id: 'recovery-request-success',
-        description: esMessages.PasswordRecovery.request.successMessage,
+        description: esMessages.PasswordRecovery.request.success.message,
       },
     ));
 
@@ -169,7 +169,7 @@ describe('RecoveryRequestPageContent integration', () => {
     expect(button.hasAttribute('disabled')).toBe(true);
     expect(screen.getByRole('form').getAttribute('aria-busy')).toBe('true');
     expect(
-      screen.getByLabelText(esMessages.PasswordRecovery.email)
+      screen.getByLabelText(esMessages.PasswordRecovery.fields.email.label)
         .closest('fieldset')?.hasAttribute('disabled'),
     ).toBe(true);
 
@@ -196,7 +196,7 @@ describe('RecoveryRequestPageContent integration', () => {
         duration: Infinity,
       },
     ));
-    fireEvent.change(screen.getByLabelText(esMessages.PasswordRecovery.email), {
+    fireEvent.change(screen.getByLabelText(esMessages.PasswordRecovery.fields.email.label), {
       target: { value: 'another@example.com' },
     });
     expect(toast.dismiss).not.toHaveBeenCalledWith('recovery-request-error');

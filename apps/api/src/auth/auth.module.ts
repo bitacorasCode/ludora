@@ -69,5 +69,6 @@ const { algorithm, issuer, audience } = JWT_CONFIG;
         EmailVerificationCodeService,
         EmailVerificationService
     ],
+    exports: [JwtModule, UsersModule],
 })
 export class AuthModule { }

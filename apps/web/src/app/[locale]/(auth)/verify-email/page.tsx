@@ -8,7 +8,7 @@ import { EMAIL_VERIFICATION_DELIVERY } from '@/features/email-verification/confi
 import { getVerificationWaitSeconds } from '@/features/email-verification/server/get-verification-wait-seconds';
 import { redirect } from '@/i18n/navigation';
 
-import { GuestOnly } from '../_components/auth/guest-only';
+import { GuestOnly } from '../../_components/auth/guest-only';
 
 export async function generateMetadata({
   params,

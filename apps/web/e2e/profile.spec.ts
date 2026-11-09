@@ -1,8 +1,27 @@
 import esMessages from '../src/messages/es.json';
-import { expect, test } from './fixtures/auth';
+import { API_URL, expect, SESSION_COOKIE, test } from './fixtures/auth';
+
+test.beforeEach(async ({ context, request, testAccount }) => {
+  const session = (await context.cookies()).find(
+    ({ name }) => name === SESSION_COOKIE,
+  );
+  if (!session) throw new Error('Profile tests require an authenticated session.');
+
+  const response = await request.put(`${API_URL}/profile`, {
+    headers: { Authorization: `Bearer ${session.value}` },
+    data: { avatarPresetId: null, bio: null },
+  });
+
+  expect(response.status()).toBe(200);
+  expect(await response.json()).toEqual({
+    userId: testAccount.id,
+    avatarPresetId: null,
+    bio: null,
+  });
+});
 
 test.describe('Profile persistence', () => {
-  test('saves preferences across reloads and synchronizes another tab', async ({
+  test('persists the profile on the server without browser cache and synchronizes another tab', async ({
     page,
     context,
   }) => {
@@ -17,23 +36,23 @@ test.describe('Profile persistence', () => {
     await page.goto('/es/account/profile');
     const otherTab = await context.newPage();
     await otherTab.goto('/es/account/profile');
-    await expect(otherTab.getByText(esMessages.Profile.emptyBio)).toBeVisible();
+    await expect(otherTab.getByText(esMessages.Profile.bio.empty)).toBeVisible();
     await page.bringToFront();
     await page.getByRole('button', { name: esMessages.Profile.edit }).click();
     const initial = page.getByRole('radio', {
-      name: esMessages.Profile.useInitial,
+      name: esMessages.Profile.avatar.useInitial,
     });
     await initial.focus();
     await page.keyboard.down('ArrowRight');
     await expect(
-      page.getByRole('radio', { name: esMessages.Profile.avatars.comet }),
+      page.getByRole('radio', { name: esMessages.Profile.avatar.options.comet }),
     ).toBeChecked();
     await page.keyboard.up('ArrowRight');
     await page
-      .getByRole('radio', { name: esMessages.Profile.avatars.fox })
+      .getByRole('radio', { name: esMessages.Profile.avatar.options.fox })
       .click();
     await page
-      .getByLabel(esMessages.Profile.bioLabel)
+      .getByLabel(esMessages.Profile.bio.label)
       .fill('Mi perfil persistido');
     await page
       .getByRole('button', { name: esMessages.Common.actions.saveChanges })
@@ -43,12 +62,17 @@ test.describe('Profile persistence', () => {
       otherTab.getByText('Mi perfil persistido', { exact: true }),
     ).toBeVisible();
     await expect(otherTab.locator('img[src="/avatars/fox.svg"]')).toBeVisible();
+    await otherTab.close();
+    await page.evaluate(() => localStorage.clear());
     await page.reload();
+    await expect(
+      page.getByRole('button', { name: esMessages.Profile.edit }),
+    ).toBeVisible();
     await expect(
       page.getByText('Mi perfil persistido', { exact: true }),
     ).toBeVisible();
+    await expect(page.locator('img[src="/avatars/fox.svg"]')).toBeVisible();
     expect(hydrationErrors).toEqual([]);
-    await otherTab.close();
   });
 
   test('discards cancelled edits without changing persisted data', async ({
@@ -57,14 +81,18 @@ test.describe('Profile persistence', () => {
     await page.goto('/es/account/profile');
     await page.getByRole('button', { name: esMessages.Profile.edit }).click();
     await page
-      .getByLabel(esMessages.Profile.bioLabel)
+      .getByLabel(esMessages.Profile.bio.label)
       .fill('Cambio descartado');
     await page
       .getByRole('button', { name: esMessages.Common.actions.cancel })
       .click();
-    await expect(page.getByText(esMessages.Profile.emptyBio)).toBeVisible();
-    expect(
-      await page.evaluate(() => localStorage.getItem('ludora:preview-profile')),
-    ).toBeNull();
+    await expect(page.getByText(esMessages.Profile.bio.empty)).toBeVisible();
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await expect(
+      page.getByRole('button', { name: esMessages.Profile.edit }),
+    ).toBeVisible();
+    await expect(page.getByText(esMessages.Profile.bio.empty)).toBeVisible();
+    await expect(page.getByText('Cambio descartado')).toHaveCount(0);
   });
 });

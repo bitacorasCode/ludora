@@ -176,12 +176,12 @@ export default function useEmailVerificationForm({
                 });
 
                 if (emailSent) {
-                    toast.success(resend('successTitle'), {
-                        description: resend('successMessage'),
+                    toast.success(resend('success.title'), {
+                        description: resend('success.message'),
                     });
                 } else {
-                    toast.warning(feedback('deliveryUnconfirmedTitle'), {
-                        description: feedback('deliveryUnconfirmedMessage'),
+                    toast.warning(feedback('deliveryUnconfirmed.title'), {
+                        description: feedback('deliveryUnconfirmed.message'),
                     });
                 }
             } catch {

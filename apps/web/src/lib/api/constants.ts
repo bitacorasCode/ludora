@@ -6,6 +6,7 @@ export const JSON_MEDIA_TYPE = 'application/json';
 export const API_METHOD = {
     get: 'GET',
     post: 'POST',
+    put: 'PUT',
 } as const;
 
 export const API_HEADERS = {
@@ -46,6 +47,10 @@ export const API_ERROR_CODES = {
 } as const;
 
 export const HTTP_STATUS = {
+    ok: 200,
+    badRequest: 400,
     unauthorized: 401,
     tooManyRequests: 429,
+    badGateway: 502,
+    serviceUnavailable: 503,
 } as const;

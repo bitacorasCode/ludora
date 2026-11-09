@@ -51,7 +51,7 @@ test.setTimeout(RECOVERY_FLOW_TIMEOUT_MS);
 
 async function requestRecovery(page: Page, email: string) {
   await page.goto('/es/forgot-password');
-  const input = page.getByLabel(esMessages.PasswordRecovery.email, { exact: true });
+  const input = page.getByLabel(esMessages.PasswordRecovery.fields.email.label, { exact: true });
 
   // An actual validation interaction confirms that React has hydrated the form.
   await expect.poll(async () => {
@@ -70,7 +70,7 @@ async function requestRecovery(page: Page, email: string) {
     name: esMessages.PasswordRecovery.request.submit,
     exact: true,
   }).click();
-  await expect(page.getByText(esMessages.PasswordRecovery.request.successTitle, {
+  await expect(page.getByText(esMessages.PasswordRecovery.request.success.title, {
     exact: true,
   })).toBeVisible();
 }
@@ -86,9 +86,9 @@ async function openRecoveryLink(page: Page, emailUrl: URL) {
 }
 
 async function submitPassword(page: Page, password: string) {
-  const input = page.getByLabel(esMessages.PasswordRecovery.password, { exact: true });
-  const show = `${esMessages.FormTextField.show}: ${esMessages.PasswordRecovery.password}`;
-  const hide = `${esMessages.FormTextField.hide}: ${esMessages.PasswordRecovery.password}`;
+  const input = page.getByLabel(esMessages.PasswordRecovery.fields.password.label, { exact: true });
+  const show = `${esMessages.FormTextField.show}: ${esMessages.PasswordRecovery.fields.password.label}`;
+  const hide = `${esMessages.FormTextField.hide}: ${esMessages.PasswordRecovery.fields.password.label}`;
 
   await expect.poll(async () => {
     if (await input.getAttribute('type') === 'password') {
@@ -98,7 +98,7 @@ async function submitPassword(page: Page, password: string) {
   }, { timeout: FORM_INTERACTION_TIMEOUT_MS }).toBe('text');
   await page.getByRole('button', { name: hide, exact: true }).click();
   await input.fill(password);
-  await page.getByLabel(esMessages.PasswordRecovery.confirmPassword, {
+  await page.getByLabel(esMessages.PasswordRecovery.fields.confirmPassword.label, {
     exact: true,
   }).fill(password);
   await page.getByRole('button', {
@@ -139,7 +139,7 @@ test.describe('Password recovery with real mail', () => {
     });
     await submitPassword(page, newPassword);
     await expect.poll(() => new URL(page.url()).pathname).toBe('/es/login');
-    await expect(page.getByText(esMessages.PasswordRecovery.reset.successTitle, {
+    await expect(page.getByText(esMessages.PasswordRecovery.reset.success.title, {
       exact: true,
     })).toBeVisible();
     expect(await page.evaluate(() =>
@@ -176,13 +176,13 @@ test.describe('Password recovery with real mail', () => {
     await openRecoveryLink(page, recovery.url);
     await submitPassword(page, `Reuse-${randomUUID()}`);
     await expect(page.getByRole('alert', {
-      name: esMessages.PasswordRecovery.reset.invalidLinkTitle,
+      name: esMessages.PasswordRecovery.reset.invalidLink.title,
       exact: true,
     })).toContainText(
       esMessages.PasswordRecovery.errors.AUTH_PASSWORD_RESET_INVALID,
     );
     await expect(page.getByRole('link', {
-      name: esMessages.PasswordRecovery.reset.requestNewLink,
+      name: esMessages.PasswordRecovery.reset.invalidLink.requestNewLink,
       exact: true,
     })).toBeVisible();
     expect((await context.cookies()).some(({ name, value }) =>
@@ -201,7 +201,7 @@ test.describe('Password recovery with real mail', () => {
     await openRecoveryLink(page, recovery.url);
     await submitPassword(page, `Expired-${randomUUID()}`);
     await expect(page.getByRole('alert', {
-      name: esMessages.PasswordRecovery.reset.invalidLinkTitle,
+      name: esMessages.PasswordRecovery.reset.invalidLink.title,
       exact: true,
     })).toContainText(
       esMessages.PasswordRecovery.errors.AUTH_PASSWORD_RESET_INVALID,
@@ -253,16 +253,16 @@ test.describe('Password recovery with real mail', () => {
     for (const query of ['', '?token=invalid!', '?token=AAAA&token=BBBB']) {
       await page.goto(`/es/reset-password${query}`);
       await expect(page.getByRole('alert', {
-        name: esMessages.PasswordRecovery.reset.invalidLinkTitle,
+        name: esMessages.PasswordRecovery.reset.invalidLink.title,
         exact: true,
       })).toContainText(
         esMessages.PasswordRecovery.errors.AUTH_PASSWORD_RESET_INVALID,
       );
       await expect(page.getByRole('link', {
-        name: esMessages.PasswordRecovery.reset.requestNewLink,
+        name: esMessages.PasswordRecovery.reset.invalidLink.requestNewLink,
         exact: true,
       })).toHaveAttribute('href', '/es/forgot-password');
-      await expect(page.getByLabel(esMessages.PasswordRecovery.password, {
+      await expect(page.getByLabel(esMessages.PasswordRecovery.fields.password.label, {
         exact: true,
       })).toHaveCount(0);
     }

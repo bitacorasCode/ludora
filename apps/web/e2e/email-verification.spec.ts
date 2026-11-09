@@ -10,7 +10,7 @@ test.use({ trace: 'off', screenshot: 'off' });
 
 async function confirmEmail(page: Page, code: string) {
   await page
-    .getByLabel(esMessages.EmailVerification.codeLabel, { exact: true })
+    .getByLabel(esMessages.EmailVerification.code.label, { exact: true })
     .fill(code);
   await page
     .getByRole('button', {
@@ -28,7 +28,7 @@ async function expectAuthenticatedAccount(
 ) {
   await expect(page).toHaveURL('/es/account/profile');
   const navigation = page.getByRole('navigation', {
-    name: esMessages.Header.mainNavigation,
+    name: esMessages.Header.navigation.main,
   });
   await expect(
     navigation.getByRole('link', {
@@ -161,7 +161,7 @@ test.describe('Email verification with real mail', () => {
     await expect(resendButton).toBeEnabled({ timeout: 75_000 });
     await resendButton.click();
     await expect(
-      page.getByText(esMessages.EmailVerification.resend.successTitle, { exact: true }),
+      page.getByText(esMessages.EmailVerification.resend.success.title, { exact: true }),
     ).toBeVisible();
     const resentEmail = await waitForVerificationEmail(request, pendingAccount.email, {
       excludeMessageIds: [firstEmail.id],

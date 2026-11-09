@@ -11,4 +11,9 @@ export type ApiClient<TOptions extends ApiOptions = ApiOptions> = {
         body: unknown,
         options?: ApiOptions,
     ): Promise<ActionResult<unknown>>;
+    put(
+        path: string,
+        body: unknown,
+        options?: ApiOptions,
+    ): Promise<ActionResult<unknown>>;
 };

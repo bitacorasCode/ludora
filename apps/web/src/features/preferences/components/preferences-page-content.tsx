@@ -12,14 +12,14 @@ export function PreferencesPageContent() {
   const items = [
     {
       id: 'appearance',
-      title: t('appearanceTitle'),
-      description: t('appearanceDescription'),
+      title: t('appearance.title'),
+      description: t('appearance.description'),
       content: <ThemeSwitch />,
     },
     {
       id: 'language',
-      title: t('languageTitle'),
-      description: t('languageDescription'),
+      title: t('language.title'),
+      description: t('language.description'),
       content: <LocaleSwitcher />,
     },
   ] satisfies readonly ItemListEntry[];
