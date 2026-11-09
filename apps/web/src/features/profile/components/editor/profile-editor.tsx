@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Controller } from 'react-hook-form';
 
 import { FormTextareaField, SubmitButton } from '@/components/forms';
+import { useUnsavedChanges } from '@/components/navigation';
 import { Button, Card, CardContent } from '@/components/ui';
 
 import type { Profile } from '../../config';
@@ -25,6 +26,8 @@ export function ProfileEditor({
   const t = useTranslations('Profile');
   const common = useTranslations('Common');
   const { form, onSubmit } = useProfileForm(profile, onSave);
+
+  const { requestNavigation } = useUnsavedChanges(form.formState.isDirty);
 
   return (
     <Card>
@@ -67,7 +70,11 @@ export function ProfileEditor({
                 mainText={common('actions.saveChanges')}
                 submittingText={common('status.saving')}
               />
-              <Button type='button' variant='outline' onClick={onCancel}>
+              <Button
+                type='button'
+                variant='outline'
+                onClick={() => requestNavigation(onCancel)}
+              >
                 {common('actions.cancel')}
               </Button>
             </div>

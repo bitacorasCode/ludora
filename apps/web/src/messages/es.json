@@ -62,6 +62,12 @@
             "checkingSession": "Comprobando sesión",
             "retryAfter": "{seconds, plural, one {Podrás volver a intentarlo en # segundo.} other {Podrás volver a intentarlo en # segundos.}}",
             "saving": "Guardando..."
+        },
+        "unsavedChanges": {
+            "cancel": "Seguir editando",
+            "confirm": "Descartar cambios y salir",
+            "description": "Si sales ahora, perderás los cambios que no hayas guardado.",
+            "title": "Tienes cambios sin guardar"
         }
     },
     "EmailVerification": {

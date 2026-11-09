@@ -8,9 +8,15 @@ import {
     useSyncExternalStore,
 } from 'react';
 
-import { type ActionError, OPERATION_STATUS } from '@/lib/actions';
+import { useProtectedRequest } from '@/hooks';
+import {
+    type ActionError,
+    type ActionResult,
+    OPERATION_STATUS,
+} from '@/lib/actions';
 import { API_ERROR_CODES } from '@/lib/api/constants';
 
+import { saveProfile } from '../actions';
 import { loadProfile } from '../client/load-profile';
 import type { Profile } from '../config';
 import type { ProfilePreferences, ProfileResponse } from '../schema';
@@ -26,6 +32,8 @@ export function useProfile(userId: string, nickname: string) {
         () => createProfileStorage(userId),
         [userId],
     );
+
+    const { execute, isRecoveringSession } = useProtectedRequest();
 
     const storedValue = useSyncExternalStore<
         string | null | undefined
@@ -71,11 +79,19 @@ export function useProfile(userId: string, nickname: string) {
         const controller = new AbortController();
 
         async function refreshProfile() {
-            const result = await loadProfile(controller.signal);
+            const result = await execute(
+                () => loadProfile(controller.signal),
+                {
+                    signal: controller.signal,
+                    retryAfterRecovery: true,
+                },
+            );
 
             if (controller.signal.aborted) return;
 
             setIsRefreshing(false);
+
+            if (!result) return;
 
             if (result.status === OPERATION_STATUS.error) {
                 setError(result.error);
@@ -92,7 +108,7 @@ export function useProfile(userId: string, nickname: string) {
         void refreshProfile();
 
         return () => controller.abort();
-    }, [updateProfile, refreshVersion]);
+    }, [execute, updateProfile, refreshVersion]);
 
     const cachedPreferences = readPreferences(storedValue ?? null);
 
@@ -115,9 +131,33 @@ export function useProfile(userId: string, nickname: string) {
         setRefreshVersion((version) => version + 1);
     }
 
+    async function save(
+        values: ProfilePreferences,
+    ): Promise<ActionResult<ProfileResponse> | null> {
+        const result = await execute(
+            () => saveProfile(userId, values),
+        );
+
+        if (!result || result.status === OPERATION_STATUS.error) {
+            return result;
+        }
+
+        if (!updateProfile(result.data)) {
+            return {
+                status: OPERATION_STATUS.error,
+                error: {
+                    errorCode: API_ERROR_CODES.invalidResponse,
+                },
+            };
+        }
+
+        return result;
+    }
+
     const canEdit =
         remoteSnapshot !== null
         && !isRefreshing
+        && !isRecoveringSession
         && error === null;
 
     return {
@@ -125,6 +165,6 @@ export function useProfile(userId: string, nickname: string) {
         error,
         reload,
         canEdit,
-        updateProfile,
+        save,
     };
-}
+};

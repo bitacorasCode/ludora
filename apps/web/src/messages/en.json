@@ -62,6 +62,12 @@
             "checkingSession": "Checking your session",
             "retryAfter": "{seconds, plural, one {You can try again in # second.} other {You can try again in # seconds.}}",
             "saving": "Saving..."
+        },
+        "unsavedChanges": {
+            "cancel": "Keep editing",
+            "confirm": "Discard changes and leave",
+            "description": "If you leave now, you will lose the changes you haven't saved.",
+            "title": "You have unsaved changes"
         }
     },
     "EmailVerification": {

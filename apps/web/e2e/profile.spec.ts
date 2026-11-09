@@ -95,4 +95,57 @@ test.describe('Profile persistence', () => {
     await expect(page.getByText(esMessages.Profile.bio.empty)).toBeVisible();
     await expect(page.getByText('Cambio descartado')).toHaveCount(0);
   });
+
+  test('closes the editor and discards drafts after link and browser-back navigation', async ({
+    page,
+  }) => {
+    await page.goto('/es/account/profile');
+    await page.getByRole('button', { name: esMessages.Profile.edit }).click();
+    await page
+      .getByRole('textbox', { name: esMessages.Profile.bio.label })
+      .fill('Biografía guardada');
+    await page
+      .getByRole('button', { name: esMessages.Common.actions.saveChanges })
+      .click();
+    await expect(page.getByText(esMessages.Profile.saved, { exact: true })).toBeVisible();
+
+    await page.getByRole('button', { name: esMessages.Profile.edit }).click();
+    await page
+      .getByRole('textbox', { name: esMessages.Profile.bio.label })
+      .fill('Borrador sin guardar');
+    await page.locator('header')
+      .getByRole('link', { name: esMessages.Header.games, exact: true })
+      .click();
+    await expect(page).toHaveURL('/es/games');
+    await expect(page.getByRole('heading', { name: esMessages.Catalog.title, exact: true }))
+      .toBeVisible();
+
+    const preservedHeading = page.locator('h1').filter({ hasText: esMessages.Profile.title });
+    await expect(preservedHeading).toHaveCount(1);
+    await expect(preservedHeading).toBeHidden();
+
+    await page.locator('header')
+      .getByRole('link', { name: esMessages.Header.account, exact: true })
+      .click();
+    await expect(page).toHaveURL('/es/account/profile');
+    await expect(page.getByRole('button', { name: esMessages.Profile.edit })).toBeVisible();
+    await expect(page.getByRole('form', { name: esMessages.Profile.edit })).toHaveCount(0);
+    await expect(page.getByText('Biografía guardada', { exact: true })).toBeVisible();
+
+    await page.getByRole('button', { name: esMessages.Profile.edit }).click();
+    const biography = page.getByRole('textbox', { name: esMessages.Profile.bio.label });
+    await expect(biography).toHaveValue('Biografía guardada');
+    await biography.fill('Otro borrador sin guardar');
+    await page.locator('header')
+      .getByRole('link', { name: esMessages.Header.games, exact: true })
+      .click();
+    await expect(page).toHaveURL('/es/games');
+
+    await page.goBack();
+    await expect(page).toHaveURL('/es/account/profile');
+    await expect(page.getByRole('button', { name: esMessages.Profile.edit })).toBeVisible();
+    await expect(page.getByRole('form', { name: esMessages.Profile.edit })).toHaveCount(0);
+    await page.getByRole('button', { name: esMessages.Profile.edit }).click();
+    await expect(biography).toHaveValue('Biografía guardada');
+  });
 });

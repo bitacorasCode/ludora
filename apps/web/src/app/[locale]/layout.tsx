@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 
+import { NavigationGuardProvider } from '@/components/navigation';
 import { Toaster } from '@/components/ui/sonner';
 import { geistMono, geistSans, notoSans } from '@/config/fonts';
 import { routing } from '@/i18n/routing';
@@ -71,10 +72,13 @@ export default async function RootLayout({
             >
               {t('skipToContent')}
             </a>
-            <Header />
-            <main id='content' className='flex-1'>
-              {children}
-            </main>
+            <NavigationGuardProvider>
+              <Header />
+
+              <main id='content' className='flex-1'>
+                {children}
+              </main>
+            </NavigationGuardProvider>
             <Toaster />
           </NextIntlClientProvider>
         </ThemeProvider>

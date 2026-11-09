@@ -3,11 +3,13 @@ import 'server-only';
 import { cache } from 'react';
 import { z } from 'zod';
 
-import { OPERATION_STATUS } from '@/lib/actions';
+import {
+    isAuthenticationError,
+    OPERATION_STATUS,
+} from '@/lib/actions';
 import {
     API_ERROR_CODES,
     authenticatedApi,
-    HTTP_STATUS,
 } from '@/lib/api';
 
 const CURRENT_USER_ENDPOINT = '/auth/me';
@@ -32,15 +34,11 @@ export const getCurrentUser = cache(
         );
 
         if (result.status === OPERATION_STATUS.error) {
-            const { errorCode, statusCode } = result.error;
-
-            const isUnauthenticated =
-                errorCode === API_ERROR_CODES.authenticationRequired
-                || statusCode === HTTP_STATUS.unauthorized;
-
-            if (isUnauthenticated) {
+            if (isAuthenticationError(result.error)) {
                 return null;
             }
+
+            const { errorCode } = result.error;
 
             throw new Error(errorCode, {
                 cause: result.error,

@@ -2,10 +2,10 @@ import 'server-only';
 
 import { getTranslations } from 'next-intl/server';
 
+import { GuardedLink as Link } from '@/components/navigation';
 import { SideMenuClose } from '@/components/overlays';
 import { Button } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
-import { Link } from '@/i18n/navigation';
 import { getCurrentUser } from '@/lib/auth';
 
 type HeaderAccountLinksProps = {

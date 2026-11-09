@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { ErrorState } from '@/components/feedback';
@@ -9,9 +9,7 @@ import { PageHeading } from '@/components/typography';
 import { Button } from '@/components/ui';
 import { useActionErrorToast } from '@/hooks';
 import { OPERATION_STATUS } from '@/lib/actions';
-import { API_ERROR_CODES } from '@/lib/api/constants';
 
-import { saveProfile } from '../actions';
 import { useProfile } from '../hooks/use-profile';
 import type { ProfilePreferences } from '../schema';
 import { ProfileEditor } from './editor/profile-editor';
@@ -32,7 +30,7 @@ export function ProfilePageContent({
   const actions = useTranslations('Common.actions');
   const errors = useTranslations('Common.errors');
 
-  const { profile, error, reload, canEdit, updateProfile } = useProfile(
+  const { profile, error, reload, canEdit, save } = useProfile(
     userId,
     nickname,
   );
@@ -44,34 +42,30 @@ export function ProfilePageContent({
     title: t('saveError'),
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     isActive.current = true;
 
     return () => {
       isActive.current = false;
+      // Activity preserves state when Next.js hides a cached route.
+      setIsEditing(false);
     };
   }, []);
 
   async function handleSave(values: ProfilePreferences) {
     dismissError();
 
-    const result = await saveProfile(userId, values);
+    const result = await save(values);
 
-    if (!isActive.current) return;
+    if (!result || !isActive.current) return;
 
     if (result.status === OPERATION_STATUS.error) {
       showError(result.error);
       return;
     }
 
-    if (!updateProfile(result.data)) {
-      showError({
-        errorCode: API_ERROR_CODES.invalidResponse,
-      });
-      return;
-    }
-
     setIsEditing(false);
+
     toast.success(t('saved'), {
       id: PROFILE_SAVED_TOAST_ID,
     });

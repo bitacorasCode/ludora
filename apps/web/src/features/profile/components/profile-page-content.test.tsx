@@ -7,6 +7,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
+import { Activity } from 'react';
 import { renderToString } from 'react-dom/server';
 import { toast } from 'sonner';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -213,6 +214,62 @@ describe('ProfilePageContent integration', () => {
     expect(screen.queryByText('Cambio descartado')).toBeNull();
     expect(profileStorage.getSnapshot()).toBe(original);
     expect(saveProfile).not.toHaveBeenCalled();
+  });
+
+  it('closes the editor and discards unsaved changes when the preserved page becomes visible again', async () => {
+    vi.mocked(loadProfile).mockResolvedValue({
+      status: OPERATION_STATUS.success,
+      data: { ...profileResponse, avatarPresetId: 'fox', bio: 'Biografía guardada' },
+    });
+    const { rerender } = render(
+      <NextIntlClientProvider locale='es' messages={esMessages}>
+        <Activity mode='visible'>
+          <ProfilePageContent userId={PROFILE_USER_ID} nickname={PROFILE_NICKNAME} />
+        </Activity>
+      </NextIntlClientProvider>,
+    );
+    fireEvent.click(
+      await screen.findByRole('button', { name: esMessages.Profile.edit }),
+    );
+    const original = profileStorage.getSnapshot();
+    fireEvent.change(screen.getByRole('textbox', { name: esMessages.Profile.bio.label }), {
+      target: { value: 'Borrador sin guardar' },
+    });
+    fireEvent.click(
+      screen.getByRole('radio', { name: esMessages.Profile.avatar.options.planet }),
+    );
+
+    rerender(
+      <NextIntlClientProvider locale='es' messages={esMessages}>
+        <Activity mode='hidden'>
+          <ProfilePageContent userId={PROFILE_USER_ID} nickname={PROFILE_NICKNAME} />
+        </Activity>
+      </NextIntlClientProvider>,
+    );
+    expect(screen.queryByRole('form', { name: esMessages.Profile.edit })).toBeNull();
+    expect(profileStorage.getSnapshot()).toBe(original);
+
+    rerender(
+      <NextIntlClientProvider locale='es' messages={esMessages}>
+        <Activity mode='visible'>
+          <ProfilePageContent userId={PROFILE_USER_ID} nickname={PROFILE_NICKNAME} />
+        </Activity>
+      </NextIntlClientProvider>,
+    );
+    const edit = await screen.findByRole('button', { name: esMessages.Profile.edit });
+    expect(screen.queryByRole('form', { name: esMessages.Profile.edit })).toBeNull();
+    expect(screen.getByText('Biografía guardada')).toBeTruthy();
+    fireEvent.click(edit);
+    expect(
+      (screen.getByRole('textbox', { name: esMessages.Profile.bio.label }) as HTMLTextAreaElement).value,
+    ).toBe('Biografía guardada');
+    expect(
+      screen.getByRole('radio', { name: esMessages.Profile.avatar.options.fox })
+        .getAttribute('aria-checked'),
+    ).toBe('true');
+    expect(profileStorage.getSnapshot()).toBe(original);
+    expect(saveProfile).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   it('keeps the editor and cache unchanged when the API rejects the save', async () => {

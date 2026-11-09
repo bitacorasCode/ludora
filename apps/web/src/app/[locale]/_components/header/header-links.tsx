@@ -1,10 +1,9 @@
 import { useTranslations } from 'next-intl';
 
+import { GuardedLink as Link } from '@/components/navigation';
 import { SideMenuClose } from '@/components/overlays';
 import { Button } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
-import { Link } from '@/i18n/navigation';
-
 const links = [
   { href: APP_ROUTES.games, label: 'games' },
   { href: APP_ROUTES.ranking, label: 'ranking' },

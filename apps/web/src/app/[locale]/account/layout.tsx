@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { type ReactNode, Suspense } from 'react';
 
+import { SessionBoundary } from '@/components/auth';
 import { PageContainer, PageSection } from '@/components/layout';
 import { APP_ROUTES } from '@/config/routes';
 import { AccountContentSkeleton, AccountShell } from '@/features/account';
@@ -24,10 +25,17 @@ async function AuthenticatedAccount({
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect({ href: APP_ROUTES.login, locale });
+    return redirect({
+      href: APP_ROUTES.login,
+      locale,
+    });
   }
 
-  return <AccountShell>{children}</AccountShell>;
+  return (
+    <SessionBoundary key={user.id}>
+      <AccountShell>{children}</AccountShell>
+    </SessionBoundary>
+  );
 }
 
 export default async function AccountLayout({

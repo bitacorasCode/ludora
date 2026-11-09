@@ -1,8 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui';
-import { Link, usePathname } from '@/i18n/navigation';
+import { usePathname } from '@/i18n/navigation';
 
+import { GuardedLink as Link } from './guarded-link';
 export type SectionNavigationItem = {
   href: string;
   label: string;
@@ -40,7 +41,10 @@ export function SectionNavigation({
                 variant={isActive ? 'secondary' : 'ghost'}
                 className='w-full justify-start'
               >
-                <Link href={item.href} aria-current={isActive ? 'page' : undefined}>
+                <Link
+                  href={item.href}
+                  aria-current={isActive ? 'page' : undefined}
+                >
                   {item.label}
                 </Link>
               </Button>
