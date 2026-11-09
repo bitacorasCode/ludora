@@ -13,6 +13,8 @@ import { Throttle } from '@nestjs/throttler';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
 import { AUTH_RATE_LIMIT_CONFIG } from '../config/rate-limit.js';
 import {
+    type ChangePasswordDto,
+    changePasswordSchema,
     type ForgotPasswordDto,
     forgotPasswordSchema,
     type LoginDto,
@@ -92,5 +94,16 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     getMe(@Req() request: AuthenticatedRequest) {
         return this.authService.getCurrentUser(request.auth.userId);
+    }
+
+    @Post('change-password')
+    @UseGuards(JwtAuthGuard)
+    @Throttle({ default: AUTH_RATE_LIMIT_CONFIG.changePassword })
+    @HttpCode(HttpStatus.OK)
+    changePassword(
+        @Req() { auth: { userId, authVersion } }: AuthenticatedRequest,
+        @Body({ schema: changePasswordSchema }) data: ChangePasswordDto,
+    ) {
+        return this.authService.changePassword(userId, authVersion, data);
     }
 }

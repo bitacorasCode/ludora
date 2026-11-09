@@ -1,9 +1,13 @@
 // Fault injection for browser tests; the application itself is unchanged.
 import http from 'node:http';
 
-const target = new URL(
-  process.env.LUDORA_E2E_API_URL ?? 'http://localhost:3001',
-);
+const apiUrl = process.env.LUDORA_E2E_API_URL;
+if (!apiUrl) throw new Error('LUDORA_E2E_API_URL is required for the browser test proxy.');
+const target = new URL(apiUrl);
+const proxyPort = Number(process.env.LUDORA_E2E_PROXY_PORT);
+if (!Number.isInteger(proxyPort) || proxyPort <= 0) {
+  throw new Error('LUDORA_E2E_PROXY_PORT must be a positive port number.');
+}
 if (
   !['localhost', '127.0.0.1', '[::1]'].includes(target.hostname) ||
   target.protocol !== 'http:'
@@ -59,4 +63,4 @@ const server = http.createServer(async (request, response) => {
   else forward();
 });
 
-server.listen(3102, '127.0.0.1');
+server.listen(proxyPort, '127.0.0.1');

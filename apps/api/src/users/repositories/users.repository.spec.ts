@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { vi } from 'vitest';
 
+import { SINGLE_RECORD_COUNT } from '../../common/constants/database.js';
 import type { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersRepository } from './users.repository.js';
@@ -12,7 +13,7 @@ describe('UsersRepository authentication queries', () => {
     const passwordHash = 'new-password-hash';
     const publicSelection = { id: true, nickname: true, email: true, createdAt: true };
     const databaseQueries = { findUnique: vi.fn(), update: vi.fn() };
-    const transactionQueries = { update: vi.fn() };
+    const transactionQueries = { update: vi.fn(), updateMany: vi.fn() };
     const transaction = { user: transactionQueries } as unknown as Prisma.TransactionClient;
 
     beforeEach(async () => {
@@ -55,6 +56,27 @@ describe('UsersRepository authentication queries', () => {
     });
 
     describe('user selection', () => {
+        it('should include only the avatar relation for a current-user response', async () => {
+            databaseQueries.findUnique.mockResolvedValue(null);
+
+            await expect(repository.findCurrentById(userId)).resolves.toBeNull();
+
+            expect(databaseQueries.findUnique).toHaveBeenCalledExactlyOnceWith({
+                where: { id: userId },
+                select: { ...publicSelection, profile: { select: { avatarPresetId: true } } },
+            });
+        });
+
+        it('should read the private hash only for password-change verification', async () => {
+            databaseQueries.findUnique.mockResolvedValue(null);
+
+            await expect(repository.findPasswordById(userId)).resolves.toBeNull();
+
+            expect(databaseQueries.findUnique).toHaveBeenCalledExactlyOnceWith({
+                where: { id: userId },
+                select: { ...publicSelection, passwordHash: true, authVersion: true, emailVerifiedAt: true },
+            });
+        });
         it('should keep authentication version and password hash out of public user reads', async () => {
             databaseQueries.findUnique.mockResolvedValue(null);
 
@@ -75,6 +97,37 @@ describe('UsersRepository authentication queries', () => {
                 where: { id: userId },
                 select: { ...publicSelection, authVersion: true, emailVerifiedAt: true },
             });
+        });
+    });
+
+    describe('changePasswordIfCurrent', () => {
+        const change = {
+            userId,
+            passwordHash,
+            expectedPasswordHash: 'current-password-hash',
+            expectedAuthVersion: 0,
+        };
+
+        it('should compare the verified hash and auth version in the update that changes both values', async () => {
+            transactionQueries.updateMany.mockResolvedValue({ count: SINGLE_RECORD_COUNT });
+
+            await expect(repository.changePasswordIfCurrent(change, transaction)).resolves.toBe(true);
+
+            expect(transactionQueries.updateMany).toHaveBeenCalledExactlyOnceWith({
+                where: {
+                    id: userId,
+                    passwordHash: change.expectedPasswordHash,
+                    authVersion: change.expectedAuthVersion,
+                },
+                data: { passwordHash, authVersion: { increment: 1 } },
+            });
+            expect(transactionQueries.update).not.toHaveBeenCalled();
+        });
+
+        it('should report a stale comparison without treating it as a successful change', async () => {
+            transactionQueries.updateMany.mockResolvedValue({ count: 0 });
+
+            await expect(repository.changePasswordIfCurrent(change, transaction)).resolves.toBe(false);
         });
     });
 });

@@ -131,6 +131,37 @@ describe('apiRequest', () => {
     });
   });
 
+  it.each([
+    'HANGING_PROMISE_REJECTION',
+    'NEXT_PRERENDER_INTERRUPTED',
+    'DYNAMIC_SERVER_USAGE',
+  ])('propagates the Next.js %s signal from fetch', async (digest) => {
+    const error = Object.assign(new Error('Request interrupted by Next.js.'), { digest });
+    fetchMock.mockRejectedValue(error);
+
+    await expect(apiRequest('/auth/me')).rejects.toBe(error);
+  });
+
+  it('propagates a framework signal wrapped by a fetch error', async () => {
+    const interruption = Object.assign(new Error('Prerender completed.'), {
+      digest: 'HANGING_PROMISE_REJECTION',
+    });
+    fetchMock.mockRejectedValue(new Error('fetch failed', { cause: interruption }));
+
+    await expect(apiRequest('/auth/me')).rejects.toBe(interruption);
+  });
+
+  it('propagates prerender cancellation while reading the response body', async () => {
+    const error = Object.assign(new Error('Response interrupted by Next.js.'), {
+      digest: 'HANGING_PROMISE_REJECTION',
+    });
+    const response = Response.json({ user: 'test' });
+    vi.spyOn(response, 'json').mockRejectedValue(error);
+    fetchMock.mockResolvedValue(response);
+
+    await expect(apiRequest('/auth/me')).rejects.toBe(error);
+  });
+
   it('rejects invalid JSON responses', async () => {
     fetchMock.mockResolvedValue(new Response('not JSON', { status: 200 }));
     expect(await apiRequest('/auth/me')).toEqual({

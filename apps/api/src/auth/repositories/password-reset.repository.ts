@@ -66,6 +66,10 @@ export class PasswordResetRepository {
         });
     }
 
+    deleteForUser(userId: string, transaction: Prisma.TransactionClient) {
+        return transaction.passwordReset.deleteMany({ where: { userId } });
+    }
+
     // Consume the token in the same transaction that changes the password.
     async consume(
         { tokenHash, now }: ConsumePasswordResetData,

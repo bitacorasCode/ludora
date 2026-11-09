@@ -55,4 +55,12 @@ export const AUTH_ERRORS = {
         errorCode: AUTH_ERROR_CODES.passwordResetInvalid,
         message: 'Password reset link is invalid or has expired.',
     },
+    currentPasswordInvalid: {
+        errorCode: AUTH_ERROR_CODES.currentPasswordInvalid,
+        message: 'The current password is incorrect.',
+    },
+    passwordUnchanged: {
+        errorCode: AUTH_ERROR_CODES.passwordUnchanged,
+        message: 'The new password must differ from the current password.',
+    },
 } as const satisfies Record<string, ApiErrorDefinition>;

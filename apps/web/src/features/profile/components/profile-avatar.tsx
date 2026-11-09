@@ -1,3 +1,5 @@
+import type { ComponentProps } from 'react';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui';
 
 import { type AvatarPresetId, avatarPresets } from '../config';
@@ -5,7 +7,7 @@ import { type AvatarPresetId, avatarPresets } from '../config';
 type ProfileAvatarProps = {
   nickname: string;
   avatarPresetId: AvatarPresetId | null;
-  size?: 'default' | 'lg';
+  size?: ComponentProps<typeof Avatar>['size'];
 };
 
 export function ProfileAvatar({

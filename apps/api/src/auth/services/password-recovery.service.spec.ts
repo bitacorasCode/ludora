@@ -15,6 +15,7 @@ import { PASSWORD_RESET_CONFIG } from '../constants/password-reset.js';
 import { PasswordResetRepository } from '../repositories/password-reset.repository.js';
 import { createPasswordChangedMail } from '../templates/password-changed-mail.js';
 import { PasswordService } from './password.service.js';
+import { PasswordNotificationService } from './password-notification.service.js';
 import { PasswordRecoveryService } from './password-recovery.service.js';
 import { PasswordResetTokenService } from './password-reset-token.service.js';
 
@@ -123,8 +124,13 @@ describe('PasswordRecoveryService', () => {
                 { provide: MailService, useValue: mailService },
                 { provide: PasswordService, useValue: passwordService },
                 {
+                    provide: PasswordNotificationService,
+                    inject: [MailService],
+                    useFactory: (mail: MailService) => new PasswordNotificationService(mail),
+                },
+                {
                     provide: PasswordRecoveryService,
-                    inject: [ConfigService, PrismaService, UsersService, PasswordResetTokenService, PasswordResetRepository, MailService, PasswordService],
+                    inject: [ConfigService, PrismaService, UsersService, PasswordResetTokenService, PasswordResetRepository, MailService, PasswordService, PasswordNotificationService],
                     useFactory: (
                         config: ConfigService,
                         database: PrismaService,
@@ -133,7 +139,8 @@ describe('PasswordRecoveryService', () => {
                         resets: PasswordResetRepository,
                         mail: MailService,
                         passwords: PasswordService,
-                    ) => new PasswordRecoveryService(config, database, users, tokens, resets, mail, passwords),
+                        notifications: PasswordNotificationService,
+                    ) => new PasswordRecoveryService(config, database, users, tokens, resets, mail, passwords, notifications),
                 },
             ],
         }).compile();

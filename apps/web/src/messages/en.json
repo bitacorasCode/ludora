@@ -117,7 +117,6 @@
         "show": "Show"
     },
     "Header": {
-        "account": "My account",
         "games": "Games",
         "login": "Sign in",
         "menu": {
@@ -354,18 +353,38 @@
         "label": "Dark mode"
     },
     "UserSettings": {
-        "description": "View your private email address and Ludora access options.",
+        "description": "View your private email address and manage your password.",
         "email": {
-            "description": "Your email is private and is not shown on your visible profile.",
-            "preview": "Example email address for this preview.",
+            "description": "Your email is private, is not shown on your profile, and cannot be changed.",
             "title": "Email address"
         },
         "eyebrow": "Access and privacy",
         "loading": "Loading account settings",
         "password": {
             "change": "Change password",
+            "description": "Choose a new password. Your other sessions will be signed out.",
+            "errors": {
+                "AUTH_CURRENT_PASSWORD_INVALID": "The current password is incorrect.",
+                "AUTH_PASSWORD_UNCHANGED": "Choose a password different from your current password."
+            },
+            "form": {
+                "confirmPassword": "Confirm new password",
+                "currentPassword": "Current password",
+                "errorTitle": "Could not update your password",
+                "newPassword": "New password",
+                "submit": "Update password",
+                "submitting": "Updating password…",
+                "success": "Your password has been updated.",
+                "title": "Change password"
+            },
             "title": "Password",
-            "unavailable": "This option will be available when you can sign in to your account."
+            "validation": {
+                "confirmPasswordRequired": "Repeat your new password.",
+                "currentPasswordRequired": "Enter your current password.",
+                "passwordMin": "Use at least 8 characters.",
+                "passwordMismatch": "The passwords do not match.",
+                "passwordUnchanged": "Choose a password different from your current password."
+            }
         },
         "title": "Account"
     }

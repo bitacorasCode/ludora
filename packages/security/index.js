@@ -25,6 +25,8 @@ export const AUTH_ERROR_CODES = Object.freeze({
     emailVerificationResendTooSoon: 'AUTH_EMAIL_VERIFICATION_RESEND_TOO_SOON',
     nicknameAlreadyExists: 'AUTH_NICKNAME_ALREADY_EXISTS',
     passwordResetInvalid: 'AUTH_PASSWORD_RESET_INVALID',
+    currentPasswordInvalid: 'AUTH_CURRENT_PASSWORD_INVALID',
+    passwordUnchanged: 'AUTH_PASSWORD_UNCHANGED',
 });
 
 export const AUTH_VALIDATION = Object.freeze({

@@ -30,13 +30,13 @@ describe('createPasswordResetMail', () => {
 });
 
 describe('createPasswordChangedMail', () => {
-    it('should confirm the change and explain that a new login is required', () => {
+    it('should confirm the change and explain which password to use on the next login', () => {
         const mail = createPasswordChangedMail();
 
         expect(mail.subject).toBe('Your Ludora password has been changed');
         expect(mail.text).toContain('The password for your Ludora account has been changed.');
         expect(mail.text).toContain('Your previous sessions are no longer valid.');
-        expect(mail.text).toContain('Sign in again using your new password.');
+        expect(mail.text).toContain('Use your new password the next time you sign in.');
         expect(Object.keys(mail).sort()).toEqual(['subject', 'text']);
     });
 

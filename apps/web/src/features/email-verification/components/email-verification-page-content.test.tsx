@@ -185,7 +185,7 @@ describe('EmailVerificationPageContent integration', () => {
     expect(resendVerification).toHaveBeenCalledExactlyOnceWith('es', { verificationId });
     expect(verifyEmail).not.toHaveBeenCalled();
     expect((screen.getByLabelText(messages.code.label) as HTMLInputElement).value).toBe('');
-    expect(screen.getByRole('button', { name: messages.resend.action }).hasAttribute('disabled')).toBe(true);
+    expect((await screen.findByRole('button', { name: messages.resend.action })).hasAttribute('disabled')).toBe(true);
     expect(screen.getByText('Podrás reenviar en 60 segundos.')).toBeTruthy();
     await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText(messages.code.label)));
     expect(screen.queryByText(messages.feedback.deliveryUnconfirmed.title)).toBeNull();
@@ -215,7 +215,7 @@ describe('EmailVerificationPageContent integration', () => {
     expect(screen.getByRole('status').textContent).toContain(messages.feedback.deliveryUnconfirmed.message);
     expect((screen.getByLabelText(messages.code.label) as HTMLInputElement).value).toBe('');
     expect(new URL(window.location.href).searchParams.get('delivery')).toBe('unconfirmed');
-    expect(screen.getByRole('button', { name: messages.resend.action }).hasAttribute('disabled')).toBe(true);
+    expect((await screen.findByRole('button', { name: messages.resend.action })).hasAttribute('disabled')).toBe(true);
     expect(toast.success).not.toHaveBeenCalled();
   });
 
@@ -243,7 +243,7 @@ describe('EmailVerificationPageContent integration', () => {
     ));
     expect((screen.getByLabelText(messages.code.label) as HTMLInputElement).value).toBe('123456');
     expect(screen.getByText('Podrás reenviar en 25 segundos.')).toBeTruthy();
-    expect(screen.getByRole('button', { name: messages.resend.action }).hasAttribute('disabled')).toBe(true);
+    expect((await screen.findByRole('button', { name: messages.resend.action })).hasAttribute('disabled')).toBe(true);
     expect(new URL(window.location.href).searchParams.get('resendAvailableAt')).toBe(resendAvailableAt);
   });
 
@@ -262,7 +262,7 @@ describe('EmailVerificationPageContent integration', () => {
       { description: esMessages.Common.errors.API_UNAVAILABLE, duration: Infinity },
     ));
     expect((screen.getByLabelText(messages.code.label) as HTMLInputElement).value).toBe('123456');
-    expect(screen.getByRole('button', { name: messages.resend.action }).hasAttribute('disabled')).toBe(false);
+    expect((await screen.findByRole('button', { name: messages.resend.action })).hasAttribute('disabled')).toBe(false);
   });
 
   it('counts down the initial wait and enables resend when it ends', async () => {

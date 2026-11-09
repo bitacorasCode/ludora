@@ -131,4 +131,12 @@ describe('PasswordResetRepository', () => {
             await expect(repository.consume({ tokenHash, now }, transaction)).rejects.toBe(error);
         });
     });
+
+    describe('deleteForUser', () => {
+        it('should remove pending recovery tokens for only the authenticated user in the supplied transaction', async () => {
+            await repository.deleteForUser(userId, transaction);
+
+            expect(transactionQueries.deleteMany).toHaveBeenCalledExactlyOnceWith({ where: { userId } });
+        });
+    });
 });

@@ -7,7 +7,7 @@ export function createPasswordChangedMail(): Pick<SendMailInput, 'subject' | 'te
             'The password for your Ludora account has been changed.',
             '',
             'Your previous sessions are no longer valid.',
-            'Sign in again using your new password.',
+            'Use your new password the next time you sign in.',
             '',
             'If you did not make this change, open Ludora and request a new password reset immediately.',
         ].join('\n'),

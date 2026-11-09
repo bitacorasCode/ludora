@@ -2,7 +2,8 @@
 
 Ludora is an online board game platform under development. The current application
 provides email-verified registration, login and logout, password recovery, and a
-persistent user profile. The game catalog, ranking, and activity pages currently
+persistent user profile. Account settings show a read-only email and support
+authenticated password changes. The game catalog, ranking, and activity pages currently
 show empty states; playable games and multiplayer rooms are upcoming work.
 
 ## Workspace
@@ -153,8 +154,8 @@ pnpm --filter web exec playwright install chromium
 pnpm --filter web test:e2e
 ```
 
-Playwright starts the API if needed, a test proxy on `3102`, and a separate web
-server on `3100`. See the [web testing guide](apps/web/README.md#testing) for
+Playwright starts a dedicated API on `3101`, a test proxy on `3102`, and a separate
+web server on `3100`. The regular development API on `3001` is not reused. See the [web testing guide](apps/web/README.md#testing) for
 individual suites, temporary accounts, local rate limits, and reports. The
 [API README](apps/api/README.md#tests-and-checks) explains the separate API smoke test.
 

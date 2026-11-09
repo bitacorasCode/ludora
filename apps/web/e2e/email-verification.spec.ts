@@ -8,6 +8,8 @@ import { waitForVerificationEmail } from './fixtures/mailpit';
 // Authentication traces can include credentials, verification codes and tokens.
 test.use({ trace: 'off', screenshot: 'off' });
 
+const FORM_INTERACTION_TIMEOUT_MS = 15_000;
+
 async function confirmEmail(page: Page, code: string) {
   await page
     .getByLabel(esMessages.EmailVerification.code.label, { exact: true })
@@ -32,7 +34,7 @@ async function expectAuthenticatedAccount(
   });
   await expect(
     navigation.getByRole('link', {
-      name: esMessages.Header.account,
+      name: account.nickname,
       exact: true,
     }),
   ).toBeVisible();
@@ -64,7 +66,7 @@ async function expectAuthenticatedAccount(
   await expect(page).toHaveURL('/es/account/profile');
   await expect(
     navigation.getByRole('link', {
-      name: esMessages.Header.account,
+      name: account.nickname,
       exact: true,
     }),
   ).toBeVisible();
@@ -80,6 +82,16 @@ test.describe('Email verification with real mail', () => {
     test.setTimeout(60_000);
 
     await page.goto('/es/register');
+    const nickname = page.getByLabel(esMessages.Register.fields.nickname.label, { exact: true });
+    // SSR fields can be visible before React attaches their change handlers.
+    await expect.poll(async () => {
+      await nickname.fill('x');
+      await nickname.press('Tab');
+      return page.getByText(esMessages.Register.validation.nicknameMin, { exact: true }).isVisible();
+    }, {
+      timeout: FORM_INTERACTION_TIMEOUT_MS,
+      message: 'Registration controls must be interactive before entering account details',
+    }).toBe(true);
     await page
       .getByLabel(esMessages.Register.fields.nickname.label, { exact: true })
       .fill(registrationAccount.nickname);

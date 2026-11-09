@@ -1,3 +1,4 @@
+export { type ChangePasswordDto, changePasswordSchema } from './change-password.dto.js';
 export {
     type ForgotPasswordDto,
     forgotPasswordSchema,

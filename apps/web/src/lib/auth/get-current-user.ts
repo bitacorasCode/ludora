@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { PROFILE_AVATAR_PRESET_IDS } from '@ludora/contracts/profile';
 import { cache } from 'react';
 import { z } from 'zod';
 
@@ -19,6 +20,7 @@ const currentUserSchema = z.object({
     nickname: z.string().min(1),
     email: z.email(),
     createdAt: z.iso.datetime(),
+    avatarPresetId: z.enum(PROFILE_AVATAR_PRESET_IDS).nullable(),
 });
 
 const currentUserResponseSchema = z.object({

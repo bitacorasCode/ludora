@@ -27,7 +27,7 @@ test.describe('Real authentication', () => {
     });
     await expect(
       navigation.getByRole('link', {
-        name: esMessages.Header.account,
+        name: testAccount.nickname,
         exact: true,
       }),
     ).toBeVisible();
@@ -46,7 +46,7 @@ test.describe('Real authentication', () => {
     await page.reload();
     await expect(
       navigation.getByRole('link', {
-        name: esMessages.Header.account,
+        name: testAccount.nickname,
         exact: true,
       }),
     ).toBeVisible();

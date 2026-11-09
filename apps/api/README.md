@@ -136,19 +136,20 @@ accepting data loss. A reset is not a routine setup or deployment step.
 There is no global URL prefix. Bodies are JSON. Protected routes require
 `Authorization: Bearer <access-token>`.
 
-| Method | Path                        | Behavior                                                                                                              |
-| ------ | --------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `GET`  | `/`                         | Starter response: `Hello World!`.                                                                                     |
-| `GET`  | `/health`                   | Checks database access and returns the user count.                                                                    |
-| `POST` | `/auth/register`            | Accepts `nickname`, `email`, and `password`; creates an unverified account and returns verification metadata (`201`). |
-| `POST` | `/auth/verify-email`        | Accepts `verificationId` and `code`; confirms the email and returns an access token and user (`200`).                 |
-| `POST` | `/auth/resend-verification` | Accepts `verificationId`; renews the code when allowed and returns delivery and retry information (`200`).            |
-| `POST` | `/auth/login`               | Accepts `email` and `password`; returns an authenticated session or the pending-verification next step (`200`).       |
-| `POST` | `/auth/forgot-password`     | Accepts `email`; acknowledges a valid request without revealing account existence or delivery status (`202`).         |
-| `POST` | `/auth/reset-password`      | Accepts `token` and `password`; consumes the recovery link and updates the password (`200`).                          |
-| `GET`  | `/auth/me`                  | Returns the authenticated user.                                                                                       |
-| `GET`  | `/profile`                  | Returns the authenticated user's avatar preset and biography.                                                         |
-| `PUT`  | `/profile`                  | Saves `avatarPresetId` and `bio` for the authenticated user.                                                          |
+| Method | Path                        | Behavior                                                                                                                |
+| ------ | --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `GET`  | `/`                         | Starter response: `Hello World!`.                                                                                       |
+| `GET`  | `/health`                   | Checks database access and returns the user count.                                                                      |
+| `POST` | `/auth/register`            | Accepts `nickname`, `email`, and `password`; creates an unverified account and returns verification metadata (`201`).   |
+| `POST` | `/auth/verify-email`        | Accepts `verificationId` and `code`; confirms the email and returns an access token and user (`200`).                   |
+| `POST` | `/auth/resend-verification` | Accepts `verificationId`; renews the code when allowed and returns delivery and retry information (`200`).              |
+| `POST` | `/auth/login`               | Accepts `email` and `password`; returns an authenticated session or the pending-verification next step (`200`).         |
+| `POST` | `/auth/forgot-password`     | Accepts `email`; acknowledges a valid request without revealing account existence or delivery status (`202`).           |
+| `POST` | `/auth/reset-password`      | Accepts `token` and `password`; consumes the recovery link and updates the password (`200`).                            |
+| `POST` | `/auth/change-password`     | Requires a verified JWT; accepts `currentPassword` and `password`; returns a replacement access token and user (`200`). |
+| `GET`  | `/auth/me`                  | Returns the authenticated user and nullable `avatarPresetId`.                                                           |
+| `GET`  | `/profile`                  | Returns the authenticated user's avatar preset and biography.                                                           |
+| `PUT`  | `/profile`                  | Saves `avatarPresetId` and `bio` for the authenticated user.                                                            |
 
 DTOs reject unexpected fields. Password confirmation belongs to the web form and
 must not be sent in registration or password-reset bodies. Shared validation and
@@ -169,10 +170,29 @@ does not read that cookie directly. The internal-request secret is separate from
 user authentication and does not grant access to protected routes.
 
 Each protected request verifies the JWT and checks the user's verified email and
-current `authVersion` in PostgreSQL. Password recovery increments this version, so
-previous tokens fail on subsequent protected requests. Resetting a password does
+current `authVersion` in PostgreSQL. Password recovery and authenticated password
+changes increment this version, so previous tokens fail on subsequent protected
+requests. Resetting a password does
 not verify the email or issue a session. Logout currently clears the web cookie;
 there is no API refresh-token or per-session revocation endpoint.
+
+### Changing a password while signed in
+
+`POST /auth/change-password` checks the current password and requires a different
+new password. The guard supplies the verified authentication version. A conditional
+update checks that version and the password hash again, increments `authVersion`,
+and invalidates pending reset links within the same transaction. Competing changes
+cannot silently overwrite a newer credential.
+
+The successful response contains a new access token for the same user. Next replaces
+its HttpOnly cookie to keep this browser signed in; previous tokens are rejected.
+An incorrect current password returns `400` with `AUTH_CURRENT_PASSWORD_INVALID`.
+Reusing it returns `400` with `AUTH_PASSWORD_UNCHANGED`. These are form errors, not
+expired-session responses. A stale authentication version returns `401`.
+
+A password-change notice is scheduled after commit through
+`PasswordNotificationService`, also used by password recovery. SMTP does not delay
+or undo the credential change. There is no email-change endpoint.
 
 ### Errors and rate limiting
 

@@ -70,7 +70,7 @@ describe('RateLimitGuard', () => {
     });
 
     describe('canActivate', () => {
-        it.each(['login', 'register', 'verifyEmail', 'resendVerification'] as const)(
+        it.each(['login', 'register', 'verifyEmail', 'resendVerification', 'changePassword'] as const)(
             'should apply the endpoint policy for %s instead of the default policy',
             async (handler) => {
                 const policy = AUTH_RATE_LIMIT_CONFIG[handler];

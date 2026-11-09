@@ -5,20 +5,23 @@ import path from 'node:path';
 import { expect, test as base } from '@playwright/test';
 import { z } from 'zod';
 
+import { MILLISECONDS_PER_SECOND } from '../../src/lib/time/constants';
+import { E2E_API_URL as API_URL, E2E_PROXY_URL as PROXY_URL } from '../config';
 import { deleteVerificationEmails, waitForVerificationEmail } from './mailpit';
 
-export const API_URL = 'http://localhost:3001';
-export const PROXY_URL = 'http://127.0.0.1:3102';
+export { API_URL, PROXY_URL };
 export const SESSION_COOKIE = 'ludora_session';
 const ACCOUNT_FIXTURE_TIMEOUT_MS = 10_000;
+const JWT_PAYLOAD_INDEX = 1;
+const TOKEN_RENEWAL_MARGIN_SECONDS = 60;
 
 export type TestCredentials = {
   email: string;
   nickname: string;
   password: string;
 };
-type TestAccount = TestCredentials & { id: string };
-type PendingAccount = TestAccount & {
+type TestAccount = TestCredentials & { id: string; accessToken: string };
+type PendingAccount = Omit<TestAccount, 'accessToken'> & {
   verificationId: string;
   resendAvailableAt: string;
 };
@@ -35,6 +38,25 @@ const verifiedAccountSchema = z.object({
   accessToken: z.string().min(1),
   user: z.object({ id: z.uuid() }),
 });
+const accessTokenPayloadSchema = z.object({
+  exp: z.number().int().positive(),
+});
+
+function getTokenExpiresAtSeconds(accessToken: string): number {
+  const payload = accessToken.split('.')[JWT_PAYLOAD_INDEX];
+
+  if (!payload) throw new Error('The test API must return a JWT with an expiration.');
+
+  let data: unknown;
+
+  try {
+    data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+  } catch {
+    throw new Error('The test API returned an invalid JWT payload.');
+  }
+
+  return accessTokenPayloadSchema.parse(data).exp;
+}
 
 function createCredentials(): TestCredentials {
   const identity = randomUUID();
@@ -101,7 +123,7 @@ export const test = base.extend<
         expect(confirmation.status()).toBe(200);
         const authenticated = verifiedAccountSchema.parse(await confirmation.json());
         expect(authenticated.user.id).toBe(id);
-        await provide({ ...credentials, id });
+        await provide({ ...credentials, id, accessToken: authenticated.accessToken });
       } finally {
         try {
           await runAccountFixture('delete', { ...credentials, id });
@@ -154,31 +176,40 @@ export const test = base.extend<
       await provide({ cookies: [], origins: [] });
       return;
     }
-    const api = await playwright.request.newContext({ baseURL: API_URL });
-    try {
-      const response = await api.post('/auth/login', {
-        data: { email: testAccount.email, password: testAccount.password },
-      });
-      expect(response.status()).toBe(200);
-      const { accessToken } = verifiedAccountSchema.parse(await response.json());
-      await provide({
-        cookies: [
-          {
-            name: SESSION_COOKIE,
-            value: accessToken,
-            domain: 'localhost',
-            path: '/',
-            httpOnly: true,
-            secure: false,
-            sameSite: 'Lax',
-            expires: Math.floor(Date.now() / 1000) + 900,
-          },
-        ],
-        origins: [],
-      });
-    } finally {
-      await api.dispose();
+    let expiresAtSeconds = getTokenExpiresAtSeconds(testAccount.accessToken);
+    const nowSeconds = Math.floor(Date.now() / MILLISECONDS_PER_SECOND);
+
+    if (expiresAtSeconds <= nowSeconds + TOKEN_RENEWAL_MARGIN_SECONDS) {
+      const api = await playwright.request.newContext({ baseURL: API_URL });
+      try {
+        const response = await api.post('/auth/login', {
+          data: { email: testAccount.email, password: testAccount.password },
+        });
+        expect(response.status()).toBe(200);
+        const authenticated = verifiedAccountSchema.parse(await response.json());
+        expect(authenticated.user.id).toBe(testAccount.id);
+        testAccount.accessToken = authenticated.accessToken;
+        expiresAtSeconds = getTokenExpiresAtSeconds(testAccount.accessToken);
+      } finally {
+        await api.dispose();
+      }
     }
+
+    await provide({
+      cookies: [
+        {
+          name: SESSION_COOKIE,
+          value: testAccount.accessToken,
+          domain: 'localhost',
+          path: '/',
+          httpOnly: true,
+          secure: false,
+          sameSite: 'Lax',
+          expires: expiresAtSeconds,
+        },
+      ],
+      origins: [],
+    });
   },
 
   apiMode: [

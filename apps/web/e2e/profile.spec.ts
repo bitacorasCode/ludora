@@ -61,7 +61,8 @@ test.describe('Profile persistence', () => {
     await expect(
       otherTab.getByText('Mi perfil persistido', { exact: true }),
     ).toBeVisible();
-    await expect(otherTab.locator('img[src="/avatars/fox.svg"]')).toBeVisible();
+    await expect(otherTab.locator('main img[src="/avatars/fox.svg"]')).toBeVisible();
+    await expect(page.locator('header img[src="/avatars/fox.svg"]')).toBeVisible();
     await otherTab.close();
     await page.evaluate(() => localStorage.clear());
     await page.reload();
@@ -71,7 +72,7 @@ test.describe('Profile persistence', () => {
     await expect(
       page.getByText('Mi perfil persistido', { exact: true }),
     ).toBeVisible();
-    await expect(page.locator('img[src="/avatars/fox.svg"]')).toBeVisible();
+    await expect(page.locator('main img[src="/avatars/fox.svg"]')).toBeVisible();
     expect(hydrationErrors).toEqual([]);
   });
 
@@ -111,6 +112,7 @@ test.describe('Profile persistence', () => {
 
   test('confirms leaving a dirty profile and closes the editor after navigation', async ({
     page,
+    testAccount,
   }) => {
     await page.goto('/es/account/profile');
     await page.getByRole('button', { name: esMessages.Profile.edit }).click();
@@ -154,7 +156,7 @@ test.describe('Profile persistence', () => {
     await expect(preservedHeading).toBeHidden();
 
     await page.locator('header')
-      .getByRole('link', { name: esMessages.Header.account, exact: true })
+      .getByRole('link', { name: testAccount.nickname, exact: true })
       .click();
     await expect(page).toHaveURL('/es/account/profile');
     await expect(page.getByRole('button', { name: esMessages.Profile.edit })).toBeVisible();
@@ -179,10 +181,11 @@ test.describe('Profile persistence', () => {
 
   test('navigates Back and Forward without confirmation when the editor has no changes', async ({
     page,
+    testAccount,
   }) => {
     await page.goto('/es/games');
     await page.locator('header')
-      .getByRole('link', { name: esMessages.Header.account, exact: true })
+      .getByRole('link', { name: testAccount.nickname, exact: true })
       .click();
     await page.getByRole('button', { name: esMessages.Profile.edit }).click();
 
@@ -199,10 +202,11 @@ test.describe('Profile persistence', () => {
 
   test('keeps a draft when Back is cancelled and discards it only after confirmation', async ({
     page,
+    testAccount,
   }) => {
     await page.goto('/es/games');
     await page.locator('header')
-      .getByRole('link', { name: esMessages.Header.account, exact: true })
+      .getByRole('link', { name: testAccount.nickname, exact: true })
       .click();
     await page.getByRole('button', { name: esMessages.Profile.edit }).click();
     const biography = page.getByRole('textbox', { name: esMessages.Profile.bio.label });

@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -26,6 +27,7 @@ export function ProfilePageContent({
   userId,
   nickname,
 }: ProfilePageContentProps) {
+  const router = useRouter();
   const t = useTranslations('Profile');
   const actions = useTranslations('Common.actions');
   const errors = useTranslations('Common.errors');
@@ -69,6 +71,8 @@ export function ProfilePageContent({
     toast.success(t('saved'), {
       id: PROFILE_SAVED_TOAST_ID,
     });
+
+    router.refresh();
   }
 
   function handleCancel() {

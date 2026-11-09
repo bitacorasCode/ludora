@@ -9,6 +9,13 @@ export type CreateUserData = Pick<
     'nickname' | 'email' | 'passwordHash'
 >;
 
+export type ChangePasswordData = {
+    userId: string;
+    passwordHash: string;
+    expectedPasswordHash: string;
+    expectedAuthVersion: number;
+};
+
 const userResponseSelect = {
     id: true,
     nickname: true,
@@ -76,6 +83,44 @@ export class UsersRepository {
             },
             select: { id: true, email: true },
         });
+    }
+
+    findCurrentById(id: string) {
+        return this.prisma.user.findUnique({
+            where: { id },
+            select: {
+                ...userResponseSelect,
+                profile: { select: { avatarPresetId: true } },
+            },
+        });
+    }
+
+    findPasswordById(id: string) {
+        return this.prisma.user.findUnique({
+            where: { id },
+            select: {
+                ...userResponseSelect,
+                passwordHash: true,
+                authVersion: true,
+                emailVerifiedAt: true,
+            },
+        });
+    }
+
+    async changePasswordIfCurrent(
+        { userId, passwordHash, expectedPasswordHash, expectedAuthVersion }: ChangePasswordData,
+        transaction: Prisma.TransactionClient,
+    ): Promise<boolean> {
+        const { count } = await transaction.user.updateMany({
+            where: {
+                id: userId,
+                passwordHash: expectedPasswordHash,
+                authVersion: expectedAuthVersion,
+            },
+            data: { passwordHash, authVersion: { increment: 1 } },
+        });
+
+        return count === SINGLE_RECORD_COUNT;
     }
 
     async markEmailVerifiedIfPending(

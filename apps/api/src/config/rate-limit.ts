@@ -12,6 +12,11 @@ export const RATE_LIMIT_CONFIG = {
 
 
 export const AUTH_RATE_LIMIT_CONFIG = {
+    changePassword: {
+        limit: 5,
+        ttl: minutes(15),
+        blockDuration: minutes(15),
+    },
     forgotPassword: {
         limit: 5,
         ttl: minutes(15),

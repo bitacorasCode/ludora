@@ -21,12 +21,12 @@ its exact text representation.
 
 ## Responsibilities
 
-| Layer | Responsibility |
-| --- | --- |
-| Controller and DTO | Receive HTTP requests, validate input, and delegate the use case. |
-| Service | Apply rules, normalize data, and coordinate operations. |
-| Repository | Run Prisma queries within the module that owns the data. |
-| PrismaService | Create the client and its pool, and initialize and close their resources. |
+| Layer              | Responsibility                                                            |
+| ------------------ | ------------------------------------------------------------------------- |
+| Controller and DTO | Receive HTTP requests, validate input, and delegate the use case.         |
+| Service            | Apply rules, normalize data, and coordinate operations.                   |
+| Repository         | Run Prisma queries within the module that owns the data.                  |
+| PrismaService      | Create the client and its pool, and initialize and close their resources. |
 
 `UsersRepository` centralizes user queries.
 `EmailVerificationRepository` centralizes email verification queries.
@@ -68,6 +68,11 @@ The email lookup used for authentication includes the password hash. That comple
 row belongs to the internal authentication flow and is never returned directly
 in an HTTP response.
 
+The dedicated current-user read also selects the optional profile's avatar preset.
+`GET /auth/me` flattens it to nullable `avatarPresetId` for the authenticated header;
+other public user selections keep their existing response fields. The email is
+account data and is not part of the profile response.
+
 Login checks the password before returning the next step:
 
 - `authenticated` includes the JWT and the public fields of the verified user.
@@ -104,6 +109,28 @@ The public user selection remains unchanged and excludes the counter.
 
 JWTs issued before this claim was introduced are rejected. Users with those
 tokens must sign in again after deployment.
+
+## Authenticated password changes
+
+`POST /auth/change-password` accepts only `currentPassword` and `password` and
+requires `JwtAuthGuard` plus the dedicated rate limit. The guard preserves the
+verified `authVersion` in the internal request context. The service loads password
+credentials through `UsersService`, verifies the current password, rejects an
+unchanged password, and computes the new hash before opening a transaction.
+
+Inside the transaction, pending reset rows are removed first, matching recovery's
+reset-row-before-user-row lock order. `UsersRepository.changePasswordIfCurrent()`
+then conditionally updates the user using the expected password hash and verified
+authentication version. It increments the version atomically. If the update loses
+a race or the user is no longer valid, the transaction rolls back and the request
+is rejected as stale authentication. Password reset rows remain intact on rollback.
+
+After commit, the API signs a replacement JWT using the updated version and
+schedules the shared password-change notification. Next validates the response's
+user identifier before replacing its HttpOnly cookie. The current browser remains
+signed in; previously issued tokens are rejected. An incorrect current password
+uses `400`, so the frontend does not mistake it for an expired session. Email
+changes are not part of this use case and are not exposed by an endpoint.
 
 ## Password recovery model
 
@@ -207,8 +234,9 @@ updated user. The reset transaction returns that result so the service can use
 the recipient captured by the update, without another database query. These
 fields remain internal; the endpoint still returns only `{ "reset": true }`.
 
-Only after the transaction commits does the service schedule a notification
-using `setImmediate` and the existing `MailService`. The English template tells
+Only after the transaction commits does `PasswordNotificationService` schedule a
+notification using `setImmediate` and the existing `MailService`. Password recovery
+and authenticated password changes use the same notification service. The English template tells
 the user that the password changed, that previous sessions are invalid, and
 what to do if they did not make the change. It includes no password, hash, token,
 or recovery link.

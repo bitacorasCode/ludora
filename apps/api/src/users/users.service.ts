@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import type { Prisma, User } from '../generated/prisma/client.js';
-import { type CreateUserData, UsersRepository } from './repositories/index.js';
+import { type ChangePasswordData, type CreateUserData, UsersRepository } from './repositories/index.js';
 
 @Injectable()
 export class UsersService {
@@ -29,6 +29,21 @@ export class UsersService {
 
     findById(id: string) {
         return this.usersRepository.findById(id);
+    }
+
+    findCurrentById(id: string) {
+        return this.usersRepository.findCurrentById(id);
+    }
+
+    findPasswordById(id: string) {
+        return this.usersRepository.findPasswordById(id);
+    }
+
+    changePasswordIfCurrent(
+        data: ChangePasswordData,
+        transaction: Prisma.TransactionClient,
+    ) {
+        return this.usersRepository.changePasswordIfCurrent(data, transaction);
     }
 
     findAuthenticationById(

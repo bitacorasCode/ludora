@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { unstable_rethrow } from 'next/navigation';
 import { z } from 'zod';
 
 import {
@@ -61,7 +62,8 @@ export async function apiRequest(
             cache: options.cache ?? API_REQUEST_DEFAULTS.cache,
             signal,
         });
-    } catch {
+    } catch (error) {
+        unstable_rethrow(error);
         return {
             status: OPERATION_STATUS.error,
             error: {
@@ -74,7 +76,8 @@ export async function apiRequest(
 
     try {
         data = await response.json();
-    } catch {
+    } catch (error) {
+        unstable_rethrow(error);
         return {
             status: OPERATION_STATUS.error,
             error: {

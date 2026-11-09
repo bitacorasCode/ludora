@@ -31,6 +31,25 @@ describe('getCurrentUser', () => {
     expect(await getCurrentUser()).toBeNull();
   });
 
+  it('returns a validated avatar preset with the current user', async () => {
+    const user = { ...currentUser, avatarPresetId: 'fox' };
+    vi.mocked(authenticatedApi.get).mockResolvedValue({
+      status: OPERATION_STATUS.success,
+      data: { user },
+    });
+
+    expect(await getCurrentUser()).toEqual(user);
+  });
+
+  it('rejects an unknown avatar preset in the session response', async () => {
+    vi.mocked(authenticatedApi.get).mockResolvedValue({
+      status: OPERATION_STATUS.success,
+      data: { user: { ...currentUser, avatarPresetId: 'unknown' } },
+    });
+
+    await expect(getCurrentUser()).rejects.toThrow(API_ERROR_CODES.invalidResponse);
+  });
+
   it('returns null for an invalid or expired token', async () => {
     vi.mocked(authenticatedApi.get).mockResolvedValue({
       status: OPERATION_STATUS.error,

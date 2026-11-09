@@ -1,5 +1,6 @@
 import { AUTH_NEXT_STEP } from '@ludora/security';
 import {
+    BadRequestException,
     ForbiddenException,
     Injectable,
     UnauthorizedException,
@@ -11,13 +12,16 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
 import type {
+    ChangePasswordDto,
     LoginDto,
     RegisterDto,
     ResendVerificationDto,
     VerifyEmailDto,
 } from '../dto/index.js';
+import { PasswordResetRepository } from '../repositories/password-reset.repository.js';
 import { EmailVerificationService } from './email-verification.service.js';
 import { PasswordService } from './password.service.js';
+import { PasswordNotificationService } from './password-notification.service.js';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +31,8 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly prisma: PrismaService,
         private readonly emailVerificationService: EmailVerificationService,
+        private readonly passwordResetRepository: PasswordResetRepository,
+        private readonly passwordNotificationService: PasswordNotificationService,
     ) { }
 
     async register(data: RegisterDto) {
@@ -147,7 +153,7 @@ export class AuthService {
     }
 
     async getCurrentUser(userId: string) {
-        const user = await this.usersService.findById(userId);
+        const user = await this.usersService.findCurrentById(userId);
 
         if (!user) {
             const { message, errorCode } = AUTH_ERRORS.authenticationRequired;
@@ -157,7 +163,64 @@ export class AuthService {
             });
         }
 
-        return { user };
+        const { profile, ...publicUser } = user;
+
+        return { user: { ...publicUser, avatarPresetId: profile?.avatarPresetId ?? null } };
+    }
+
+    async changePassword(userId: string, expectedAuthVersion: number, data: ChangePasswordDto) {
+        const user = await this.usersService.findPasswordById(userId);
+
+        if (!user?.emailVerifiedAt || user.authVersion !== expectedAuthVersion) {
+            const { message, errorCode } = AUTH_ERRORS.invalidToken;
+            throw new UnauthorizedException(message, { errorCode });
+        }
+
+        const isCurrentPasswordValid = await this.passwordService.verify(
+            user.passwordHash,
+            data.currentPassword,
+        );
+
+        if (!isCurrentPasswordValid) {
+            const { message, errorCode } = AUTH_ERRORS.currentPasswordInvalid;
+            throw new BadRequestException(message, { errorCode });
+        }
+
+        if (data.password === data.currentPassword) {
+            const { message, errorCode } = AUTH_ERRORS.passwordUnchanged;
+            throw new BadRequestException(message, { errorCode });
+        }
+
+        const passwordHash = await this.passwordService.hash(data.password);
+
+        const updatedUser = await this.prisma.$transaction(async (transaction) => {
+            // Match recovery's lock order: reset rows first, then the user row.
+            await this.passwordResetRepository.deleteForUser(userId, transaction);
+            const changed = await this.usersService.changePasswordIfCurrent({
+                userId,
+                passwordHash,
+                expectedPasswordHash: user.passwordHash,
+                expectedAuthVersion,
+            }, transaction);
+
+            if (!changed) {
+                const { message, errorCode } = AUTH_ERRORS.invalidToken;
+                throw new UnauthorizedException(message, { errorCode });
+            }
+
+            const updated = await this.usersService.findAuthenticationById(userId, transaction);
+
+            if (!updated?.emailVerifiedAt) {
+                const { message, errorCode } = AUTH_ERRORS.invalidToken;
+                throw new UnauthorizedException(message, { errorCode });
+            }
+
+            return updated;
+        });
+
+        this.passwordNotificationService.passwordChanged(updatedUser.email);
+
+        return this.createAuthResponse(updatedUser);
     }
 
     private async createAuthResponse(

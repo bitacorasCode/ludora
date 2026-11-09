@@ -20,8 +20,9 @@ See the [API README](../api/README.md) for backend commands and configuration.
 - Games, ranking, and account activity pages with empty states. A playable game,
   matchmaking, chat, and competitive rankings are not implemented yet.
 
-Account settings still display a preview email and a disabled change-password
-action. The profile, registration, and authentication flows use the real API.
+Account settings display the authenticated user's private, read-only email address
+and allow changing the password. Email changes are not supported. The header shows
+the user's nickname and a small circular profile avatar, falling back to an initial.
 
 ## Development commands
 
@@ -122,13 +123,38 @@ authorization on protected operations.
   interactions by refreshing the server tree. Reads may opt into one retry;
   writes are not automatically repeated.
 - Logout deletes the Next session cookie. It does not revoke copies of the JWT
-  held elsewhere. Password reset invalidates previous JWTs through the API.
+  held elsewhere. Password reset and authenticated password changes invalidate
+  previous JWTs through the API.
+
+Server-side handlers around request APIs and `fetch` use Next's `unstable_rethrow`
+before logging or mapping application errors. This preserves framework control
+flow for prerendering, redirects, and missing routes; those signals are not API
+outages or expired sessions.
 
 The recovery request returns a generic confirmation without exposing whether an
 account exists. Reset links are validated on submission, are single-use, and
 expire. The reset page uses `noindex` and `no-referrer` metadata. After a successful
 reset, the web app removes the session cookie and returns to login; it does not
 automatically sign the user in.
+
+## Account settings
+
+The account settings page reads the authenticated user on the server. The email
+address is displayed without an edit control and is not exposed on the profile.
+
+Changing a password requires the current password, a different new password, and
+confirmation. Client and Server Action validation use the shared password minimum.
+The action binds the operation to the displayed user, sends only `currentPassword`
+and `password` to `POST /auth/change-password`, validates the returned user ID,
+and stores the new JWT in the HttpOnly cookie. The token is never returned in the
+action result.
+
+An incorrect current password is a field error and keeps the form and session
+available. Authentication failures use the shared session boundary; other failures
+use the error toast, including the server's retry period. Success clears and closes
+the editor, refreshes server content, and leaves this browser signed in. Previous
+JWTs and pending password-reset links are invalidated by the API. Unsaved edits
+use the shared navigation confirmation and are cleared when the page is hidden.
 
 ## Profile persistence
 
@@ -144,7 +170,8 @@ displayed user before calling Nest's `PUT /profile`.
 Only a successful server response updates the visible profile and browser cache.
 A failed save leaves the entered values in the editor. Cache-write failures do
 not turn a successful server operation into a failed save. Cache entries are
-scoped by user ID and synchronize across tabs.
+scoped by user ID and synchronize across tabs. A successful save also refreshes
+the server tree so the header displays the saved avatar.
 
 To check persistence manually, save a profile, delete only its
 `ludora:profile:<user-id>` local storage entry, and reload. After the server read,
@@ -215,14 +242,16 @@ Useful focused commands:
 pnpm --filter web test:e2e e2e/email-verification.spec.ts --project=guest
 pnpm --filter web test:e2e e2e/password-recovery.spec.ts --project=guest
 pnpm --filter web test:e2e e2e/profile.spec.ts --project=signed-in
+pnpm --filter web test:e2e e2e/user-settings.spec.ts --project=signed-in
 ```
 
-Playwright runs one worker. It starts Nest if the local API is unavailable and
-launches an isolated web server and a test-only API proxy:
+Playwright runs one worker. Each run starts a dedicated Nest process, an isolated
+web server, and a test-only API proxy. It does not reuse the development API on
+`3001`, so test requests have their own in-memory rate-limit counters:
 
 | Service               | Address                 |
 | --------------------- | ----------------------- |
-| Nest API              | `http://localhost:3001` |
+| Nest test API         | `http://localhost:3101` |
 | Browser test web app  | `http://localhost:3100` |
 | Test API proxy        | `http://127.0.0.1:3102` |
 | Mailpit inbox and API | `http://localhost:8025` |
@@ -243,10 +272,18 @@ after verification. Password recovery tests cover reset-token reuse, expiry,
 session revocation, and the password-change notice. Profile tests check server
 persistence after clearing browser cache, cross-tab updates, navigation, and
 cancelled edits.
+Account settings tests cover the read-only email, dirty-editor cancellation,
+current-password rejection, session renewal, and invalidation of old JWTs. The
+password-change scenario restores only its temporary test account afterward.
 
-Tests and manual requests share the running API's actual rate limits. Repeated
-authentication runs can return `429`; respect the server's waiting period rather
-than lowering application limits for the tests.
+The fixture reuses the JWT issued when its temporary account is verified instead
+of logging in before every test. It uses the token's actual expiration and renews
+it only when needed. Password-change cleanup replaces that cached token after
+restoring the temporary password. The dedicated API still applies the real limits;
+large or repeated flows within one run can return `429`. Respect the server's
+waiting period rather than lowering application limits for tests. Both API
+processes use the configured local database, while fixtures change only their
+temporary accounts.
 
 Open the report after a run:
 

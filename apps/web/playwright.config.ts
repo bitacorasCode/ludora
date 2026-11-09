@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = 'http://localhost:3100';
+import { E2E_API_PORT, E2E_API_URL, E2E_PROXY_PORT, E2E_PROXY_URL, E2E_WEB_PORT, E2E_WEB_URL } from './e2e/config';
 
 export default defineConfig({
   testDir: './e2e',
@@ -10,7 +10,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL,
+    baseURL: E2E_WEB_URL,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     channel: process.env.PLAYWRIGHT_CHANNEL,
@@ -30,20 +30,25 @@ export default defineConfig({
   webServer: [
     {
       command: 'pnpm --filter api start:dev',
-      url: 'http://localhost:3001/health',
-      reuseExistingServer: !process.env.CI,
+      url: `${E2E_API_URL}/health`,
+      env: { PORT: E2E_API_PORT.toString() },
+      reuseExistingServer: false,
       timeout: 120_000,
     },
     {
       command: 'node e2e/fixtures/api-proxy.mjs',
-      url: 'http://127.0.0.1:3102/__health',
+      url: `${E2E_PROXY_URL}/__health`,
+      env: {
+        LUDORA_E2E_API_URL: E2E_API_URL,
+        LUDORA_E2E_PROXY_PORT: E2E_PROXY_PORT.toString(),
+      },
       reuseExistingServer: false,
       timeout: 30_000,
     },
     {
-      command: 'pnpm dev --port 3100',
-      url: baseURL,
-      env: { LUDORA_E2E: '1', API_URL: 'http://127.0.0.1:3102' },
+      command: `pnpm dev --port ${E2E_WEB_PORT}`,
+      url: E2E_WEB_URL,
+      env: { LUDORA_E2E: '1', API_URL: E2E_PROXY_URL },
       reuseExistingServer: false,
       timeout: 120_000,
     },

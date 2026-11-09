@@ -5,11 +5,15 @@ import { ItemList, type ItemListEntry } from '@/components/lists';
 import { PageHeading } from '@/components/typography';
 import { Card, CardContent } from '@/components/ui';
 
-import { previewUserSettings } from '../config';
 import { EmailSettingsContent } from './email-settings-content';
 import { PasswordSettingsContent } from './password-settings-content';
 
-export function UserSettingsPageContent() {
+type UserSettingsPageContentProps = {
+  userId: string;
+  email: string;
+};
+
+export function UserSettingsPageContent({ userId, email }: UserSettingsPageContentProps) {
   const t = useTranslations('UserSettings');
   const passwordDescriptionId = useId();
   const items = [
@@ -17,14 +21,14 @@ export function UserSettingsPageContent() {
       id: 'email',
       title: t('email.title'),
       description: t('email.description'),
-      content: <EmailSettingsContent email={previewUserSettings.email} isPreview />,
+      content: <EmailSettingsContent email={email} />,
     },
     {
       id: 'password',
       title: t('password.title'),
-      description: t('password.unavailable'),
+      description: t('password.description'),
       descriptionId: passwordDescriptionId,
-      content: <PasswordSettingsContent descriptionId={passwordDescriptionId} />,
+      content: <PasswordSettingsContent userId={userId} descriptionId={passwordDescriptionId} />,
     },
   ] satisfies readonly ItemListEntry[];
 

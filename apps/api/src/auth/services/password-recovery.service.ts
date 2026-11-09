@@ -11,9 +11,9 @@ import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
 import { PASSWORD_RESET_CONFIG } from '../constants/password-reset.js';
 import { PasswordResetRepository } from '../repositories/password-reset.repository.js';
-import { createPasswordChangedMail } from '../templates/password-changed-mail.js';
 import { createPasswordResetMail } from '../templates/password-reset-mail.js';
 import { PasswordService } from './password.service.js';
+import { PasswordNotificationService } from './password-notification.service.js';
 import { PasswordResetTokenService } from './password-reset-token.service.js';
 
 @Injectable()
@@ -29,6 +29,7 @@ export class PasswordRecoveryService {
         private readonly resetRepository: PasswordResetRepository,
         private readonly mailService: MailService,
         private readonly passwordService: PasswordService,
+        private readonly passwordNotificationService: PasswordNotificationService,
     ) {
         const resetUrl = parseHttpUrl(
             config.get<string>('PASSWORD_RESET_URL'),
@@ -78,18 +79,7 @@ export class PasswordRecoveryService {
             return this.usersService.updatePassword(userId, passwordHash, transaction);
         });
 
-        // The change is committed; SMTP must not delay or fail its HTTP response.
-        setImmediate(() => {
-            void this.sendPasswordChangedNotice(recipient).catch(() => {
-                this.logger.error('Could not send password change notification.');
-            });
-        });
-    }
-
-    private async sendPasswordChangedNotice(to: string): Promise<void> {
-        const message = createPasswordChangedMail();
-
-        await this.mailService.send({ to, ...message });
+        this.passwordNotificationService.passwordChanged(recipient);
     }
 
     private async processRequest(email: string): Promise<void> {

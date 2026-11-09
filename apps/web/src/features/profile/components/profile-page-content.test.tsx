@@ -237,6 +237,7 @@ describe('ProfilePageContent integration', () => {
       esMessages.Profile.saved,
       { id: 'profile-saved' },
     );
+    expect(router.refresh).toHaveBeenCalledOnce();
     expect(screen.getByText('Biografía confirmada')).toBeTruthy();
     expect(screen.queryByLabelText(esMessages.Profile.bio.label)).toBeNull();
     expect(readPreferences(profileStorage.getSnapshot())).toEqual({

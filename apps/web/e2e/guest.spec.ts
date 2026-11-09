@@ -34,10 +34,7 @@ test.describe('Guest access', () => {
       }),
     ).toBeVisible();
     await expect(
-      navigation.getByRole('link', {
-        name: esMessages.Header.account,
-        exact: true,
-      }),
+      navigation.locator('a[href="/es/account/profile"]'),
     ).toHaveCount(0);
     await expect(
       page.getByRole('switch', { name: esMessages.ThemeSwitch.label }),

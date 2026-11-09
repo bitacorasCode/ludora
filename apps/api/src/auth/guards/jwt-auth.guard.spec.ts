@@ -62,7 +62,7 @@ describe('JwtAuthGuard', () => {
             expect(jwtService.verifyAsync).toHaveBeenCalledExactlyOnceWith(token);
             expect(usersService.findAuthenticationById).toHaveBeenCalledExactlyOnceWith(userId);
             expect(jwtService.verifyAsync).toHaveBeenCalledBefore(usersService.findAuthenticationById);
-            expect(request.auth).toEqual({ userId });
+            expect(request.auth).toEqual({ userId, authVersion: payload.authVersion });
         });
 
         it.each([undefined, '', 'Basic credentials', 'Bearer', 'Bearer first second'])(
@@ -150,7 +150,7 @@ describe('JwtAuthGuard', () => {
 
             await expect(guard.canActivate(context)).resolves.toBe(true);
 
-            expect(request.auth).toEqual({ userId });
+            expect(request.auth).toEqual({ userId, authVersion: currentVersion });
         });
 
         it('should propagate an authentication lookup outage without authorizing the request', async () => {

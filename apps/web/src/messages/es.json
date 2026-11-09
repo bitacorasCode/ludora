@@ -117,7 +117,6 @@
         "show": "Mostrar"
     },
     "Header": {
-        "account": "Mi cuenta",
         "games": "Juegos",
         "login": "Iniciar sesión",
         "menu": {
@@ -354,18 +353,38 @@
         "label": "Modo oscuro"
     },
     "UserSettings": {
-        "description": "Consulta tu correo privado y las opciones de acceso a Ludora.",
+        "description": "Consulta tu correo privado y administra tu contraseña.",
         "email": {
-            "description": "Tu correo es privado y no se muestra en el perfil visible.",
-            "preview": "Correo de ejemplo para esta vista previa.",
+            "description": "Tu correo es privado, no se muestra en tu perfil y no se puede cambiar.",
             "title": "Correo electrónico"
         },
         "eyebrow": "Acceso y privacidad",
         "loading": "Cargando ajustes de cuenta",
         "password": {
             "change": "Cambiar contraseña",
+            "description": "Elige una contraseña nueva. Se cerrarán tus otras sesiones.",
+            "errors": {
+                "AUTH_CURRENT_PASSWORD_INVALID": "La contraseña actual es incorrecta.",
+                "AUTH_PASSWORD_UNCHANGED": "Elige una contraseña diferente de la actual."
+            },
+            "form": {
+                "confirmPassword": "Confirmar nueva contraseña",
+                "currentPassword": "Contraseña actual",
+                "errorTitle": "No pudimos actualizar tu contraseña",
+                "newPassword": "Nueva contraseña",
+                "submit": "Actualizar contraseña",
+                "submitting": "Actualizando contraseña…",
+                "success": "Tu contraseña se ha actualizado.",
+                "title": "Cambiar contraseña"
+            },
             "title": "Contraseña",
-            "unavailable": "Esta opción estará disponible cuando puedas iniciar sesión en tu cuenta."
+            "validation": {
+                "confirmPasswordRequired": "Repite tu nueva contraseña.",
+                "currentPasswordRequired": "Introduce tu contraseña actual.",
+                "passwordMin": "Usa al menos 8 caracteres.",
+                "passwordMismatch": "Las contraseñas no coinciden.",
+                "passwordUnchanged": "Elige una contraseña diferente de la actual."
+            }
         },
         "title": "Cuenta"
     }
