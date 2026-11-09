@@ -1,0 +1,63 @@
+{
+  "brand": "Ludora",
+  "purpose": "Six logo concepts for an online board-game platform.",
+  "generationTool": "Built-in image_gen",
+  "palette": {
+    "primary": "#0f5961",
+    "amber": "#d99a32",
+    "cream": "#f7f5f0",
+    "ink": "#17272d",
+    "dark": "#12232a",
+    "mint": "#82d7c9"
+  },
+  "concepts": [
+    {
+      "id": "01",
+      "slug": "l-tile",
+      "name": "The L Tile",
+      "description": "A compact monogram built from board-game tiles.",
+      "file": "01-l-tile.png",
+      "prompt": "Use case: logo-brand. Asset type: original logo exploration for Ludora, a friendly modern online board-game platform supporting many types of tabletop games. Create ONE finished original logo concept. Scene/backdrop: completely plain solid warm ivory #f7f5f0, no texture. Style/medium: polished flat vector-like brand design with crisp edges, strong silhouette, balanced negative space, production-minded simplicity. Composition: wide landscape presentation, one centered horizontal emblem-and-wordmark lockup occupying roughly 70% of canvas width with generous margins. Color palette from the actual app: main deep petroleum teal #0f5961, restrained ochre-gold accent #d99a32, ivory #f7f5f0, optional ink #17272d. Typography must be highly legible and customized. Text verbatim: \"Ludora\" (capital L followed by lowercase u d o r a). Render this word exactly once; no tagline or other text. Constraints: few broad flat shapes, no hairline details, recognizable at small app-icon size; original design only. Avoid gradients, shadows, 3D, embossing, mockup objects, photographic scenes, detailed illustrations, video-game controllers, esports crests, casino cues, chess-specific branding, watermarks, concept numbers, presentation labels or extra decorative graphics.\nConcept direction: Design an ingenious compact symbol using three broad rounded-square playing tiles to form a clearly readable capital L, plus one small amber tile as a single accent. The L silhouette and open negative space must remain very clear at favicon size. Pair it with a bespoke softly rounded geometric sans-serif Ludora wordmark, confident and friendly."
+    },
+    {
+      "id": "02",
+      "slug": "shared-table",
+      "name": "The Shared Table",
+      "description": "A welcoming emblem about people playing together.",
+      "file": "02-shared-table.png",
+      "prompt": "Use case: logo-brand. Asset type: original logo exploration for Ludora, a friendly modern online board-game platform supporting many types of tabletop games. Create ONE finished original logo concept. Scene/backdrop: completely plain solid warm ivory #f7f5f0, no texture. Style/medium: polished flat vector-like brand design with crisp edges, strong silhouette, balanced negative space, production-minded simplicity. Composition: wide landscape presentation, one centered horizontal emblem-and-wordmark lockup occupying roughly 70% of canvas width with generous margins. Color palette from the actual app: main deep petroleum teal #0f5961, restrained ochre-gold accent #d99a32, ivory #f7f5f0, optional ink #17272d. Typography must be highly legible and customized. Text verbatim: \"Ludora\" (capital L followed by lowercase u d o r a). Render this word exactly once; no tagline or other text. Constraints: few broad flat shapes, no hairline details, recognizable at small app-icon size; original design only. Avoid gradients, shadows, 3D, embossing, mockup objects, photographic scenes, detailed illustrations, video-game controllers, esports crests, casino cues, chess-specific branding, watermarks, concept numbers, presentation labels or extra decorative graphics.\nConcept direction: Design a top-down abstract communal gaming table: one simple central teal table form with four broad rounded player shapes arranged around it, one player in amber. Balance the negative space so it feels like people gathering, never a gear or flower. Use an inviting humanist Ludora wordmark with gentle rounded terminals. Community and shared play are the core idea."
+    },
+    {
+      "id": "03",
+      "slug": "clever-die",
+      "name": "The Clever Die",
+      "description": "A recognizable die with a distinctive letterform.",
+      "file": "03-clever-die.png",
+      "prompt": "Use case: logo-brand. Asset type: original logo exploration for Ludora, a friendly modern online board-game platform supporting many types of tabletop games. Create ONE finished original logo concept. Scene/backdrop: completely plain solid warm ivory #f7f5f0, no texture. Style/medium: polished flat vector-like brand design with crisp edges, strong silhouette, balanced negative space, production-minded simplicity. Composition: wide landscape presentation, one centered horizontal emblem-and-wordmark lockup occupying roughly 70% of canvas width with generous margins. Color palette from the actual app: main deep petroleum teal #0f5961, restrained ochre-gold accent #d99a32, ivory #f7f5f0, optional ink #17272d. Typography must be highly legible and customized. Text verbatim: \"Ludora\" (capital L followed by lowercase u d o r a). Render this word exactly once; no tagline or other text. Constraints: few broad flat shapes, no hairline details, recognizable at small app-icon size; original design only. Avoid gradients, shadows, 3D, embossing, mockup objects, photographic scenes, detailed illustrations, video-game controllers, esports crests, casino cues, chess-specific branding, watermarks, concept numbers, presentation labels or extra decorative graphics.\nConcept direction: Design an original rounded-square board-game die icon shown perfectly front-on, with a strongly integrated negative-space capital L and one amber pip. Use large simple elements, no cluster of tiny dots, no 3D. Give the Ludora wordmark a confident slightly angular custom sans-serif character with subtle rounded corners. Contemporary, playful, memorable."
+    },
+    {
+      "id": "04",
+      "slug": "open-portal",
+      "name": "The Open Portal",
+      "description": "A doorway into shared worlds of play.",
+      "file": "04-open-portal.png",
+      "prompt": "Use case: logo-brand. Asset type: original logo exploration for Ludora, a friendly modern online board-game platform supporting many types of tabletop games. Create ONE finished original logo concept. Scene/backdrop: completely plain solid warm ivory #f7f5f0, no texture. Style/medium: polished flat vector-like brand design with crisp edges, strong silhouette, balanced negative space, production-minded simplicity. Composition: wide landscape presentation, one centered horizontal emblem-and-wordmark lockup occupying roughly 70% of canvas width with generous margins. Color palette from the actual app: main deep petroleum teal #0f5961, restrained ochre-gold accent #d99a32, ivory #f7f5f0, optional ink #17272d. Typography must be highly legible and customized. Text verbatim: \"Ludora\" (capital L followed by lowercase u d o r a). Render this word exactly once; no tagline or other text. Constraints: few broad flat shapes, no hairline details, recognizable at small app-icon size; original design only. Avoid gradients, shadows, 3D, embossing, mockup objects, photographic scenes, detailed illustrations, video-game controllers, esports crests, casino cues, chess-specific branding, watermarks, concept numbers, presentation labels or extra decorative graphics.\nConcept direction: Design a minimal open portal or rounded doorway in teal containing one simple amber playing token. Let the doorway's broad asymmetrical geometry subtly evoke an L without forcing it. Sophisticated and imaginative, an entry into shared gaming worlds. Pair with an elegant contemporary Ludora wordmark with subtle soft flared terminals, a different typographic direction from a generic tech sans. Avoid medieval ornament."
+    },
+    {
+      "id": "05",
+      "slug": "playing-tiles",
+      "name": "The Playing Tiles",
+      "description": "Two interlocking pieces with balanced negative space.",
+      "file": "05-playing-tiles.png",
+      "prompt": "Use case: logo-brand. Asset type: original logo exploration for Ludora, a friendly modern online board-game platform supporting many types of tabletop games. Create ONE finished original logo concept. Scene/backdrop: completely plain solid warm ivory #f7f5f0, no texture. Style/medium: polished flat vector-like brand design with crisp edges, strong silhouette, balanced negative space, production-minded simplicity. Composition: wide landscape presentation, one centered horizontal emblem-and-wordmark lockup occupying roughly 70% of canvas width with generous margins. Color palette from the actual app: main deep petroleum teal #0f5961, restrained ochre-gold accent #d99a32, ivory #f7f5f0, optional ink #17272d. Typography must be highly legible and customized. Text verbatim: \"Ludora\" (capital L followed by lowercase u d o r a). Render this word exactly once; no tagline or other text. Constraints: few broad flat shapes, no hairline details, recognizable at small app-icon size; original design only. Avoid gradients, shadows, 3D, embossing, mockup objects, photographic scenes, detailed illustrations, video-game controllers, esports crests, casino cues, chess-specific branding, watermarks, concept numbers, presentation labels or extra decorative graphics.\nConcept direction: Design two bold overlapping rounded playing tiles, one deep teal and one amber, whose interlocking contours create one small clear cream-colored abstract game-token shape in the negative space. The result should feel like cleverly fitting pieces and a digital gaming table, not a payment-card or credit-card company. Pair with a compact clean geometric Ludora wordmark with strong custom kerning."
+    },
+    {
+      "id": "06",
+      "slug": "loop-wordmark",
+      "name": "The Ludora Loop",
+      "description": "A typographic identity with a game-board loop.",
+      "file": "06-loop-wordmark.png",
+      "prompt": "Use case: logo-brand. Asset type: original logo exploration for Ludora, a friendly modern online board-game platform supporting many types of tabletop games. Create ONE finished original logo concept. Scene/backdrop: completely plain solid warm ivory #f7f5f0, no texture. Style/medium: polished flat vector-like brand design with crisp edges, strong silhouette, balanced negative space, production-minded simplicity. Composition: wide landscape presentation, one centered horizontal emblem-and-wordmark lockup occupying roughly 70% of canvas width with generous margins. Color palette from the actual app: main deep petroleum teal #0f5961, restrained ochre-gold accent #d99a32, ivory #f7f5f0, optional ink #17272d. Typography must be highly legible and customized. Text verbatim: \"Ludora\" (capital L followed by lowercase u d o r a). Render this word exactly once; no tagline or other text. Constraints: few broad flat shapes, no hairline details, recognizable at small app-icon size; original design only. Avoid gradients, shadows, 3D, embossing, mockup objects, photographic scenes, detailed illustrations, video-game controllers, esports crests, casino cues, chess-specific branding, watermarks, concept numbers, presentation labels or extra decorative graphics.\nConcept direction: Design a typographic-first identity where the bespoke Ludora wordmark is the star. Make the lowercase o a beautifully integrated rounded board-game loop containing one small amber token, with a simple bold circuit and no tiny divisions. Show the loop-o as a small standalone emblem to the left of the wordmark, matching the modified o. Sophisticated custom lettering with lively rhythm, warm and premium, excellent readability."
+    }
+  ]
+}

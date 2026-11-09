@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Ludora — Logo concepts</title>
+  <style>
+    :root { color-scheme: light; --cream:#f7f5f0; --ink:#17272d; --teal:#0f5961; --amber:#d99a32; --line:#cbd8d1; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--cream); color:var(--ink); font:16px/1.6 system-ui,sans-serif; }
+    .page { max-width:1400px; padding:48px 24px 64px; margin:auto; }
+    .eyebrow { margin:0; color:var(--teal); font-size:.78rem; font-weight:750; letter-spacing:.16em; text-transform:uppercase; }
+    h1 { margin:8px 0 12px; font-size:clamp(2rem,5vw,3.8rem); line-height:1.1; letter-spacing:-.045em; }
+    .intro { max-width:64ch; color:#54696a; }
+    .palette { display:flex; flex-wrap:wrap; gap:20px; margin:24px 0; }
+    .swatch { display:inline-flex; align-items:center; gap:8px; font-size:.8rem; }
+    .swatch i { width:18px; height:18px; border:1px solid var(--line); border-radius:5px; }
+    .toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:28px 0; }
+    button { font:inherit; font-weight:650; padding:10px 16px; border:1px solid var(--teal); border-radius:10px; cursor:pointer; }
+    #compare { background:var(--teal); color:white; }
+    #reset { background:transparent; color:var(--teal); }
+    button:disabled { opacity:.45; cursor:default; }
+    :focus-visible { outline:3px solid var(--amber); outline-offset:4px; }
+    output { color:#54696a; font-size:.88rem; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
+    .concept { overflow:hidden; border:1px solid var(--line); border-radius:18px; background:white; }
+    .concept:has(input:checked) { border-color:var(--teal); box-shadow:0 0 0 2px var(--teal); }
+    .concept[hidden] { display:none; }
+    .artwork { display:flex; align-items:center; justify-content:center; aspect-ratio:2/1; background:var(--cream); }
+    img { display:block; width:100%; height:100%; object-fit:contain; }
+    .caption { padding:20px 24px 24px; border-top:1px solid var(--line); }
+    .caption>div { display:flex; gap:10px; align-items:center; }
+    .number { color:var(--teal); background:#dceae6; font-size:.8rem; font-weight:750; padding:3px 9px; border-radius:6px; }
+    h2 { font-size:1.1rem; margin:0; letter-spacing:-.02em; }
+    .caption p { color:#54696a; font-size:.9rem; margin:10px 0 18px; }
+    .selection { display:inline-flex; align-items:center; gap:8px; color:var(--teal); font-size:.88rem; font-weight:650; cursor:pointer; }
+    input { width:18px; height:18px; accent-color:var(--teal); }
+    footer { margin-top:32px; font-size:.85rem; color:#54696a; }
+    footer a { color:var(--teal); }
+    @media(max-width:760px) { .page { padding:30px 16px; } .grid { grid-template-columns:1fr; } }
+    @media print { .toolbar,.selection { display:none; } .concept { break-inside:avoid; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <p class="eyebrow">Brand exploration · 6 concepts</p>
+      <h1>Ludora</h1>
+      <p class="intro">Six original logo directions for an online board-game platform, based on the application's petroleum teal, ochre-gold, and warm ivory palette. Select concepts to compare them, or open an image at full size.</p>
+      <div class="palette" aria-label="Brand palette">
+        <span class="swatch"><i style="background:#0f5961"></i>Teal · #0f5961</span>
+        <span class="swatch"><i style="background:#d99a32"></i>Gold · #d99a32</span>
+        <span class="swatch"><i style="background:#f7f5f0"></i>Ivory · #f7f5f0</span>
+        <span class="swatch"><i style="background:#12232a"></i>Dark · #12232a</span>
+        <span class="swatch"><i style="background:#82d7c9"></i>Mint · #82d7c9</span>
+      </div>
+    </header>
+    <div class="toolbar">
+      <button id="compare" type="button" aria-pressed="false" disabled>Compare selected</button>
+      <button id="reset" type="button">Show all and reset</button>
+      <output id="selection-status" aria-live="polite">No concepts selected</output>
+    </div>
+    <main class="grid" id="concepts">
+      <article class="concept" data-concept="01">
+        <a class="artwork" href="01-l-tile.png" target="_blank" rel="noopener" aria-label="Open concept 01: The L Tile">
+          <img src="01-l-tile.png" alt="Ludora logo concept 01: A compact monogram built from board-game tiles." loading="eager">
+        </a>
+        <div class="caption">
+          <div><span class="number">01</span><h2>The L Tile</h2></div>
+          <p>A compact monogram built from board-game tiles.</p>
+          <label class="selection"><input type="checkbox" value="01"> Select concept 01</label>
+        </div>
+      </article>
+      <article class="concept" data-concept="02">
+        <a class="artwork" href="02-shared-table.png" target="_blank" rel="noopener" aria-label="Open concept 02: The Shared Table">
+          <img src="02-shared-table.png" alt="Ludora logo concept 02: A welcoming emblem about people playing together." loading="eager">
+        </a>
+        <div class="caption">
+          <div><span class="number">02</span><h2>The Shared Table</h2></div>
+          <p>A welcoming emblem about people playing together.</p>
+          <label class="selection"><input type="checkbox" value="02"> Select concept 02</label>
+        </div>
+      </article>
+      <article class="concept" data-concept="03">
+        <a class="artwork" href="03-clever-die.png" target="_blank" rel="noopener" aria-label="Open concept 03: The Clever Die">
+          <img src="03-clever-die.png" alt="Ludora logo concept 03: A recognizable die with a distinctive letterform." loading="eager">
+        </a>
+        <div class="caption">
+          <div><span class="number">03</span><h2>The Clever Die</h2></div>
+          <p>A recognizable die with a distinctive letterform.</p>
+          <label class="selection"><input type="checkbox" value="03"> Select concept 03</label>
+        </div>
+      </article>
+      <article class="concept" data-concept="04">
+        <a class="artwork" href="04-open-portal.png" target="_blank" rel="noopener" aria-label="Open concept 04: The Open Portal">
+          <img src="04-open-portal.png" alt="Ludora logo concept 04: A doorway into shared worlds of play." loading="eager">
+        </a>
+        <div class="caption">
+          <div><span class="number">04</span><h2>The Open Portal</h2></div>
+          <p>A doorway into shared worlds of play.</p>
+          <label class="selection"><input type="checkbox" value="04"> Select concept 04</label>
+        </div>
+      </article>
+      <article class="concept" data-concept="05">
+        <a class="artwork" href="05-playing-tiles.png" target="_blank" rel="noopener" aria-label="Open concept 05: The Playing Tiles">
+          <img src="05-playing-tiles.png" alt="Ludora logo concept 05: Two interlocking pieces with balanced negative space." loading="eager">
+        </a>
+        <div class="caption">
+          <div><span class="number">05</span><h2>The Playing Tiles</h2></div>
+          <p>Two interlocking pieces with balanced negative space.</p>
+          <label class="selection"><input type="checkbox" value="05"> Select concept 05</label>
+        </div>
+      </article>
+      <article class="concept" data-concept="06">
+        <a class="artwork" href="06-loop-wordmark.png" target="_blank" rel="noopener" aria-label="Open concept 06: The Ludora Loop">
+          <img src="06-loop-wordmark.png" alt="Ludora logo concept 06: A typographic identity with a game-board loop." loading="eager">
+        </a>
+        <div class="caption">
+          <div><span class="number">06</span><h2>The Ludora Loop</h2></div>
+          <p>A typographic identity with a game-board loop.</p>
+          <label class="selection"><input type="checkbox" value="06"> Select concept 06</label>
+        </div>
+      </article>
+    </main>
+    <footer>Generated with the built-in image generation tool. These PNG concept images are presented for selection before final vector artwork. <a href="prompts.json">View the complete prompt set and asset filenames.</a></footer>
+  </div>
+  <script>
+    const checkboxes = [...document.querySelectorAll('input[type="checkbox"]')];
+    const cards = [...document.querySelectorAll('[data-concept]')];
+    const compare = document.getElementById('compare');
+    const reset = document.getElementById('reset');
+    const status = document.getElementById('selection-status');
+    let filtered = false;
+    function update() {
+      const selected = new Set(checkboxes.filter(input => input.checked).map(input => input.value));
+      if (selected.size === 0) filtered = false;
+      compare.disabled = selected.size === 0;
+      compare.setAttribute('aria-pressed', String(filtered));
+      compare.textContent = filtered ? 'Show all concepts' : 'Compare selected';
+      status.textContent = selected.size === 0 ? 'No concepts selected' : selected.size + (selected.size === 1 ? ' concept selected' : ' concepts selected');
+      cards.forEach(card => { card.hidden = filtered && !selected.has(card.dataset.concept); });
+    }
+    checkboxes.forEach(input => input.addEventListener('change', update));
+    compare.addEventListener('click', () => { filtered = !filtered; update(); });
+    reset.addEventListener('click', () => {
+      checkboxes.forEach(input => { input.checked = false; });
+      filtered = false;
+      update();
+    });
+  </script>
+</body>
+</html>
