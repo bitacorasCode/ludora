@@ -1,7 +1,8 @@
 import { useTranslations } from 'next-intl';
+import type { ReactNode } from 'react';
 
 import { BodyText, SectionTitle } from '@/components/typography';
-import { Button, Card, CardContent } from '@/components/ui';
+import { Card, CardContent } from '@/components/ui';
 
 import type { Profile } from '../config';
 import { ProfileAvatar } from './profile-avatar';
@@ -9,15 +10,10 @@ import { ProfileSkeleton } from './profile-skeleton';
 
 type ProfileIdentityProps = {
   profile: Profile | null;
-  isEditing: boolean;
-  onEdit?: () => void;
+  editAction?: ReactNode;
 };
 
-export function ProfileIdentity({
-  profile,
-  isEditing,
-  onEdit,
-}: ProfileIdentityProps) {
+export function ProfileIdentity({ profile, editAction }: ProfileIdentityProps) {
   const t = useTranslations('Profile');
 
   if (!profile) {
@@ -40,16 +36,7 @@ export function ProfileIdentity({
             {profile.bio?.trim() || t('bio.empty')}
           </BodyText>
         </div>
-        {!isEditing && onEdit && (
-          <Button
-            type='button'
-            variant='outline'
-            className='self-start sm:self-center'
-            onClick={onEdit}
-          >
-            {t('edit')}
-          </Button>
-        )}
+        {editAction}
       </CardContent>
     </Card>
   );

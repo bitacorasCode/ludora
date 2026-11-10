@@ -23,6 +23,15 @@ export {
     CardTitle,
 } from './card';
 export {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from './dialog';
+export {
     Field,
     FieldContent,
     FieldDescription,

@@ -1,3 +1,4 @@
+import { ACCESS_TOKEN_TTL_SECONDS } from '@ludora/security';
 import { cookies } from 'next/headers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -29,7 +30,7 @@ describe('session cookie', () => {
         secure: false,
         sameSite: 'lax',
         path: '/',
-        maxAge: 900,
+        maxAge: ACCESS_TOKEN_TTL_SECONDS,
       },
     );
   });

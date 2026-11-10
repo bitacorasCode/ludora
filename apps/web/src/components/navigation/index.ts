@@ -1,4 +1,3 @@
-export { GuardedLink } from './guarded-link';
 export {
     NavigationGuardProvider,
     useNavigationGuard,

@@ -1,9 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui';
-import { usePathname } from '@/i18n/navigation';
+import { Link, usePathname } from '@/i18n/navigation';
 
-import { GuardedLink as Link } from './guarded-link';
 export type SectionNavigationItem = {
   href: string;
   label: string;

@@ -3,10 +3,10 @@ import 'server-only';
 import { useTranslations } from 'next-intl';
 import { Suspense } from 'react';
 
-import { GuardedLink as Link } from '@/components/navigation';
 import { SideMenu } from '@/components/overlays';
 import { Button, Skeleton } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
+import { Link } from '@/i18n/navigation';
 
 import { HeaderAccountLinks } from './header-account-links';
 import { HeaderLinks } from './header-links';
@@ -57,11 +57,10 @@ export function Header() {
           description={t('menu.description')}
           navigationLabel={t('navigation.mobile')}
         >
-          <HeaderLinks isSideMenu />
-
           <Suspense fallback={sessionFallback}>
             <HeaderAccountLinks isSideMenu />
           </Suspense>
+          <HeaderLinks isSideMenu />
         </SideMenu>
       </nav>
     </header>

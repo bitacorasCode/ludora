@@ -6,8 +6,17 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { ErrorState } from '@/components/feedback';
+import { useNavigationGuard } from '@/components/navigation';
 import { PageHeading } from '@/components/typography';
-import { Button } from '@/components/ui';
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui';
 import { useActionErrorToast } from '@/hooks';
 import { OPERATION_STATUS } from '@/lib/actions';
 
@@ -31,6 +40,7 @@ export function ProfilePageContent({
   const t = useTranslations('Profile');
   const actions = useTranslations('Common.actions');
   const errors = useTranslations('Common.errors');
+  const { requestNavigation } = useNavigationGuard();
 
   const { profile, error, reload, canEdit, save } = useProfile(
     userId,
@@ -107,19 +117,43 @@ export function ProfilePageContent({
       )}
 
       {(profile || !error) && (
-        <ProfileIdentity
-          profile={profile}
-          isEditing={isEditing}
-          onEdit={canEdit ? () => setIsEditing(true) : undefined}
-        />
-      )}
-
-      {isEditing && profile && (
-        <ProfileEditor
-          profile={profile}
-          onSave={handleSave}
-          onCancel={handleCancel}
-        />
+        <Dialog
+          open={isEditing}
+          onOpenChange={(open) => {
+            if (open) setIsEditing(true);
+            else requestNavigation(handleCancel);
+          }}
+        >
+          <ProfileIdentity
+            profile={profile}
+            editAction={
+              canEdit && (
+                <DialogTrigger asChild>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    className='self-start sm:self-center'
+                  >
+                    {t('edit')}
+                  </Button>
+                </DialogTrigger>
+              )
+            }
+          />
+          {profile && (
+            <DialogContent className='max-w-2xl' closeLabel={actions('close')}>
+              <DialogHeader>
+                <DialogTitle>{t('edit')}</DialogTitle>
+                <DialogDescription>{t('description')}</DialogDescription>
+              </DialogHeader>
+              <ProfileEditor
+                profile={profile}
+                onSave={handleSave}
+                onCancel={handleCancel}
+              />
+            </DialogContent>
+          )}
+        </Dialog>
       )}
     </>
   );

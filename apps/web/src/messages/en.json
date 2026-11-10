@@ -45,6 +45,7 @@
         "actions": {
             "backHome": "Back to home",
             "cancel": "Cancel",
+            "close": "Close",
             "retry": "Try again",
             "saveChanges": "Save changes"
         },

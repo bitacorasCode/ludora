@@ -191,9 +191,11 @@ objects and keep feature-specific errors with their feature. Code, comments,
 documentation, and email templates use English; Spanish website copy belongs in
 `es.json`.
 
-`NavigationGuardProvider`, `GuardedLink`, and `useUnsavedChanges` share the
-confirmation dialog for unsaved edits. Browser Back/Forward confirmation uses
-Navigation API when supported and when the event is cancelable. Reloading or
+`NavigationGuardProvider` and `useUnsavedChanges` share the confirmation dialog
+for unsaved edits, including attempts to close profile and password dialogs.
+Navigation links use the locale-aware `Link` directly; the modal dialogs prevent
+interaction with the underlying page while editing. Browser Back/Forward
+confirmation uses Navigation API when supported and when the event is cancelable. Reloading or
 closing a dirty editor uses the browser's native `beforeunload` warning; the
 listener is removed when no unsaved changes remain. Browser restrictions mean
 these warnings cannot guarantee delivery in every browser or mobile lifecycle.

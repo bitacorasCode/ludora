@@ -35,4 +35,4 @@ export const AUTH_VALIDATION = Object.freeze({
 });
 
 export const EMAIL_VERIFICATION_CODE_LENGTH = 6;
-export const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
+export const ACCESS_TOKEN_TTL_SECONDS = 120 * 60;

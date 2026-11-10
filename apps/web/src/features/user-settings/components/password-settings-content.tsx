@@ -1,9 +1,18 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 
-import { Button } from '@/components/ui';
+import { useNavigationGuard } from '@/components/navigation';
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui';
 
 import { ChangePasswordForm } from './change-password-form';
 
@@ -17,30 +26,39 @@ export function PasswordSettingsContent({
   descriptionId,
 }: PasswordSettingsContentProps) {
   const t = useTranslations('UserSettings');
+  const actions = useTranslations('Common.actions');
+  const { requestNavigation } = useNavigationGuard();
   const [isEditing, setIsEditing] = useState(false);
-  const trigger = useRef<HTMLButtonElement>(null);
-  const wasEditing = useRef(false);
-
-  useLayoutEffect(() => {
-    if (!isEditing && wasEditing.current) trigger.current?.focus();
-    wasEditing.current = isEditing;
-  }, [isEditing]);
 
   useLayoutEffect(() => () => setIsEditing(false), []);
 
-  if (isEditing) {
-    return <ChangePasswordForm userId={userId} onClose={() => setIsEditing(false)} />;
-  }
-
   return (
-    <Button
-      ref={trigger}
-      type='button'
-      variant='outline'
-      aria-describedby={descriptionId}
-      onClick={() => setIsEditing(true)}
+    <Dialog
+      open={isEditing}
+      onOpenChange={(open) => {
+        if (open) setIsEditing(true);
+        else requestNavigation(() => setIsEditing(false));
+      }}
     >
-      {t('password.change')}
-    </Button>
+      <DialogTrigger asChild>
+        <Button
+          type='button'
+          variant='outline'
+          aria-describedby={descriptionId}
+        >
+          {t('password.change')}
+        </Button>
+      </DialogTrigger>
+      <DialogContent closeLabel={actions('close')}>
+        <DialogHeader>
+          <DialogTitle>{t('password.form.title')}</DialogTitle>
+          <DialogDescription>{t('password.description')}</DialogDescription>
+        </DialogHeader>
+        <ChangePasswordForm
+          userId={userId}
+          onClose={() => setIsEditing(false)}
+        />
+      </DialogContent>
+    </Dialog>
   );
 }

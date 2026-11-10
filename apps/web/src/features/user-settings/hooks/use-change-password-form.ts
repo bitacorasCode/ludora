@@ -18,81 +18,85 @@ import { type ChangePasswordFormData, createChangePasswordSchema } from '../sche
 const PASSWORD_CHANGED_TOAST_ID = 'password-changed';
 
 export function useChangePasswordForm(userId: string, onSuccess: () => void) {
-  const locale = useLocale();
-  const router = useRouter();
-  const validation = useTranslations('UserSettings.password.validation');
-  const feedback = useTranslations('UserSettings.password.form');
-  const errors = useTranslations('UserSettings.password.errors');
-  const { execute, isRecoveringSession } = useProtectedRequest();
-  const { showError, dismissError } = useActionErrorToast({
-    title: feedback('errorTitle'),
-    featureErrors: errors,
-  });
-  const requestInFlight = useRef(false);
-  const isActive = useRef(false);
-  const form = useForm<ChangePasswordFormData>({
-    ...FORM_VALIDATION_OPTIONS,
-    resolver: zodResolver(createChangePasswordSchema(validation)),
-    defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
-  });
+    const locale = useLocale();
+    const router = useRouter();
 
-  useLayoutEffect(() => {
-    isActive.current = true;
+    const validation = useTranslations('UserSettings.password.validation');
+    const feedback = useTranslations('UserSettings.password.form');
+    const errors = useTranslations('UserSettings.password.errors');
 
-    return () => {
-      isActive.current = false;
-      form.reset();
-      dismissError();
-    };
-  }, [form, dismissError]);
+    const { execute, isRecoveringSession } = useProtectedRequest();
+    const { showError, dismissError } = useActionErrorToast({
+        title: feedback('errorTitle'),
+        featureErrors: errors,
+    });
 
-  async function onSubmit(values: ChangePasswordFormData) {
-    if (requestInFlight.current) return;
+    const requestInFlight = useRef(false);
+    const isActive = useRef(false);
 
-    requestInFlight.current = true;
-    dismissError();
+    const form = useForm<ChangePasswordFormData>({
+        ...FORM_VALIDATION_OPTIONS,
+        resolver: zodResolver(createChangePasswordSchema(validation)),
+        defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
+    });
 
-    try {
-      const result = await execute(() => changePassword(locale, userId, values));
+    useLayoutEffect(() => {
+        isActive.current = true;
 
-      if (!result || !isActive.current) return;
+        return () => {
+            isActive.current = false;
+            form.reset();
+            dismissError();
+        };
+    }, [form, dismissError]);
 
-      if (result.status === OPERATION_STATUS.error) {
-        if (result.error.errorCode === AUTH_ERROR_CODES.currentPasswordInvalid) {
-          form.setError('currentPassword', {
-            type: FORM_ERROR_TYPES.server,
-            message: errors('AUTH_CURRENT_PASSWORD_INVALID'),
-          }, { shouldFocus: true });
-          return;
+    async function onSubmit(values: ChangePasswordFormData) {
+        if (requestInFlight.current) return;
+
+        requestInFlight.current = true;
+        dismissError();
+
+        try {
+            const result = await execute(() => changePassword(locale, userId, values));
+
+            if (!result || !isActive.current) return;
+
+            if (result.status === OPERATION_STATUS.error) {
+                if (result.error.errorCode === AUTH_ERROR_CODES.currentPasswordInvalid) {
+                    form.setError('currentPassword', {
+                        type: FORM_ERROR_TYPES.server,
+                        message: errors('AUTH_CURRENT_PASSWORD_INVALID'),
+                    }, { shouldFocus: true });
+                    return;
+                }
+
+                if (result.error.errorCode === AUTH_ERROR_CODES.passwordUnchanged) {
+                    form.setError('newPassword', {
+                        type: FORM_ERROR_TYPES.server,
+                        message: errors('AUTH_PASSWORD_UNCHANGED'),
+                    }, { shouldFocus: true });
+                    return;
+                }
+
+                showError(result.error);
+                return;
+            }
+
+            form.reset();
+            toast.success(feedback('success'), { id: PASSWORD_CHANGED_TOAST_ID });
+            onSuccess();
+            router.refresh();
+        } catch {
+            if (isActive.current) showError({ errorCode: ACTION_ERROR_CODES.unexpected });
+        } finally {
+            requestInFlight.current = false;
         }
-
-        if (result.error.errorCode === AUTH_ERROR_CODES.passwordUnchanged) {
-          form.setError('newPassword', {
-            type: FORM_ERROR_TYPES.server,
-            message: errors('AUTH_PASSWORD_UNCHANGED'),
-          }, { shouldFocus: true });
-          return;
-        }
-
-        showError(result.error);
-        return;
-      }
-
-      form.reset();
-      toast.success(feedback('success'), { id: PASSWORD_CHANGED_TOAST_ID });
-      onSuccess();
-      router.refresh();
-    } catch {
-      if (isActive.current) showError({ errorCode: ACTION_ERROR_CODES.unexpected });
-    } finally {
-      requestInFlight.current = false;
     }
-  }
 
-  return {
-    form,
-    onSubmit,
-    dismissError,
-    isSubmitting: form.formState.isSubmitting || isRecoveringSession,
-  };
+    return {
+        form,
+        onSubmit,
+        dismissError,
+        isSubmitting: form.formState.isSubmitting || isRecoveringSession,
+    };
 }
