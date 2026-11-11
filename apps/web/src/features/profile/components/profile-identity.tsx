@@ -1,19 +1,23 @@
 import { useTranslations } from 'next-intl';
-import type { ReactNode } from 'react';
+import type { ComponentProps } from 'react';
 
 import { BodyText, SectionTitle } from '@/components/typography';
 import { Card, CardContent } from '@/components/ui';
 
 import type { Profile } from '../config';
+import { ProfileEditor } from './editor/profile-editor';
 import { ProfileAvatar } from './profile-avatar';
 import { ProfileSkeleton } from './profile-skeleton';
 
 type ProfileIdentityProps = {
   profile: Profile | null;
-  editAction?: ReactNode;
-};
+} & Pick<ComponentProps<typeof ProfileEditor>, 'canEdit' | 'onSave'>;
 
-export function ProfileIdentity({ profile, editAction }: ProfileIdentityProps) {
+export function ProfileIdentity({
+  profile,
+  canEdit,
+  onSave,
+}: ProfileIdentityProps) {
   const t = useTranslations('Profile');
 
   if (!profile) {
@@ -36,7 +40,7 @@ export function ProfileIdentity({ profile, editAction }: ProfileIdentityProps) {
             {profile.bio?.trim() || t('bio.empty')}
           </BodyText>
         </div>
-        {editAction}
+        <ProfileEditor profile={profile} canEdit={canEdit} onSave={onSave} />
       </CardContent>
     </Card>
   );

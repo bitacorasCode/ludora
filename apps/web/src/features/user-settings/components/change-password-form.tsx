@@ -13,11 +13,27 @@ type ChangePasswordFormProps = {
   onClose: () => void;
 };
 
-export function ChangePasswordForm({ userId, onClose }: ChangePasswordFormProps) {
+export function ChangePasswordForm({
+  userId,
+  onClose,
+}: ChangePasswordFormProps) {
   const t = useTranslations('UserSettings.password.form');
   const actions = useTranslations('Common.actions');
-  const { form, onSubmit, dismissError, isSubmitting } = useChangePasswordForm(userId, onClose);
+  const { form, onSubmit, dismissError, isSubmitting } = useChangePasswordForm(
+    userId,
+    onClose,
+  );
   const { requestNavigation } = useUnsavedChanges(form.formState.isDirty);
+
+  const cancelAction = (
+    <Button
+      type='button'
+      variant='outline'
+      onClick={() => requestNavigation(onClose)}
+    >
+      {actions('cancel')}
+    </Button>
+  );
 
   return (
     <form
@@ -52,11 +68,7 @@ export function ChangePasswordForm({ userId, onClose }: ChangePasswordFormProps)
             inputType='password'
             autoComplete='new-password'
           />
-          <FormActions secondaryAction={
-            <Button type='button' variant='outline' onClick={() => requestNavigation(onClose)}>
-              {actions('cancel')}
-            </Button>
-          }>
+          <FormActions secondaryAction={cancelAction}>
             <SubmitButton
               isSubmitting={isSubmitting}
               mainText={t('submit')}

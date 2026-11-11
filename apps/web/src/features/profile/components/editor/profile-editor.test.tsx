@@ -12,10 +12,11 @@ import { toast } from 'sonner';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { NavigationGuardProvider } from '@/components/navigation';
+import { type ActionResult, OPERATION_STATUS } from '@/lib/actions';
 import esMessages from '@/messages/es.json';
 
 import { type Profile } from '../../config';
-import { BIO_MAX_LENGTH } from '../../schema';
+import { BIO_MAX_LENGTH, type ProfileResponse } from '../../schema';
 import { ProfileEditor } from './profile-editor';
 
 const profile: Profile = {
@@ -23,6 +24,17 @@ const profile: Profile = {
   avatarPresetId: 'fox',
   bio: 'Mi biografía',
 };
+
+const savedProfile: ActionResult<ProfileResponse> = {
+  status: OPERATION_STATUS.success,
+  data: {
+    userId: '5d107fa5-75f2-4fe3-9013-542d92dc82cf',
+    avatarPresetId: profile.avatarPresetId,
+    bio: profile.bio,
+  },
+};
+
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 expect.extend(toHaveNoViolations);
 
@@ -38,16 +50,15 @@ afterEach(() => {
 
 describe('ProfileEditor integration', () => {
   it('renders current values without accessibility violations', async () => {
-    const { container } = render(
+    render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <NavigationGuardProvider>
-          <ProfileEditor
-            profile={profile}
-            onSave={vi.fn()}
-            onCancel={vi.fn()}
-          />
+          <ProfileEditor profile={profile} onSave={vi.fn()} canEdit />
         </NavigationGuardProvider>
       </NextIntlClientProvider>,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Profile.edit }),
     );
     expect(
       (
@@ -61,18 +72,21 @@ describe('ProfileEditor integration', () => {
         .getByRole('radio', { name: esMessages.Profile.avatar.options.fox })
         .getAttribute('aria-checked'),
     ).toBe('true');
-    const results = await axe(container);
+    const results = await axe(document.body);
     expect(results).toHaveNoViolations();
   });
 
   it('saves the selected avatar and trims the biography', async () => {
-    const onSave = vi.fn().mockResolvedValue(undefined);
+    const onSave = vi.fn().mockResolvedValue(savedProfile);
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <NavigationGuardProvider>
-          <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+          <ProfileEditor profile={profile} onSave={onSave} canEdit />
         </NavigationGuardProvider>
       </NextIntlClientProvider>,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Profile.edit }),
     );
     fireEvent.click(
       screen.getByRole('radio', {
@@ -96,13 +110,16 @@ describe('ProfileEditor integration', () => {
   });
 
   it('saves an empty biography and the initial avatar as null', async () => {
-    const onSave = vi.fn().mockResolvedValue(undefined);
+    const onSave = vi.fn().mockResolvedValue(savedProfile);
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <NavigationGuardProvider>
-          <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+          <ProfileEditor profile={profile} onSave={onSave} canEdit />
         </NavigationGuardProvider>
       </NextIntlClientProvider>,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Profile.edit }),
     );
     fireEvent.click(
       screen.getByRole('radio', { name: esMessages.Profile.avatar.useInitial }),
@@ -128,9 +145,12 @@ describe('ProfileEditor integration', () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <NavigationGuardProvider>
-          <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+          <ProfileEditor profile={profile} onSave={onSave} canEdit />
         </NavigationGuardProvider>
       </NextIntlClientProvider>,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Profile.edit }),
     );
     fireEvent.change(screen.getByLabelText(esMessages.Profile.bio.label), {
       target: { value: 'a'.repeat(BIO_MAX_LENGTH + 1) },
@@ -148,13 +168,16 @@ describe('ProfileEditor integration', () => {
     const onSave = vi
       .fn()
       .mockRejectedValueOnce(new Error('Save failed'))
-      .mockResolvedValueOnce(undefined);
+      .mockResolvedValueOnce(savedProfile);
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <NavigationGuardProvider>
-          <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+          <ProfileEditor profile={profile} onSave={onSave} canEdit />
         </NavigationGuardProvider>
       </NextIntlClientProvider>,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Profile.edit }),
     );
     const bio = screen.getByLabelText(
       esMessages.Profile.bio.label,
@@ -183,19 +206,22 @@ describe('ProfileEditor integration', () => {
   });
 
   it('disables editing until an asynchronous save finishes', async () => {
-    let finishSave!: () => void;
+    let finishSave!: (result: ActionResult<ProfileResponse>) => void;
     const onSave = vi.fn(
       () =>
-        new Promise<void>((resolve) => {
+        new Promise<ActionResult<ProfileResponse>>((resolve) => {
           finishSave = resolve;
         }),
     );
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <NavigationGuardProvider>
-          <ProfileEditor profile={profile} onSave={onSave} onCancel={vi.fn()} />
+          <ProfileEditor profile={profile} onSave={onSave} canEdit />
         </NavigationGuardProvider>
       </NextIntlClientProvider>,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Profile.edit }),
     );
     const save = screen.getByRole('button', {
       name: esMessages.Common.actions.saveChanges,
@@ -211,44 +237,48 @@ describe('ProfileEditor integration', () => {
         .getByRole('button', { name: esMessages.Common.actions.cancel })
         .matches(':disabled'),
     ).toBe(true);
-    finishSave();
-    await waitFor(() => expect(save.matches(':disabled')).toBe(false));
+    finishSave(savedProfile);
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('form', { name: esMessages.Profile.edit }),
+      ).toBeNull(),
+    );
   });
 
-  it('cancels without saving', () => {
+  it('cancels without saving', async () => {
     const onSave = vi.fn();
-    const onCancel = vi.fn();
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <NavigationGuardProvider>
-          <ProfileEditor
-            profile={profile}
-            onSave={onSave}
-            onCancel={onCancel}
-          />
+          <ProfileEditor profile={profile} onSave={onSave} canEdit />
         </NavigationGuardProvider>
       </NextIntlClientProvider>,
     );
     fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Profile.edit }),
+    );
+    fireEvent.click(
       screen.getByRole('button', { name: esMessages.Common.actions.cancel }),
     );
-    expect(onCancel).toHaveBeenCalledOnce();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('form', { name: esMessages.Profile.edit }),
+      ).toBeNull(),
+    );
     expect(onSave).not.toHaveBeenCalled();
   });
 
   it('asks before discarding changed values and lets the user keep editing', async () => {
     const onSave = vi.fn();
-    const onCancel = vi.fn();
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <NavigationGuardProvider>
-          <ProfileEditor
-            profile={profile}
-            onSave={onSave}
-            onCancel={onCancel}
-          />
+          <ProfileEditor profile={profile} onSave={onSave} canEdit />
         </NavigationGuardProvider>
       </NextIntlClientProvider>,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Profile.edit }),
     );
     fireEvent.change(
       screen.getByRole('textbox', { name: esMessages.Profile.bio.label }),
@@ -264,7 +294,9 @@ describe('ProfileEditor integration', () => {
         name: esMessages.Common.unsavedChanges.title,
       }),
     ).toBeTruthy();
-    expect(onCancel).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole('form', { name: esMessages.Profile.edit }),
+    ).toBeTruthy();
     fireEvent.click(
       screen.getByRole('button', {
         name: esMessages.Common.unsavedChanges.cancel,
@@ -287,7 +319,11 @@ describe('ProfileEditor integration', () => {
         name: esMessages.Common.unsavedChanges.confirm,
       }),
     );
-    expect(onCancel).toHaveBeenCalledOnce();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('form', { name: esMessages.Profile.edit }),
+      ).toBeNull(),
+    );
     expect(onSave).not.toHaveBeenCalled();
   });
 
@@ -296,13 +332,12 @@ describe('ProfileEditor integration', () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <NavigationGuardProvider>
-          <ProfileEditor
-            profile={profile}
-            onSave={vi.fn()}
-            onCancel={vi.fn()}
-          />
+          <ProfileEditor profile={profile} onSave={vi.fn()} canEdit />
         </NavigationGuardProvider>
       </NextIntlClientProvider>,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Profile.edit }),
     );
     screen
       .getByRole('radio', { name: esMessages.Profile.avatar.useInitial })
