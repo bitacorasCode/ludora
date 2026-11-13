@@ -163,6 +163,10 @@ refreshes it. That handler calls Nest's authenticated `GET /profile` through the
 Next server and returns a private, noncached response. The handler is a narrow
 browser adapter; Nest remains the owner of the profile and its database access.
 
+Keep one `useProfile` instance per profile view. The editor receives the shared
+save callback; it does not fetch another copy of the profile. `useRequestScope`
+invalidates obsolete responses when the view is hidden or an editor is reopened.
+
 Editing becomes available after a successful server read. Saving uses a Server
 Action that validates the form and checks that the session still belongs to the
 displayed user before calling Nest's `PUT /profile`.

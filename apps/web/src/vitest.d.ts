@@ -2,6 +2,6 @@ import 'vitest';
 
 declare module 'vitest' {
   interface Assertion<R, T> {
-    toHaveNoViolations(): R;
+    toHaveNoViolations(this: Assertion<R, T>): R;
   }
 }

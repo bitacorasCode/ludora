@@ -110,7 +110,7 @@ test.describe('Profile persistence', () => {
     await expect(page.getByText('Cambio descartado')).toHaveCount(0);
   });
 
-  test('confirms leaving a dirty profile and closes the editor after navigation', async ({
+  test('confirms discarding a dirty profile before navigating and keeps the editor closed on return', async ({
     page,
     testAccount,
   }) => {
@@ -128,9 +128,7 @@ test.describe('Profile persistence', () => {
     await page
       .getByRole('textbox', { name: esMessages.Profile.bio.label })
       .fill('Borrador sin guardar');
-    await page.locator('header')
-      .getByRole('link', { name: esMessages.Header.games, exact: true })
-      .click();
+    await page.getByRole('button', { name: esMessages.Common.actions.close, exact: true }).click();
     const confirmation = page.getByRole('alertdialog', {
       name: esMessages.Common.unsavedChanges.title,
     });
@@ -141,12 +139,14 @@ test.describe('Profile persistence', () => {
     }).click();
     await expect(page.getByRole('textbox', { name: esMessages.Profile.bio.label }))
       .toHaveValue('Borrador sin guardar');
-    await page.locator('header')
-      .getByRole('link', { name: esMessages.Header.games, exact: true })
-      .click();
+    await page.getByRole('button', { name: esMessages.Common.actions.close, exact: true }).click();
     await confirmation.getByRole('button', {
       name: esMessages.Common.unsavedChanges.confirm,
     }).click();
+    await expect(page.getByRole('dialog', { name: esMessages.Profile.edit })).toBeHidden();
+    await page.locator('header')
+      .getByRole('link', { name: esMessages.Header.games, exact: true })
+      .click();
     await expect(page).toHaveURL('/es/games');
     await expect(page.getByRole('heading', { name: esMessages.Catalog.title, exact: true }))
       .toBeVisible();
@@ -166,6 +166,8 @@ test.describe('Profile persistence', () => {
     await page.getByRole('button', { name: esMessages.Profile.edit }).click();
     const biography = page.getByRole('textbox', { name: esMessages.Profile.bio.label });
     await expect(biography).toHaveValue('Biografía guardada');
+    await page.getByRole('button', { name: esMessages.Common.actions.cancel }).click();
+    await expect(page.getByRole('dialog', { name: esMessages.Profile.edit })).toBeHidden();
     await page.locator('header')
       .getByRole('link', { name: esMessages.Header.games, exact: true })
       .click();
@@ -177,6 +179,28 @@ test.describe('Profile persistence', () => {
     await expect(page.getByRole('form', { name: esMessages.Profile.edit })).toHaveCount(0);
     await page.getByRole('button', { name: esMessages.Profile.edit }).click();
     await expect(biography).toHaveValue('Biografía guardada');
+  });
+
+  test('protects outside-click closure and restores focus after discarding a draft', async ({ page }) => {
+    await page.goto('/es/account/profile');
+    const trigger = page.getByRole('button', { name: esMessages.Profile.edit });
+    await trigger.click();
+    const editor = page.getByRole('dialog', { name: esMessages.Profile.edit });
+    const biography = editor.getByLabel(esMessages.Profile.bio.label);
+    await biography.fill('Borrador en el modal');
+
+    await page.mouse.click(8, 8);
+    const confirmation = page.getByRole('alertdialog', { name: esMessages.Common.unsavedChanges.title });
+    await expect(confirmation).toBeVisible();
+    await confirmation.getByRole('button', { name: esMessages.Common.unsavedChanges.cancel }).click();
+    await expect(confirmation).toBeHidden();
+    await expect(biography).toHaveValue('Borrador en el modal');
+
+    await page.mouse.click(8, 8);
+    await expect(confirmation).toBeVisible();
+    await confirmation.getByRole('button', { name: esMessages.Common.unsavedChanges.confirm }).click();
+    await expect(editor).toBeHidden();
+    await expect(trigger).toBeFocused();
   });
 
   test('navigates Back and Forward without confirmation when the editor has no changes', async ({

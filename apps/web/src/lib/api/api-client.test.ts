@@ -86,4 +86,28 @@ describe('API clients', () => {
                 ),
         ).toEqual(['Bearer first-token', 'Bearer second-token']);
     });
+
+    it.each([false, 0, '', null])(
+        'serializes the valid JSON payload %j',
+        async (body) => {
+            await publicApi.post('/payload', body);
+
+            const options = vi.mocked(apiRequest).mock.calls[0][1]!;
+            expect(options.body).toBe(JSON.stringify(body));
+            expect(new Headers(options.headers).get('content-type')).toBe(
+                'application/json',
+            );
+        },
+    );
+
+    it.each([Symbol('unsupported'), () => 'unsupported', BigInt(1)])(
+        'rejects payloads that cannot be serialized as JSON',
+        async (body) => {
+            expect(await publicApi.post('/payload', body)).toEqual({
+                status: OPERATION_STATUS.error,
+                error: { errorCode: API_ERROR_CODES.invalidRequest },
+            });
+            expect(apiRequest).not.toHaveBeenCalled();
+        },
+    );
 });

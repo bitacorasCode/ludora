@@ -194,9 +194,9 @@ describe('ResetPasswordPageContent integration', () => {
       name: esMessages.PasswordRecovery.reset.invalidLink.title,
     });
     expect(alert.textContent).toContain(esMessages.PasswordRecovery.errors.AUTH_PASSWORD_RESET_INVALID);
-    expect(document.activeElement).toBe(screen.getByRole('region', {
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('region', {
       name: esMessages.PasswordRecovery.reset.invalidLink.title,
-    }));
+    })));
     expect(screen.getByRole('link', {
       name: esMessages.PasswordRecovery.reset.invalidLink.requestNewLink,
     }).getAttribute('href')).toBe(APP_ROUTES.forgotPassword);
@@ -221,9 +221,9 @@ describe('ResetPasswordPageContent integration', () => {
     expect(screen.getByRole('link', {
       name: esMessages.PasswordRecovery.reset.invalidLink.requestNewLink,
     }).getAttribute('href')).toBe(APP_ROUTES.forgotPassword);
-    expect(document.activeElement).toBe(screen.getByRole('region', {
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('region', {
       name: esMessages.PasswordRecovery.reset.invalidLink.title,
-    }));
+    })));
     expect(toast.error).not.toHaveBeenCalled();
     expect(router.replace).not.toHaveBeenCalled();
   });

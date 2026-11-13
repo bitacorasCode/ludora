@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -34,11 +35,16 @@ const savedProfile: ActionResult<ProfileResponse> = {
   },
 };
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+const router = vi.hoisted(() => ({ refresh: vi.fn() }));
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  useRouter: () => router,
+}));
 
 expect.extend(toHaveNoViolations);
 
 beforeEach(() => {
+  router.refresh.mockReset();
   vi.spyOn(toast, 'error').mockReturnValue('profile-save-error');
   vi.spyOn(toast, 'dismiss').mockReturnValue('profile-save-error');
 });
@@ -294,9 +300,7 @@ describe('ProfileEditor integration', () => {
         name: esMessages.Common.unsavedChanges.title,
       }),
     ).toBeTruthy();
-    expect(
-      screen.getByRole('form', { name: esMessages.Profile.edit }),
-    ).toBeTruthy();
+    expect(screen.getByRole('form', { hidden: true })).toBeTruthy();
     fireEvent.click(
       screen.getByRole('button', {
         name: esMessages.Common.unsavedChanges.cancel,
@@ -351,5 +355,100 @@ describe('ProfileEditor integration', () => {
       ).toBe('true'),
     );
     await user.keyboard('{/ArrowRight}');
+  });
+
+  it('keeps a new draft when an earlier save finishes after closing and reopening', async () => {
+    let finishSave!: (result: ActionResult<ProfileResponse>) => void;
+    const pending = new Promise<ActionResult<ProfileResponse>>((resolve) => {
+      finishSave = resolve;
+    });
+    const onSave = vi.fn().mockReturnValue(pending);
+    render(
+      <NextIntlClientProvider locale='es' messages={esMessages}>
+        <NavigationGuardProvider>
+          <ProfileEditor profile={profile} onSave={onSave} canEdit />
+        </NavigationGuardProvider>
+      </NextIntlClientProvider>,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Profile.edit }),
+    );
+    fireEvent.change(screen.getByLabelText(esMessages.Profile.bio.label), {
+      target: { value: 'Primer borrador' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: esMessages.Common.actions.saveChanges,
+      }),
+    );
+    await waitFor(() => expect(onSave).toHaveBeenCalledOnce());
+
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Common.actions.close }),
+    );
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: esMessages.Common.unsavedChanges.confirm,
+      }),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Profile.edit }),
+    );
+    fireEvent.change(screen.getByLabelText(esMessages.Profile.bio.label), {
+      target: { value: 'Nuevo borrador' },
+    });
+
+    await act(async () => {
+      finishSave(savedProfile);
+      await pending;
+    });
+
+    expect(
+      screen.getByRole('dialog', { name: esMessages.Profile.edit }),
+    ).toBeTruthy();
+    expect(screen.getByLabelText(esMessages.Profile.bio.label)).toHaveProperty(
+      'value',
+      'Nuevo borrador',
+    );
+    expect(router.refresh).not.toHaveBeenCalled();
+  });
+
+  it('loads current server values when reopening after the profile changes', async () => {
+    const onSave = vi.fn();
+    const { rerender } = render(
+      <NextIntlClientProvider locale='es' messages={esMessages}>
+        <NavigationGuardProvider>
+          <ProfileEditor profile={profile} onSave={onSave} canEdit />
+        </NavigationGuardProvider>
+      </NextIntlClientProvider>,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Profile.edit }),
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Common.actions.cancel }),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+
+    rerender(
+      <NextIntlClientProvider locale='es' messages={esMessages}>
+        <NavigationGuardProvider>
+          <ProfileEditor
+            profile={{ ...profile, bio: 'Perfil actualizado' }}
+            onSave={onSave}
+            canEdit
+          />
+        </NavigationGuardProvider>
+      </NextIntlClientProvider>,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: esMessages.Profile.edit }),
+    );
+
+    expect(screen.getByLabelText(esMessages.Profile.bio.label)).toHaveProperty(
+      'value',
+      'Perfil actualizado',
+    );
   });
 });

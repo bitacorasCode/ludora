@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useLayoutEffect, useRef } from 'react';
+import { useCallback } from 'react';
 
 import { useSessionRecovery } from '@/components/auth';
 import {
@@ -8,6 +8,8 @@ import {
     isAuthenticationError,
     OPERATION_STATUS,
 } from '@/lib/actions';
+
+import { useRequestScope } from './use-request-scope';
 
 type ProtectedRequestOptions = {
     signal?: AbortSignal;
@@ -18,22 +20,7 @@ export function useProtectedRequest() {
     const { recoverSession, isRecoveringSession } =
         useSessionRecovery();
 
-    const lifecycle = useRef({
-        active: false,
-        generation: 0,
-    });
-
-    useLayoutEffect(() => {
-        const current = lifecycle.current;
-
-        current.active = true;
-        current.generation += 1;
-
-        return () => {
-            current.active = false;
-            current.generation += 1;
-        };
-    }, []);
+    const { capture } = useRequestScope();
 
     const execute = useCallback(
         async <TData>(
@@ -43,12 +30,11 @@ export function useProtectedRequest() {
                 retryAfterRecovery = false,
             }: ProtectedRequestOptions = {},
         ): Promise<ActionResult<TData> | null> => {
-            const generation = lifecycle.current.generation;
+            const isCurrent = capture();
 
             function isInterrupted() {
                 return (
-                    !lifecycle.current.active
-                    || lifecycle.current.generation !== generation
+                    !isCurrent()
                     || signal?.aborted === true
                 );
             }
@@ -89,7 +75,7 @@ export function useProtectedRequest() {
 
             return null;
         },
-        [recoverSession],
+        [capture, recoverSession],
     );
 
     return { execute, isRecoveringSession };

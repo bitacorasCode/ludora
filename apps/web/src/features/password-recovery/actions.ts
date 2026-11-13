@@ -6,8 +6,8 @@ import { z } from 'zod';
 
 import { resolveLocale } from '@/i18n/resolve-locale';
 import {
-    ACTION_ERROR_CODES,
     type ActionResult,
+    createValidationFailure,
     OPERATION_STATUS,
 } from '@/lib/actions';
 import { API_ERROR_CODES, publicApi } from '@/lib/api';
@@ -34,15 +34,7 @@ export async function requestPasswordRecovery(
     const validation = createRecoveryRequestSchema(t).safeParse(formData);
 
     if (!validation.success) {
-        return {
-            status: OPERATION_STATUS.error,
-            error: {
-                errorCode: ACTION_ERROR_CODES.validationFailed,
-                validationErrors: validation.error.issues.map(
-                    ({ message }) => message,
-                ),
-            },
-        };
+        return createValidationFailure(validation.error.issues);
     }
 
     const result = await publicApi.post(
@@ -91,15 +83,7 @@ export async function resetPassword(
     const validation = createPasswordResetSchema(t).safeParse(formData);
 
     if (!validation.success) {
-        return {
-            status: OPERATION_STATUS.error,
-            error: {
-                errorCode: ACTION_ERROR_CODES.validationFailed,
-                validationErrors: validation.error.issues.map(
-                    ({ message }) => message,
-                ),
-            },
-        };
+        return createValidationFailure(validation.error.issues);
     }
 
     const { password } = validation.data;

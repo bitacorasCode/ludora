@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { useUnsavedChanges } from '@/components/navigation';
-import { useActionErrorToast } from '@/hooks';
+import { useActionErrorToast, useRequestScope } from '@/hooks';
 import { type ActionResult, OPERATION_STATUS } from '@/lib/actions';
 import { FORM_VALIDATION_OPTIONS } from '@/lib/forms';
 
@@ -32,7 +32,7 @@ export function useProfileEditor({ profile, onSave }: UseProfileEditorOptions) {
     const t = useTranslations('Profile');
     const router = useRouter();
     const [isEditing, setIsEditing] = useState(false);
-    const isActive = useRef(false);
+    const { capture, invalidate } = useRequestScope();
     const unexpectedErrorToastId = useRef<ReturnType<typeof toast.error> | null>(
         null,
     );
@@ -66,7 +66,6 @@ export function useProfileEditor({ profile, onSave }: UseProfileEditorOptions) {
     useLayoutEffect(
         () => () => {
             // Next.js preserves hidden pages, so transient editors must close.
-            isActive.current = false;
             setIsEditing(false);
             dismissFeedback();
         },
@@ -75,7 +74,7 @@ export function useProfileEditor({ profile, onSave }: UseProfileEditorOptions) {
 
     function handleOpenChange(open: boolean) {
         dismissFeedback();
-        isActive.current = open;
+        invalidate();
         form.reset({
             avatarPresetId: profile.avatarPresetId,
             bio: profile.bio ?? '',
@@ -88,8 +87,9 @@ export function useProfileEditor({ profile, onSave }: UseProfileEditorOptions) {
     }
 
     async function onSubmit(values: ProfilePreferences) {
-        if (!isActive.current) return;
+        if (!isEditing) return;
 
+        const isCurrent = capture();
         dismissFeedback();
 
         try {
@@ -98,7 +98,7 @@ export function useProfileEditor({ profile, onSave }: UseProfileEditorOptions) {
                 bio: values.bio?.trim() || null,
             });
 
-            if (!result || !isActive.current) return;
+            if (!result || !isCurrent()) return;
 
             if (result.status === OPERATION_STATUS.error) {
                 showError(result.error);
@@ -109,7 +109,7 @@ export function useProfileEditor({ profile, onSave }: UseProfileEditorOptions) {
             toast.success(t('saved'), { id: PROFILE_SAVED_TOAST_ID });
             router.refresh();
         } catch {
-            if (!isActive.current) return;
+            if (!isCurrent()) return;
 
             unexpectedErrorToastId.current = toast.error(t('saveError'), {
                 duration: Infinity,

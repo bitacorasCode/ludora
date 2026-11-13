@@ -4,7 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { z } from 'zod';
 
 import { resolveLocale } from '@/i18n/resolve-locale';
-import { ACTION_ERROR_CODES, type ActionResult, OPERATION_STATUS } from '@/lib/actions';
+import { type ActionResult, createValidationFailure, OPERATION_STATUS } from '@/lib/actions';
 import { API_ERROR_CODES, authenticatedApi, HTTP_STATUS } from '@/lib/api';
 import { authResponseSchema, getCurrentUser } from '@/lib/auth';
 import { createSession } from '@/lib/session';
@@ -29,13 +29,7 @@ export async function changePassword(
   const validation = createChangePasswordSchema(t).safeParse(formData);
 
   if (!validation.success) {
-    return {
-      status: OPERATION_STATUS.error,
-      error: {
-        errorCode: ACTION_ERROR_CODES.validationFailed,
-        validationErrors: validation.error.issues.map(({ message }) => message),
-      },
-    };
+    return createValidationFailure(validation.error.issues);
   }
 
   const user = await getCurrentUser();

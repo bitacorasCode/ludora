@@ -41,10 +41,17 @@ function createApiClient<TOptions extends PublicApiOptions>(
 
         let serializedBody: string | undefined;
 
-        if (body) {
+        if (body !== undefined) {
             try {
                 serializedBody = JSON.stringify(body);
             } catch {
+                return {
+                    status: OPERATION_STATUS.error,
+                    error: { errorCode: API_ERROR_CODES.invalidRequest },
+                };
+            }
+
+            if (!serializedBody) {
                 return {
                     status: OPERATION_STATUS.error,
                     error: { errorCode: API_ERROR_CODES.invalidRequest },
