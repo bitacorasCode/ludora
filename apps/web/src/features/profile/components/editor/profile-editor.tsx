@@ -3,11 +3,11 @@
 import { useTranslations } from 'next-intl';
 import { Controller, type ControllerProps } from 'react-hook-form';
 
+import { FormTextareaField, SubmitButton } from '@/components/forms';
 import {
-  FormDialog,
-  FormTextareaField,
-  SubmitButton,
-} from '@/components/forms';
+  ContentDialogClose,
+  GuardedContentDialog,
+} from '@/components/overlays';
 import { Button } from '@/components/ui';
 
 import {
@@ -28,8 +28,10 @@ export function ProfileEditor({
 }: ProfileEditorProps) {
   const t = useTranslations('Profile');
   const common = useTranslations('Common');
-  const { form, isEditing, onSubmit, handleOpenChange, handleCancel } =
-    useProfileEditor({ profile, onSave });
+  const { form, isEditing, onSubmit, handleOpenChange } = useProfileEditor({
+    profile,
+    onSave,
+  });
 
   function formatBioCounter(count: number, max: number) {
     return t('bio.counter', { count, max });
@@ -57,7 +59,7 @@ export function ProfileEditor({
   ) : undefined;
 
   return (
-    <FormDialog
+    <GuardedContentDialog
       open={isEditing}
       onOpenChange={handleOpenChange}
       title={t('edit')}
@@ -97,12 +99,14 @@ export function ProfileEditor({
               mainText={common('actions.saveChanges')}
               submittingText={common('status.saving')}
             />
-            <Button type='button' variant='outline' onClick={handleCancel}>
-              {common('actions.cancel')}
-            </Button>
+            <ContentDialogClose asChild>
+              <Button type='button' variant='outline'>
+                {common('actions.cancel')}
+              </Button>
+            </ContentDialogClose>
           </div>
         </fieldset>
       </form>
-    </FormDialog>
+    </GuardedContentDialog>
   );
 }

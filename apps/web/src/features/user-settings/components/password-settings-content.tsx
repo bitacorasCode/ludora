@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useLayoutEffect, useState } from 'react';
 
-import { FormDialog } from '@/components/forms';
+import { GuardedContentDialog } from '@/components/overlays';
 import { Button } from '@/components/ui';
 
 import { ChangePasswordForm } from './change-password-form';
@@ -33,7 +33,7 @@ export function PasswordSettingsContent({
   );
 
   return (
-    <FormDialog
+    <GuardedContentDialog
       open={isEditing}
       onOpenChange={setIsEditing}
       title={t('password.form.title')}
@@ -41,6 +41,6 @@ export function PasswordSettingsContent({
       trigger={trigger}
     >
       <ChangePasswordForm userId={userId} onClose={handleClose} />
-    </FormDialog>
+    </GuardedContentDialog>
   );
 }

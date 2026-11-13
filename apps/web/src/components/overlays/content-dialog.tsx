@@ -3,9 +3,9 @@
 import { useTranslations } from 'next-intl';
 import type { ReactElement, ReactNode } from 'react';
 
-import { useNavigationGuard } from '@/components/navigation';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from '@/components/ui';
 
-type FormDialogProps = {
+type ContentDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
@@ -23,7 +23,7 @@ type FormDialogProps = {
   children: ReactNode;
 };
 
-export function FormDialog({
+export function ContentDialog({
   open,
   onOpenChange,
   title,
@@ -31,25 +31,11 @@ export function FormDialog({
   trigger,
   className,
   children,
-}: FormDialogProps) {
+}: ContentDialogProps) {
   const actions = useTranslations('Common.actions');
-  const { requestNavigation } = useNavigationGuard();
-
-  function closeDialog() {
-    onOpenChange(false);
-  }
-
-  function handleOpenChange(nextOpen: boolean) {
-    if (nextOpen) {
-      onOpenChange(true);
-      return;
-    }
-
-    requestNavigation(closeDialog);
-  }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent className={className} closeLabel={actions('close')}>
         <DialogHeader>
@@ -61,3 +47,5 @@ export function FormDialog({
     </Dialog>
   );
 }
+
+export const ContentDialogClose = DialogClose;

@@ -50,7 +50,7 @@ export function useProfileEditor({ profile, onSave }: UseProfileEditorOptions) {
         },
     });
 
-    const { requestNavigation } = useUnsavedChanges(
+    useUnsavedChanges(
         isEditing && form.formState.isDirty,
     );
 
@@ -87,10 +87,6 @@ export function useProfileEditor({ profile, onSave }: UseProfileEditorOptions) {
         handleOpenChange(false);
     }
 
-    function handleCancel() {
-        requestNavigation(handleClose);
-    }
-
     async function onSubmit(values: ProfilePreferences) {
         if (!isActive.current) return;
 
@@ -121,5 +117,5 @@ export function useProfileEditor({ profile, onSave }: UseProfileEditorOptions) {
         }
     }
 
-    return { form, isEditing, onSubmit, handleOpenChange, handleCancel };
+    return { form, isEditing, onSubmit, handleOpenChange };
 }

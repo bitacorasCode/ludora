@@ -191,6 +191,13 @@ objects and keep feature-specific errors with their feature. Code, comments,
 documentation, and email templates use English; Spanish website copy belongs in
 `es.json`.
 
+`ContentDialog` in `components/overlays` provides a reusable modal shell without
+form or navigation logic. `GuardedContentDialog` adds navigation-guard
+confirmation when closing an editor. Wrap cancel buttons in
+`ContentDialogClose` so they follow the same guarded close path as Escape,
+the close icon, and outside clicks. Forms register dirty state with
+`useUnsavedChanges`; successful saves can close the controlled dialog directly.
+
 `NavigationGuardProvider` and `useUnsavedChanges` share the confirmation dialog
 for unsaved edits, including attempts to close profile and password dialogs.
 Navigation links use the locale-aware `Link` directly; the modal dialogs prevent

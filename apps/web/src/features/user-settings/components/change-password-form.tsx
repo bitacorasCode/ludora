@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { FormActions, FormTextField, SubmitButton } from '@/components/forms';
 import { useUnsavedChanges } from '@/components/navigation';
+import { ContentDialogClose } from '@/components/overlays';
 import { Button, FieldGroup, FieldSet } from '@/components/ui';
 
 import { useChangePasswordForm } from '../hooks/use-change-password-form';
@@ -23,16 +24,14 @@ export function ChangePasswordForm({
     userId,
     onClose,
   );
-  const { requestNavigation } = useUnsavedChanges(form.formState.isDirty);
+  useUnsavedChanges(form.formState.isDirty);
 
   const cancelAction = (
-    <Button
-      type='button'
-      variant='outline'
-      onClick={() => requestNavigation(onClose)}
-    >
-      {actions('cancel')}
-    </Button>
+    <ContentDialogClose asChild>
+      <Button type='button' variant='outline'>
+        {actions('cancel')}
+      </Button>
+    </ContentDialogClose>
   );
 
   return (
