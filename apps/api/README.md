@@ -18,7 +18,7 @@ All commands below run from the repository root.
 - Prisma ORM 7 with the PostgreSQL driver adapter and a generated TypeScript client.
 - Zod DTOs validated through Nest's global `StandardSchemaValidationPipe`.
 - Argon2id password hashing and JWT access tokens.
-- Nodemailer for email; Mailpit captures local messages.
+- Nodemailer for local SMTP email and Resend over HTTPS for real delivery.
 - Vitest for unit tests and Supertest for the API smoke test.
 
 ```text
@@ -30,7 +30,7 @@ apps/api/
 │   ├── common/         # Guards, exceptions, filters, and IP handling
 │   ├── config/         # Rate-limit and deployment-specific IP rules
 │   ├── generated/      # Generated Prisma client; do not edit manually
-│   ├── mail/           # SMTP transport
+│   ├── mail/           # SMTP and Resend transports
 │   ├── prisma/         # Client and connection lifecycle
 │   ├── profile/        # Authenticated profile reads and writes
 │   └── users/          # User services and persistence
@@ -58,10 +58,12 @@ is not automatically the API configuration.
 | `INTERNAL_API_SECRET`       | Exactly 64 hexadecimal characters, matching the web server's value. Authenticates forwarded client-IP metadata. |
 | `EMAIL_VERIFICATION_SECRET` | Independent 64-character hexadecimal secret used to hash verification codes.                                    |
 | `PASSWORD_RESET_URL`        | Trusted web reset-page URL without a query or fragment. Locally: `http://localhost:3000/reset-password`.        |
+| `MAIL_PROVIDER`             | Required provider selector: `smtp` for Mailpit or `resend` for real delivery. Independent of `NODE_ENV`.          |
 | `SMTP_HOST`                 | SMTP host; local Mailpit uses `127.0.0.1`.                                                                      |
 | `SMTP_PORT`                 | SMTP port; local Mailpit uses `1025`.                                                                           |
 | `SMTP_SECURE`               | Literal `true` or `false`; local Mailpit uses `false`.                                                          |
 | `MAIL_FROM`                 | Sender identity used by email templates.                                                                        |
+| `RESEND_API_KEY`            | Server-only sending key required when `MAIL_PROVIDER=resend`; restrict it to the verified sending domain.        |
 
 Generate and store secrets using the root setup instructions. Keep the JWT and
 verification secrets independent from the shared internal-request secret. Never
@@ -191,7 +193,7 @@ Reusing it returns `400` with `AUTH_PASSWORD_UNCHANGED`. These are form errors, 
 expired-session responses. A stale authentication version returns `401`.
 
 A password-change notice is scheduled after commit through
-`PasswordNotificationService`, also used by password recovery. SMTP does not delay
+`PasswordNotificationService`, also used by password recovery. Email delivery does not delay
 or undo the credential change. There is no email-change endpoint.
 
 ### Errors and rate limiting
@@ -217,24 +219,70 @@ will need shared storage to enforce the same limits collectively.
 
 ## Email
 
-Open Mailpit at `http://127.0.0.1:8025` to read local verification codes, recovery
-links, and password-change notifications. Mailpit does not deliver to a real inbox.
+`MailService.send()` is the common entry point for verification, recovery, and
+password-change emails. At startup it validates `MAIL_PROVIDER` and only the
+settings needed by that provider. Restart the API after changing environment
+variables.
+
+For local capture, use the configuration in `.env.example`:
+
+```dotenv
+MAIL_PROVIDER="smtp"
+MAIL_FROM="Ludora <no-reply@ludora.test>"
+SMTP_HOST="127.0.0.1"
+SMTP_PORT="1025"
+SMTP_SECURE="false"
+```
+
+Open Mailpit at `http://127.0.0.1:8025` to read verification codes, recovery links,
+and password-change notifications. Mailpit does not deliver to a real inbox.
 SMTP uses port `1025`; port `8025` is the browser interface.
 
+For real delivery, verify `notifications.ludora.cl` in Resend and configure the
+API environment with:
+
+```dotenv
+MAIL_PROVIDER="resend"
+MAIL_FROM="Ludora <no-reply@notifications.ludora.cl>"
+RESEND_API_KEY=""
+```
+
+Set the actual key only in the private API environment or the API host's secret
+settings. Use a sending-only key restricted to the verified domain and separate
+keys for development and production. Next does not need this key.
+
+The Resend transport posts JSON to `https://api.resend.com/emails`, authenticates
+with the bearer key, and requires both a successful HTTP response and a nonempty
+submission ID. Network failures, timeouts, rejected requests, and invalid
+responses fail the send operation. A submission ID confirms provider acceptance,
+not inbox placement. Both transports use the configured 10-second timeouts;
+the Resend request uses `AbortSignal.timeout()`.
+
+Manage the sending domain's DNS through Cloudflare. Publish the SPF and DKIM
+records generated by Resend. Configure DMARC Management for `ludora.cl`, using
+the TXT record at `_dmarc.ludora.cl` and the `rua` destination generated by
+Cloudflare. To let `notifications.ludora.cl` inherit this policy, remove the
+initial monitoring-only TXT record at `_dmarc.notifications.ludora.cl` after
+the parent policy is published. An explicit subdomain policy takes precedence
+over the parent policy.
+
+Start with `p=none` and inspect authentication results and aggregate reports
+before tightening the policy. `p=none` requests no DMARC-specific quarantine or
+rejection. Receiving email in an application inbox is a separate service from
+sending email and from Cloudflare's DMARC report collection.
+
 Verification and recovery credentials are stored as hashes. Registration and
-resends contact SMTP after their database transaction commits. An account can
-therefore exist even if sending its verification email fails; use resend instead
-of registering it again.
+resends contact the selected provider after their database transaction commits.
+An account can therefore exist even if sending its verification email fails;
+use resend instead of registering it again.
 
 Recovery requests return the same accepted response after validation and rate
 limiting. Recovery processing and password-change notifications currently run in
 memory; a process restart can lose pending work. Durable delivery and retries
 will require a persistent job queue.
 
-The current transport accepts host, port, secure mode, and sender settings. SMTP
-username/password authentication is not implemented; adding environment variables
-alone will not configure it. Integrate the chosen production mail provider before
-relying on delivery outside Mailpit.
+SMTP username/password authentication is not implemented. The SMTP configuration
+targets local Mailpit; real delivery uses Resend's HTTPS API.
 
 ## Tests and checks
 
@@ -275,7 +323,8 @@ rather than using fixture operations against ordinary accounts.
 ## Deployment notes
 
 The intended API/database host is Render, while Next runs separately on Vercel.
-The deployment still needs its service configuration and production mail setup.
+The deployment still needs its service configuration, production Resend
+credentials, and delivery validation from the deployed API.
 
 Install workspace dependencies, generate Prisma Client, build the API, apply
 committed migrations with `migrate deploy`, and run

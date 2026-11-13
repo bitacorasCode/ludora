@@ -50,13 +50,13 @@ the same `Prisma.TransactionClient` through the `transaction` argument.
 - Resending reserves `lastSentAt` with a conditional update and renews the code
   within the same transaction. That lock also coordinates concurrent resends
   and email confirmation.
-- `lastSentAt` represents the delivery reservation, even if SMTP does not confirm
-  delivery. Each resend generates a random code, renews its expiration, and resets
-  its attempts without changing the verification identifier.
+- `lastSentAt` represents the delivery reservation, even if email submission is
+  not confirmed. Each resend generates a random code, renews its expiration,
+  and resets its attempts without changing the verification identifier.
 - During confirmation, validation errors are thrown after the transaction
   finishes so failed attempts remain recorded.
-- SMTP delivery happens after the registration transaction commits.
-- Resends also contact SMTP after their transaction commits.
+- Email submission happens after the registration transaction commits.
+- Resends also contact the selected mail provider after their transaction commits.
 
 Services own process decisions. Repositories receive prepared data, timestamps,
 and limits to build the corresponding queries.
@@ -144,8 +144,8 @@ persisted, logged, or returned in the public recovery-request response.
 `PasswordReset` defines at most one request per user. `tokenHash` allows lookup
 without storing the token sent in the email link. Renewal must replace the hash
 and expiration, invalidating the previous link. As in email verification,
-`lastSentAt` represents the delivery reservation; it does not guarantee that SMTP
-delivered the message.
+`lastSentAt` represents the delivery reservation; it does not guarantee that the
+mail provider delivered the message.
 
 Consumption must conditionally delete the request by hash and expiration within
 the same transaction that changes the password. It may proceed only if one row
@@ -171,7 +171,8 @@ rejects missing or invalid emails and unexpected fields with `400 Bad Request`.
 Requests that pass validation and rate limiting receive `202 Accepted` with
 `{ "accepted": true }`. This acknowledges the request, not account existence or
 email delivery. The response stays the same for unknown accounts, accounts
-within their waiting period, and SMTP failures. It never includes a token or link.
+within their waiting period, and mail provider failures. It never includes a
+token or link.
 
 The controller delegates directly to `PasswordRecoveryService`. Its
 `AUTH_RATE_LIMIT_CONFIG.forgotPassword` policy allows five requests per client IP
@@ -181,14 +182,14 @@ within 15 minutes, followed by a 15-minute block when exceeded. The existing
 account.
 
 `PasswordRecoveryService.request(email)` schedules processing and returns without
-waiting for account lookup, reservation, or SMTP. It does not return user data
-or email-delivery status. Processing those operations after scheduling keeps
+waiting for account lookup, reservation, or email submission. It does not return
+user data or email-delivery status. Processing those operations after scheduling keeps
 their results out of the HTTP response.
 
 Processing looks up the user through `UsersService`, generates the credential,
 and reserves the request in a transaction. The initial waiting period per account
-is 60 seconds. Email is sent after commit. An SMTP failure keeps the reservation
-and produces only a generic log, without email addresses, links, or tokens.
+is 60 seconds. Email is sent after commit. A mail provider failure keeps the
+reservation and produces only a generic log, without email addresses, links, or tokens.
 Requesting recovery does not change the password or verify the email.
 
 `PASSWORD_RESET_URL` is a complete URL from trusted configuration. Locally, it
@@ -241,8 +242,25 @@ the user that the password changed, that previous sessions are invalid, and
 what to do if they did not make the change. It includes no password, hash, token,
 or recovery link.
 
-SMTP is not awaited by the HTTP request. A delivery failure produces a generic
-log without recipient details or credentials. It does not undo the change or
+Email submission is not awaited by the HTTP request. A delivery failure produces
+a generic log without recipient details or credentials. It does not undo the change or
 turn a committed reset into an HTTP error. As with recovery requests, this task
 runs in memory; a process restart can lose it. Durable delivery and retries
 require a persistent queue.
+
+## Mail transport
+
+Authentication services use `MailService.send()` for all outgoing emails.
+`MAIL_PROVIDER` explicitly selects `smtp` or `resend`, independently of `NODE_ENV`.
+The constructor validates only the selected provider's settings and prepares its
+transport. Configuration failures prevent the API from starting.
+
+SMTP uses Nodemailer with local Mailpit. Resend uses the HTTPS send-email endpoint
+with a sending key held only by Nest. Successful Resend submission requires a
+successful HTTP response and a nonempty submission ID; this confirms acceptance
+by the provider, not inbox placement. Network errors, rejected requests, timeouts,
+and invalid responses propagate to the calling service's existing error handling.
+
+Provider selection does not change credential storage, transaction boundaries,
+or the public authentication responses. SMTP authentication, persistent delivery
+jobs, automatic retries, and delivery webhooks are not implemented.

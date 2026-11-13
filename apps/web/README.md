@@ -246,8 +246,14 @@ pnpm --filter web exec playwright install chromium
 pnpm --filter web test:e2e
 ```
 
-The API SMTP configuration must target Mailpit:
-`SMTP_HOST=127.0.0.1`, `SMTP_PORT=1025`, and `SMTP_SECURE=false`.
+The API mail configuration must select Mailpit: `MAIL_PROVIDER="smtp"`,
+`SMTP_HOST="127.0.0.1"`, `SMTP_PORT="1025"`, and `SMTP_SECURE="false"`.
+
+Deferred follow-up: Playwright's API server currently inherits mail settings from
+the API environment. Before the next explicitly requested browser-test run, pin
+the provider, local SMTP settings, and a local test sender in Playwright's server
+configuration, and clear the inherited Resend key. This isolation update is
+pending; the tests have not been adapted to the new provider selector yet.
 
 Useful focused commands:
 

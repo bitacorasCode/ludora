@@ -23,3 +23,16 @@
   that merely repeat the same literal without explaining its meaning.
 - Preserve existing values and behavior when refactoring constants. Keep
   credentials in environment variables and out of shared catalogs.
+
+# Testing workflow
+
+- Create, update, review, or run tests only when the user explicitly requests it.
+- Document known deferred test work without changing test files or configuration.
+
+# Environment file conventions
+
+- Use double quotes around every value in `.env` files and their examples,
+  including ports, boolean flags, and empty placeholders.
+- Group variables by responsibility and keep each local file and its example in
+  the same order. Preserve existing values when reformatting, keep real secrets
+  out of examples, and account for the owning loader's interpolation rules.

@@ -40,11 +40,11 @@ cp -n apps/web/.env.example apps/web/.env.local
 The copy commands leave existing local files intact. Environment files containing
 credentials are ignored by Git; only the example files belong in version control.
 
-| File                  | Loaded by                 | Contents                                                                |
-| --------------------- | ------------------------- | ----------------------------------------------------------------------- |
-| `.env`                | Docker Compose            | PostgreSQL database name and credentials                                |
-| `apps/api/.env`       | NestJS and the Prisma CLI | Database URL, JWT and verification secrets, SMTP settings, recovery URL |
-| `apps/web/.env.local` | Next.js                   | API URL and internal request secret                                     |
+| File                  | Loaded by                 | Contents                                                                   |
+| --------------------- | ------------------------- | -------------------------------------------------------------------------- |
+| `.env`                | Docker Compose            | PostgreSQL database name and credentials                                   |
+| `apps/api/.env`       | NestJS and the Prisma CLI | Database URL, authentication secrets, mail provider settings, recovery URL |
+| `apps/web/.env.local` | Next.js                   | API URL and internal request secret                                        |
 
 The root `.env` is not automatically loaded by the two applications. They can run
 as independent deployments, so each app owns its environment configuration.
@@ -53,7 +53,7 @@ Configure `apps/api/.env` with a `DATABASE_URL` matching the PostgreSQL values i
 the root `.env`. With the unchanged development example values, the URL is:
 
 ```dotenv
-DATABASE_URL=postgresql://ludora:ludora_dev_password@localhost:5432/ludora?schema=public
+DATABASE_URL="postgresql://ludora:ludora_dev_password@localhost:5432/ludora?schema=public"
 ```
 
 Generate a secret locally with:
@@ -70,7 +70,7 @@ secret or the verification secret. Keep these variables server-only, without a
 `NEXT_PUBLIC_` prefix.
 
 The API example already targets local Mailpit and uses
-`PASSWORD_RESET_URL=http://localhost:3000/reset-password`. Password reset links use
+`PASSWORD_RESET_URL="http://localhost:3000/reset-password"`. Password reset links use
 this configured web address; change it when running the frontend on another port.
 
 ### 2. Start PostgreSQL and Mailpit
@@ -164,7 +164,7 @@ individual suites, temporary accounts, local rate limits, and reports. The
 ```text
 Browser -> Next.js Server Actions / Route Handlers -> NestJS -> PostgreSQL
                                                        |
-                                                       +-> SMTP / Mailpit
+                                                       +-> MailService -> SMTP / Mailpit or Resend HTTPS
 ```
 
 Next.js stores the access token in an `HttpOnly` cookie and calls Nest from the
