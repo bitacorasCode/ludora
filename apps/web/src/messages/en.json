@@ -152,7 +152,7 @@
         "label": "Language"
     },
     "Login": {
-        "description": "Access your Ludora account with your email and password.",
+        "description": "Sign in to your Ludora account.",
         "errors": {
             "AUTH_EMAIL_NOT_VERIFIED": "Verify your email address to sign in.",
             "AUTH_INVALID_CREDENTIALS": "The email or password is incorrect."
@@ -306,7 +306,7 @@
     },
     "Register": {
         "accountData": "Account details",
-        "description": "Create your account and confirm your email address to access Ludora.",
+        "description": "Create your account to get started on Ludora.",
         "errors": {
             "AUTH_EMAIL_ALREADY_EXISTS": "The email address is already registered.",
             "AUTH_NICKNAME_ALREADY_EXISTS": "The username is already in use."
@@ -349,6 +349,21 @@
     "RouteError": {
         "description": "Please try again. If the problem continues, you can return to the home page.",
         "title": "We couldn't load this section"
+    },
+    "SocialAuth": {
+        "errors": {
+            "AUTH_OAUTH_AUTHENTICATION_FAILED": "We couldn't verify your account. Please try again.",
+            "AUTH_OAUTH_FLOW_INVALID": "Your sign-in attempt has expired or is no longer valid. Please start again.",
+            "AUTH_OAUTH_UNAVAILABLE": "Sign-in is temporarily unavailable. Please try again later."
+        },
+        "feedback": {
+            "errorTitle": "We couldn't start sign-in"
+        },
+        "google": {
+            "continue": "Continue with Google",
+            "redirecting": "Redirecting to Google..."
+        },
+        "separator": "or use your email"
     },
     "ThemeSwitch": {
         "label": "Dark mode"

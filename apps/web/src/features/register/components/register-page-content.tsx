@@ -2,13 +2,10 @@
 
 import { useTranslations } from 'next-intl';
 
-import {
-  FormActions,
-  FormPageCard,
-  SubmitButton,
-} from '@/components/forms';
+import { FormActions, FormPageCard, SubmitButton } from '@/components/forms';
 import { Button, FieldSet } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
+import { SocialAuthOptions } from '@/features/social-auth/components/social-auth-options';
 import { Link } from '@/i18n/navigation';
 
 import useRegisterForm from '../hooks/use-register-form';
@@ -17,11 +14,7 @@ import RegisterFormData from './register-form-data';
 const formId = 'register-form';
 
 export function RegisterPageContent() {
-  const {
-    form,
-    onSubmit,
-    isSubmitting,
-  } = useRegisterForm();
+  const { form, onSubmit, isSubmitting } = useRegisterForm();
   const t = useTranslations('Register');
 
   return (
@@ -31,6 +24,7 @@ export function RegisterPageContent() {
       title={t('title')}
       description={t('description')}
     >
+      <SocialAuthOptions disabled={isSubmitting} />
       <form
         id={formId}
         aria-label={t('title')}

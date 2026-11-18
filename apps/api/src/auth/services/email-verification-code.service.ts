@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import {
     EMAIL_VERIFICATION_CONFIG,
     EMAIL_VERIFICATION_HASH_CONFIG,
-} from '../constants/email-verification.js';
+} from '../constants/index.js';
 
 const DECIMAL_BASE = 10;
 const CODE_PADDING_DIGIT = '0';

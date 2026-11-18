@@ -4,13 +4,12 @@ import { parseHttpUrl } from '@ludora/security/server';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { MILLISECONDS_PER_SECOND } from '../../common/constants/time.js';
+import { MILLISECONDS_PER_SECOND } from '../../common/constants/index.js';
 import { MailService } from '../../mail/index.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
-import { AUTH_ERRORS } from '../constants/auth-errors.js';
-import { PASSWORD_RESET_CONFIG } from '../constants/password-reset.js';
-import { PasswordResetRepository } from '../repositories/password-reset.repository.js';
+import { AUTH_ERRORS, PASSWORD_RESET_CONFIG } from '../constants/index.js';
+import { PasswordResetRepository } from '../repositories/index.js';
 import { createPasswordResetMail } from '../templates/password-reset-mail.js';
 import { PasswordService } from './password.service.js';
 import { PasswordNotificationService } from './password-notification.service.js';

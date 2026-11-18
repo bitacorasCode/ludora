@@ -152,7 +152,7 @@
         "label": "Idioma"
     },
     "Login": {
-        "description": "Accede a tu cuenta de Ludora con tu correo y contraseña.",
+        "description": "Accede a tu cuenta de Ludora.",
         "errors": {
             "AUTH_EMAIL_NOT_VERIFIED": "Confirma tu correo electrónico para iniciar sesión.",
             "AUTH_INVALID_CREDENTIALS": "El correo o la contraseña son incorrectos."
@@ -306,7 +306,7 @@
     },
     "Register": {
         "accountData": "Datos de la cuenta",
-        "description": "Crea tu cuenta y confirma tu correo electrónico para acceder a Ludora.",
+        "description": "Crea tu cuenta para empezar en Ludora.",
         "errors": {
             "AUTH_EMAIL_ALREADY_EXISTS": "El correo electrónico ya está registrado.",
             "AUTH_NICKNAME_ALREADY_EXISTS": "El nombre de usuario ya está en uso."
@@ -349,6 +349,21 @@
     "RouteError": {
         "description": "Inténtalo de nuevo. Si el problema continúa, puedes volver al inicio.",
         "title": "No pudimos cargar esta sección"
+    },
+    "SocialAuth": {
+        "errors": {
+            "AUTH_OAUTH_AUTHENTICATION_FAILED": "No pudimos verificar tu cuenta. Inténtalo de nuevo.",
+            "AUTH_OAUTH_FLOW_INVALID": "Tu intento de acceso ha caducado o ya no es válido. Vuelve a empezar.",
+            "AUTH_OAUTH_UNAVAILABLE": "El acceso no está disponible en este momento. Inténtalo de nuevo más tarde."
+        },
+        "feedback": {
+            "errorTitle": "No pudimos iniciar el acceso"
+        },
+        "google": {
+            "continue": "Continuar con Google",
+            "redirecting": "Redirigiendo a Google..."
+        },
+        "separator": "o usa tu correo"
     },
     "ThemeSwitch": {
         "label": "Modo oscuro"

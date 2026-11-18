@@ -63,4 +63,16 @@ export const AUTH_ERRORS = {
         errorCode: AUTH_ERROR_CODES.passwordUnchanged,
         message: 'The new password must differ from the current password.',
     },
+    oauthFlowInvalid: {
+        errorCode: AUTH_ERROR_CODES.oauthFlowInvalid,
+        message: 'Authorization attempt is invalid or has expired.',
+    },
+    oauthAuthenticationFailed: {
+        errorCode: AUTH_ERROR_CODES.oauthAuthenticationFailed,
+        message: 'Could not verify the external account.',
+    },
+    oauthUnavailable: {
+        errorCode: AUTH_ERROR_CODES.oauthUnavailable,
+        message: 'The external authentication provider is unavailable.',
+    },
 } as const satisfies Record<string, ApiErrorDefinition>;

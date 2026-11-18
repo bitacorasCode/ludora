@@ -10,7 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import type { User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
-import { AUTH_ERRORS } from '../constants/auth-errors.js';
+import { AUTH_ERRORS } from '../constants/index.js';
 import type {
     ChangePasswordDto,
     LoginDto,
@@ -18,7 +18,7 @@ import type {
     ResendVerificationDto,
     VerifyEmailDto,
 } from '../dto/index.js';
-import { PasswordResetRepository } from '../repositories/password-reset.repository.js';
+import { PasswordResetRepository } from '../repositories/index.js';
 import { EmailVerificationService } from './email-verification.service.js';
 import { PasswordService } from './password.service.js';
 import { PasswordNotificationService } from './password-notification.service.js';
@@ -110,7 +110,7 @@ export class AuthService {
 
         let isPasswordValid = false;
 
-        if (user) {
+        if (user?.passwordHash) {
             isPasswordValid = await this.passwordService.verify(
                 user.passwordHash,
                 data.password,
@@ -176,13 +176,17 @@ export class AuthService {
             throw new UnauthorizedException(message, { errorCode });
         }
 
-        const isCurrentPasswordValid = await this.passwordService.verify(
-            user.passwordHash,
-            data.currentPassword,
-        );
+        const { passwordHash: currentPasswordHash } = user;
 
-        if (!isCurrentPasswordValid) {
+        if (
+            currentPasswordHash === null
+            || !(await this.passwordService.verify(
+                currentPasswordHash,
+                data.currentPassword,
+            ))
+        ) {
             const { message, errorCode } = AUTH_ERRORS.currentPasswordInvalid;
+
             throw new BadRequestException(message, { errorCode });
         }
 
@@ -199,7 +203,7 @@ export class AuthService {
             const changed = await this.usersService.changePasswordIfCurrent({
                 userId,
                 passwordHash,
-                expectedPasswordHash: user.passwordHash,
+                expectedPasswordHash: currentPasswordHash,
                 expectedAuthVersion,
             }, transaction);
 

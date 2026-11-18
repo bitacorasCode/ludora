@@ -1,4 +1,4 @@
-import { SECONDS_PER_MINUTE } from '../../common/constants/time.js';
+import { SECONDS_PER_MINUTE } from '../../common/constants/index.js';
 import type { SendMailInput } from '../../mail/index.js';
 
 type PasswordResetMailInput = {

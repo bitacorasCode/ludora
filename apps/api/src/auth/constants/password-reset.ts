@@ -1,5 +1,8 @@
-import { CRYPTO_ENCODING, HASH_ALGORITHM } from '../../common/constants/crypto.js';
-import { SECONDS_PER_MINUTE } from '../../common/constants/time.js';
+import {
+    CRYPTO_ENCODING,
+    HASH_ALGORITHM,
+    SECONDS_PER_MINUTE,
+} from '../../common/constants/index.js';
 
 export const PASSWORD_RESET_CONFIG = {
     tokenBytes: 32,

@@ -8,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { z } from 'zod';
 
 import { UsersService } from '../../users/users.service.js';
-import { AUTH_ERRORS } from '../constants/auth-errors.js';
+import { AUTH_ERRORS } from '../constants/index.js';
 import type { AuthenticatedRequest } from '../types/authenticated-request.js';
 
 const BEARER_TOKEN_PATTERN = /^Bearer (\S+)$/i;

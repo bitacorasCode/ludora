@@ -22,3 +22,10 @@ export const HTTP_ERROR_NAMES = {
     conflict: 'Conflict',
     tooManyRequests: 'Too Many Requests',
 } as const;
+
+export const INTERNAL_REQUEST_ERRORS = {
+    untrustedRequest: {
+        errorCode: 'INTERNAL_REQUEST_UNTRUSTED',
+        message: 'This endpoint requires a trusted internal request.',
+    },
+} as const satisfies Record<string, ApiErrorDefinition>;

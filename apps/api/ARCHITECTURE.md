@@ -11,6 +11,21 @@
 - Keep the explicit filename and `.js` extension in relative imports for NodeNext.
 - Review transitive dependencies when extending an index: re-exporting a module
   can also load its dependencies and introduce a cycle.
+- Shared guards, request services, and constant catalogs have category indexes.
+  Module classes keep explicit file imports rather than sharing an index with
+  their own providers.
+
+## Nest module boundaries
+
+- `providers` registers the dependencies that Nest creates within a module.
+- `imports` grants access to providers exported by other Nest modules.
+- `exports` exposes selected providers or re-exports imported Nest modules.
+- JavaScript imports and index exports make symbols available to a source file;
+  Nest module metadata controls whether those dependencies can be injected.
+
+For example, `ClientIpModule` registers and exports `InternalRequestService`.
+`AuthModule` imports `ClientIpModule`, so its `InternalRequestGuard` can inject
+the existing service without registering it again.
 
 ## Cryptographic configuration
 

@@ -6,7 +6,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 
-import { CRYPTO_ENCODING } from '../constants/crypto.js';
+import { CRYPTO_ENCODING } from '../constants/index.js';
 
 const { utf8: secretEncoding } = CRYPTO_ENCODING;
 

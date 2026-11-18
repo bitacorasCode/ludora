@@ -6,10 +6,14 @@ import {
 import { BaseExceptionFilter } from '@nestjs/core';
 import type { Response } from 'express';
 
-import { AUTH_ERRORS } from '../../auth/constants/auth-errors.js';
+import { AUTH_ERRORS } from '../../auth/constants/index.js';
 import { Prisma } from '../../generated/prisma/client.js';
-import { DATABASE_CONSTRAINTS, PRISMA_ERROR_CODES } from '../constants/database.js';
-import { DATABASE_ERRORS, HTTP_ERROR_NAMES } from '../constants/errors.js';
+import {
+    DATABASE_CONSTRAINTS,
+    DATABASE_ERRORS,
+    HTTP_ERROR_NAMES,
+    PRISMA_ERROR_CODES,
+} from '../constants/index.js';
 import type { ApiErrorDefinition } from '../types/api-error-definition.js';
 
 type PostgreSqlAdapterError = {

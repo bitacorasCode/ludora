@@ -14,9 +14,9 @@ import {
 } from '@nestjs/throttler';
 import type { Request } from 'express';
 
-import { RATE_LIMIT_ERRORS } from '../constants/errors.js';
+import { RATE_LIMIT_ERRORS } from '../constants/index.js';
 import { TooManyRequestsException } from '../exceptions/too-many-requests.exception.js';
-import { ClientIpService } from '../services/client-ip.service.js';
+import { ClientIpService } from '../services/index.js';
 
 @Injectable()
 export class RateLimitGuard extends ThrottlerGuard {

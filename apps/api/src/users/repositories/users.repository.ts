@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { SINGLE_RECORD_COUNT } from '../../common/constants/database.js';
+import { SINGLE_RECORD_COUNT } from '../../common/constants/index.js';
 import type { Prisma, User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 

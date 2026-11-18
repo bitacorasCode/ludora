@@ -9,7 +9,7 @@ import {
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import type { AuthenticatedRequest } from '../auth/types/authenticated-request.js';
-import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
+import { RateLimitGuard } from '../common/guards/index.js';
 import {
     type SaveProfileDto,
     saveProfileSchema,

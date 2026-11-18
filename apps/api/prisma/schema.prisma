@@ -13,13 +13,14 @@ model User {
   id              String    @id @default(uuid()) @db.Uuid
   nickname        String    @unique
   email           String    @unique
-  passwordHash    String    @map("password_hash")
+  passwordHash    String?    @map("password_hash")
   authVersion     Int       @default(0) @map("auth_version")
   emailVerifiedAt DateTime? @map("email_verified_at")
-  profile UserProfile?
+  profile         UserProfile?
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
+  authIdentities    AuthIdentity[]
   emailVerification EmailVerification?
   passwordReset     PasswordReset?
 
@@ -63,4 +64,25 @@ model UserProfile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_profiles")
+}
+
+enum AuthProvider {
+  GOOGLE  @map("google")
+  DISCORD @map("discord")
+
+  @@map("auth_provider")
+}
+
+model AuthIdentity {
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  provider       AuthProvider
+  providerUserId String       @map("provider_user_id")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@unique([userId, provider])
+  @@map("auth_identities")
 }

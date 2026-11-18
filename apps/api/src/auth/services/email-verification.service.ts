@@ -2,15 +2,14 @@ import { randomUUID } from 'node:crypto';
 
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
-import { MILLISECONDS_PER_SECOND } from '../../common/constants/time.js';
+import { MILLISECONDS_PER_SECOND } from '../../common/constants/index.js';
 import { TooManyRequestsException } from '../../common/exceptions/too-many-requests.exception.js';
 import type { ApiErrorDefinition } from '../../common/types/api-error-definition.js';
 import type { Prisma } from '../../generated/prisma/client.js';
 import { MailService } from '../../mail/index.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
-import { AUTH_ERRORS } from '../constants/auth-errors.js';
-import { EMAIL_VERIFICATION_CONFIG } from '../constants/email-verification.js';
+import { AUTH_ERRORS, EMAIL_VERIFICATION_CONFIG } from '../constants/index.js';
 import { EmailVerificationRepository } from '../repositories/index.js';
 import { createEmailVerificationMail } from '../templates/email-verification-mail.js';
 import { EmailVerificationCodeService } from './email-verification-code.service.js';

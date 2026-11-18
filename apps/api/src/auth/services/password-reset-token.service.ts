@@ -2,8 +2,8 @@ import { createHash, randomBytes } from 'node:crypto';
 
 import { Injectable } from '@nestjs/common';
 
-import { MILLISECONDS_PER_SECOND } from '../../common/constants/time.js';
-import { PASSWORD_RESET_CONFIG } from '../constants/password-reset.js';
+import { MILLISECONDS_PER_SECOND } from '../../common/constants/index.js';
+import { PASSWORD_RESET_CONFIG } from '../constants/index.js';
 
 @Injectable()
 export class PasswordResetTokenService {

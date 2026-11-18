@@ -11,6 +11,7 @@ import {
 } from '@/components/forms';
 import { Button, FieldGroup, FieldSet } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
+import { SocialAuthOptions } from '@/features/social-auth/components/social-auth-options';
 import { Link } from '@/i18n/navigation';
 
 import { LOGIN_ERROR_CODES } from '../config';
@@ -36,6 +37,7 @@ export function LoginPageContent() {
       title={t('title')}
       description={t('description')}
     >
+      <SocialAuthOptions disabled={isSubmitting} />
       <form
         id={formId}
         aria-label={t('title')}
@@ -67,7 +69,9 @@ export function LoginPageContent() {
               />
 
               <Button asChild variant='link' className='mt-2 px-0'>
-                <Link href={APP_ROUTES.forgotPassword}>{t('forgotPassword')}</Link>
+                <Link href={APP_ROUTES.forgotPassword}>
+                  {t('forgotPassword')}
+                </Link>
               </Button>
 
               <TransitionAlert

@@ -27,6 +27,9 @@ export const AUTH_ERROR_CODES = Object.freeze({
     passwordResetInvalid: 'AUTH_PASSWORD_RESET_INVALID',
     currentPasswordInvalid: 'AUTH_CURRENT_PASSWORD_INVALID',
     passwordUnchanged: 'AUTH_PASSWORD_UNCHANGED',
+    oauthFlowInvalid: 'AUTH_OAUTH_FLOW_INVALID',
+    oauthAuthenticationFailed: 'AUTH_OAUTH_AUTHENTICATION_FAILED',
+    oauthUnavailable: 'AUTH_OAUTH_UNAVAILABLE',
 });
 
 export const AUTH_VALIDATION = Object.freeze({

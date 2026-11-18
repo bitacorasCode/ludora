@@ -2,6 +2,7 @@ import {
     Body,
     Controller,
     Get,
+    Header,
     HttpCode,
     HttpStatus,
     Post,
@@ -10,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 
-import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
+import { InternalRequestGuard, RateLimitGuard } from '../common/guards/index.js';
 import { AUTH_RATE_LIMIT_CONFIG } from '../config/rate-limit.js';
 import {
     type ChangePasswordDto,
@@ -29,7 +30,11 @@ import {
     verifyEmailSchema,
 } from './dto/index.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
-import { AuthService, PasswordRecoveryService } from './services/index.js';
+import {
+    AuthService,
+    GoogleAuthService,
+    PasswordRecoveryService,
+} from './services/index.js';
 import type { AuthenticatedRequest } from './types/authenticated-request.js';
 
 @Controller('auth')
@@ -38,6 +43,7 @@ export class AuthController {
     constructor(
         private readonly authService: AuthService,
         private readonly passwordRecoveryService: PasswordRecoveryService,
+        private readonly googleAuthService: GoogleAuthService,
     ) { }
 
     @Post('register')
@@ -105,5 +111,14 @@ export class AuthController {
         @Body({ schema: changePasswordSchema }) data: ChangePasswordDto,
     ) {
         return this.authService.changePassword(userId, authVersion, data);
+    }
+
+    @Post('google/start')
+    @UseGuards(InternalRequestGuard)
+    @Throttle({ default: AUTH_RATE_LIMIT_CONFIG.login })
+    @HttpCode(HttpStatus.OK)
+    @Header('Cache-Control', 'no-store')
+    startGoogleAuthorization() {
+        return this.googleAuthService.createAuthorizationRequest();
     }
 }

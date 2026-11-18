@@ -27,6 +27,9 @@ export declare const AUTH_ERROR_CODES: Readonly<{
     passwordResetInvalid: string;
     currentPasswordInvalid: string;
     passwordUnchanged: string;
+    oauthFlowInvalid: string;
+    oauthAuthenticationFailed: string;
+    oauthUnavailable: string;
 }>;
 
 export declare const AUTH_VALIDATION: Readonly<{
