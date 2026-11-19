@@ -13,13 +13,18 @@ import { Button, FieldGroup, FieldSet } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
 import { SocialAuthOptions } from '@/features/social-auth/components/social-auth-options';
 import { Link } from '@/i18n/navigation';
+import type { ActionError } from '@/lib/actions';
 
 import { LOGIN_ERROR_CODES } from '../config';
 import useLoginForm from '../hooks/use-login-form';
 
 const formId = 'login-form';
 
-export function LoginPageContent() {
+export function LoginPageContent({
+  socialAuthError,
+}: {
+  socialAuthError?: ActionError;
+}) {
   const t = useTranslations('Login');
 
   const {
@@ -37,7 +42,10 @@ export function LoginPageContent() {
       title={t('title')}
       description={t('description')}
     >
-      <SocialAuthOptions disabled={isSubmitting} />
+      <SocialAuthOptions
+        disabled={isSubmitting}
+        callbackError={socialAuthError}
+      />
       <form
         id={formId}
         aria-label={t('title')}

@@ -31,6 +31,13 @@ export class UsersService {
         return this.usersRepository.findById(id);
     }
 
+    findIdByEmail(email: string, transaction?: Prisma.TransactionClient) {
+        return this.usersRepository.findIdByEmail(
+            email.trim().toLowerCase(),
+            transaction,
+        );
+    }
+
     findCurrentById(id: string) {
         return this.usersRepository.findCurrentById(id);
     }

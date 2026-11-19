@@ -352,16 +352,32 @@
     },
     "SocialAuth": {
         "errors": {
+            "AUTH_OAUTH_ACCOUNT_LINK_REQUIRED": "An account already uses this email. Sign in using the method you used to create it.",
             "AUTH_OAUTH_AUTHENTICATION_FAILED": "We couldn't verify your account. Please try again.",
+            "AUTH_OAUTH_CANCELLED": "You cancelled sign-in. You can try again whenever you are ready.",
+            "AUTH_OAUTH_EMAIL_MISMATCH": "Use the email address associated with your account to complete registration.",
+            "AUTH_OAUTH_EMAIL_REQUIRED": "Enter an email address to complete registration.",
             "AUTH_OAUTH_FLOW_INVALID": "Your sign-in attempt has expired or is no longer valid. Please start again.",
+            "AUTH_OAUTH_IDENTITY_ALREADY_LINKED": "This account is already registered. Please sign in again.",
+            "AUTH_OAUTH_REGISTRATION_INVALID": "Your pending registration has expired or is no longer valid. Please start again.",
             "AUTH_OAUTH_UNAVAILABLE": "Sign-in is temporarily unavailable. Please try again later."
         },
         "feedback": {
-            "errorTitle": "We couldn't start sign-in"
+            "errorTitle": "We couldn't sign you in"
         },
         "google": {
             "continue": "Continue with Google",
             "redirecting": "Redirecting to Google..."
+        },
+        "registration": {
+            "description": "Choose a username to finish creating your Ludora account.",
+            "email": {
+                "account": "You are registering with {email}.",
+                "verificationRequired": "We will send a code to confirm your email address.",
+                "verified": "Your email address is already verified."
+            },
+            "restart": "Start again",
+            "title": "Complete your registration"
         },
         "separator": "or use your email"
     },

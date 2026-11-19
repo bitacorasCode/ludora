@@ -75,4 +75,28 @@ export const AUTH_ERRORS = {
         errorCode: AUTH_ERROR_CODES.oauthUnavailable,
         message: 'The external authentication provider is unavailable.',
     },
+    oauthAccountLinkRequired: {
+        errorCode: AUTH_ERROR_CODES.oauthAccountLinkRequired,
+        message: 'An account already uses this email. Sign in with its existing authentication method.',
+    },
+    oauthRegistrationInvalid: {
+        errorCode: AUTH_ERROR_CODES.oauthRegistrationInvalid,
+        message: 'Pending registration is invalid or has expired.',
+    },
+    oauthEmailRequired: {
+        errorCode: AUTH_ERROR_CODES.oauthEmailRequired,
+        message: 'An email address is required to complete registration.',
+    },
+    oauthEmailMismatch: {
+        errorCode: AUTH_ERROR_CODES.oauthEmailMismatch,
+        message: 'Use the email address associated with this authorization attempt.',
+    },
+    oauthIdentityAlreadyLinked: {
+        errorCode: AUTH_ERROR_CODES.oauthIdentityAlreadyLinked,
+        message: 'This external identity is already linked to an account. Sign in again.',
+    },
+    oauthCancelled: {
+        errorCode: AUTH_ERROR_CODES.oauthCancelled,
+        message: 'External sign-in was cancelled.',
+    },
 } as const satisfies Record<string, ApiErrorDefinition>;

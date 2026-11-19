@@ -4,3 +4,8 @@ export const OAUTH_FLOW_TOKEN_CONFIG = {
     audience: 'ludora-oauth-flow',
     expiresInSeconds: 10 * SECONDS_PER_MINUTE,
 } as const;
+
+export const OAUTH_REGISTRATION_TOKEN_CONFIG = {
+    audience: 'ludora-oauth-registration',
+    expiresInSeconds: 10 * SECONDS_PER_MINUTE,
+} as const;

@@ -1,9 +1,18 @@
 export { type ChangePasswordDto, changePasswordSchema } from './change-password.dto.js';
 export {
+    type CompleteOAuthRegistrationDto,
+    completeOAuthRegistrationSchema,
+} from './complete-oauth-registration.dto.js';
+export {
     type ForgotPasswordDto,
     forgotPasswordSchema,
 } from './forgot-password.dto.js';
+export { type GoogleCallbackDto, googleCallbackSchema } from './google-callback.dto.js';
 export { type LoginDto, loginSchema } from './login.dto.js';
+export {
+    type OAuthRegistrationContextDto,
+    oauthRegistrationContextSchema,
+} from './oauth-registration-context.dto.js';
 export { type RegisterDto, registerSchema } from './register.dto.js';
 export {
     type ResendVerificationDto,

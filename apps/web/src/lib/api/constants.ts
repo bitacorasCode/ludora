@@ -48,6 +48,7 @@ export const API_ERROR_CODES = {
 
 export const HTTP_STATUS = {
     ok: 200,
+    seeOther: 303,
     badRequest: 400,
     unauthorized: 401,
     tooManyRequests: 429,

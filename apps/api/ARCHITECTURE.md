@@ -103,6 +103,92 @@ If no pending verification is found, login keeps the unverified-email error
 and does not issue a JWT. A concurrent confirmation can make this read stale;
 the client can repeat login without bypassing verification.
 
+## OAuth account resolution
+
+`POST /auth/google/callback` accepts the signed authorization context and the
+original callback query parameters through a strict DTO. It requires a trusted
+internal request and the login rate limit. `GoogleAuthService` validates the
+provider response before `AuthService` resolves the Ludora account.
+
+Identity lookup uses `(provider, providerUserId)`. A linked identity loads its
+existing user and shares the usual login response: verified users receive a JWT,
+while unverified users can resume their existing email verification. Provider
+email changes do not change the account email or its verification status.
+
+An unlinked identity whose email is already registered returns
+`AUTH_OAUTH_ACCOUNT_LINK_REQUIRED`. Matching emails never link accounts
+automatically. The collision lookup selects only the existing user identifier.
+
+Other identities return `completeRegistration` with a signed `registrationToken`,
+its expiration, and the provider email and verification flag. This preparation
+creates no user or identity and reserves no email or nickname. Missing or
+unverified provider email remains explicitly unverified for the registration
+completion step.
+
+`OAuthFlowTokenService` shares timestamp and signing logic across the authorization
+and registration contexts. They use separate audiences (`ludora-oauth-flow` and
+`ludora-oauth-registration`) and independently configured expiration periods.
+Registration tokens cannot be used as session or authorization-flow tokens.
+
+### OAuth registration completion
+
+`POST /auth/oauth/register` requires a trusted internal request and the registration
+rate limit. Its strict DTO accepts `registrationToken`, `nickname`, and an optional
+`email`; nickname validation reuses the password-registration schema. Verification
+checks the registration audience, signature, expiration, and identity payload.
+
+The provider email is authoritative for this attempt. A supplied address must
+match it. When the provider supplied no email, the caller must provide one and
+verify it through Ludora. The client cannot supply an `emailVerified` flag or a
+password. Social accounts are created with a null password hash.
+
+`AuthService` rechecks identity and email conflicts inside the transaction, then
+creates the user and provider identity together. A verified provider email marks
+the new user as verified; other addresses receive a pending email-verification
+record in that same transaction. Existing unique constraints protect concurrent
+requests. A provider-identity constraint violation returns
+`AUTH_OAUTH_IDENTITY_ALREADY_LINKED` and rolls back the competing user creation.
+An already-linked identity cannot reuse a registration grant to issue sessions.
+
+After commit, verified accounts receive the usual authenticated response. Other
+accounts return `verifyEmail` and delivery metadata. Email is sent after commit;
+delivery failure leaves the account available for the existing resend flow.
+Local and OAuth registration share public-user projection and email-delivery
+response formatting, excluding password hashes and authentication versions.
+
+### Browser callback and registration context
+
+Next stores the signed authorization context, expected state, and locale in an
+HttpOnly cookie. Its `/api/auth/google/callback` Route Handler checks the browser
+state before consuming that cookie, then sends the original response parameters
+to Nest. Nest still validates the signed context, state, nonce, PKCE, and provider
+response. A cancelled provider authorization has its own error code.
+
+Authenticated responses become a Next session cookie. Pending registrations use
+a separate HttpOnly cookie; tokens never appear in application URLs or client
+component props. A missing or mismatched callback state does not consume the
+browser's active flow. Callback redirects use fixed local destinations and
+`no-store` and `no-referrer` response headers.
+
+`POST /auth/oauth/registration-context` requires the internal guard and login rate
+limit. It verifies the registration JWT and returns only its email, verification
+flag, and expiration, with no database mutation. Next uses this endpoint to render
+the nickname form without decoding or trusting an unverified token. Submission
+validates the token again through `POST /auth/oauth/register`; the preview is not
+an authorization grant or a reservation.
+
+The web completion form collects a nickname and requests an email only when the
+provider supplied none. Successful creation opens the usual session or continues
+the existing email-verification flow. Authenticated account linking and Discord
+sign-in remain subsequent steps.
+
+Tests for linked and unlinked identities, email collisions, pending verification,
+registration-token audiences and expiration, callback DTO validation, registration
+completion, token reuse, email binding, concurrent identity conflicts, and mail
+failure after commit are deferred until requested. Browser callback state binding,
+cookie creation and consumption, registration-context expiration, completion-form
+field errors, cancellation, and locale-preserving redirects also need coverage.
+
 ## Authentication version
 
 `User.authVersion` is an internal counter stored in `users.auth_version` with an

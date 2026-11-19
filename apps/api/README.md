@@ -52,6 +52,9 @@ is not automatically the API configuration.
 | Variable                    | Purpose                                                                                                         |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `NODE_ENV`                  | `development` locally; `production` for a production deployment.                                                |
+| `GOOGLE_CLIENT_ID`          | Google OAuth web application's client identifier.                                                              |
+| `GOOGLE_CLIENT_SECRET`      | Server-only Google OAuth client secret.                                                                        |
+| `GOOGLE_REDIRECT_URI`       | Exact registered callback URL in Next, such as `http://localhost:3000/api/auth/google/callback`.                  |
 | `PORT`                      | HTTP port; defaults to `3001`.                                                                                  |
 | `DATABASE_URL`              | PostgreSQL connection string matching the local Compose database or deployed database.                          |
 | `JWT_SECRET`                | Secret used by Nest to sign and verify access tokens.                                                           |
@@ -146,6 +149,10 @@ There is no global URL prefix. Bodies are JSON. Protected routes require
 | `POST` | `/auth/verify-email`        | Accepts `verificationId` and `code`; confirms the email and returns an access token and user (`200`).                   |
 | `POST` | `/auth/resend-verification` | Accepts `verificationId`; renews the code when allowed and returns delivery and retry information (`200`).              |
 | `POST` | `/auth/login`               | Accepts `email` and `password`; returns an authenticated session or the pending-verification next step (`200`).         |
+| `POST` | `/auth/google/start`        | Internal requests only; returns the Google authorization URL and expiring signed flow context (`200`).                |
+| `POST` | `/auth/google/callback`     | Internal requests only; accepts `flowToken` and `responseParameters`; resolves sign-in or pending registration (`200`). |
+| `POST` | `/auth/oauth/registration-context` | Internal requests only; validates `registrationToken` and returns its email context and expiration (`200`). |
+| `POST` | `/auth/oauth/register`      | Internal requests only; accepts `registrationToken`, `nickname`, and optional `email`; creates the account and returns a session or verification metadata (`201`). |
 | `POST` | `/auth/forgot-password`     | Accepts `email`; acknowledges a valid request without revealing account existence or delivery status (`202`).           |
 | `POST` | `/auth/reset-password`      | Accepts `token` and `password`; consumes the recovery link and updates the password (`200`).                            |
 | `POST` | `/auth/change-password`     | Requires a verified JWT; accepts `currentPassword` and `password`; returns a replacement access token and user (`200`). |
@@ -162,11 +169,12 @@ profile contracts live in `packages/security` and `packages/contracts`.
 Passwords are sent to the API over HTTPS in production and hashed in Nest using
 Argon2id. Password hashes are internal and never included in user responses.
 
-Registration alone does not issue a JWT. Successful email confirmation signs the
+Password registration alone does not issue a JWT. Successful email confirmation signs the
 user in. Login with correct credentials and an unverified email returns enough
 information to resume verification without automatically sending another email.
 
-The API issues 15-minute JWT access tokens. Next stores the token in its HttpOnly
+The API issues JWT access tokens with the shared `ACCESS_TOKEN_TTL_SECONDS`
+lifetime. Next stores the token in its HttpOnly
 session cookie and attaches the bearer header on server-to-server requests. Nest
 does not read that cookie directly. The internal-request secret is separate from
 user authentication and does not grant access to protected routes.
@@ -177,6 +185,34 @@ changes increment this version, so previous tokens fail on subsequent protected
 requests. Resetting a password does
 not verify the email or issue a session. Logout currently clears the web cookie;
 there is no API refresh-token or per-session revocation endpoint.
+
+### Google account resolution
+
+The Google callback endpoint validates the authorization response and looks up the
+stable provider identity. Linked accounts follow the same verified-email and JWT
+rules as password login. An existing account with a matching email requires its
+original sign-in method; it is never automatically linked to Google.
+
+A new identity returns `nextStep: completeRegistration` and a short-lived
+registration token so the next step can collect a nickname. No account is created
+at this stage.
+
+`POST /auth/oauth/register` validates that token and creates the user and provider
+identity atomically. It returns `authenticated` and an access token when the
+provider verified the email. Otherwise it returns `verifyEmail` and sends a
+confirmation code using the existing mail flow. Email delivery occurs after
+commit. An address supplied by the caller is accepted only when the provider
+supplied none; a supplied copy of the provider address must match it.
+
+Next handles Google's browser redirect at `/api/auth/google/callback`. Temporary
+authorization and registration tokens stay in HttpOnly cookies. The completion
+page calls `POST /auth/oauth/registration-context` through Next to validate the
+pending token before displaying its email. Only Nest verifies these tokens; no
+JWT signing secret is shared with the browser or Next.
+
+Social accounts initially have no password. The existing email-based password
+recovery flow can establish one later. Explicit account linking and Discord
+sign-in are later steps.
 
 ### Changing a password while signed in
 

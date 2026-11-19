@@ -16,6 +16,7 @@ import {
 } from '../config/google-auth.config.js';
 import { AUTH_ERRORS } from '../constants/index.js';
 import { emailSchema } from '../schemas/email.schema.js';
+import type { ExternalIdentity } from '../schemas/external-identity.schema.js';
 import { OAuthFlowTokenService } from './oauth-flow-token.service.js';
 
 const googleIdentitySchema = z.object({
@@ -99,7 +100,7 @@ export class GoogleAuthService {
     async verifyAuthorization(
         flowToken: string,
         responseParameters: string,
-    ) {
+    ): Promise<ExternalIdentity> {
         const flow = await this.flowTokenService.verify(
             flowToken,
             AuthProvider.GOOGLE,
@@ -125,6 +126,15 @@ export class GoogleAuthService {
 
             claims = tokens.claims();
         } catch (error) {
+            if (
+                error instanceof oidc.AuthorizationResponseError
+                && error.error === GOOGLE_OAUTH.accessDeniedError
+            ) {
+                const { message, errorCode } = AUTH_ERRORS.oauthCancelled;
+
+                throw new BadRequestException(message, { errorCode });
+            }
+
             const isRejectedAuthorization =
                 error instanceof oidc.AuthorizationResponseError
                 || error instanceof oidc.ClientError
@@ -164,7 +174,7 @@ export class GoogleAuthService {
             provider: AuthProvider.GOOGLE,
             providerUserId: sub,
             email: email ?? null,
-            emailVerified: emailVerified === true,
+            emailVerified: email !== undefined && emailVerified === true,
         };
     }
 }

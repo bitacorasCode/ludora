@@ -44,12 +44,12 @@ export function useActionErrorToast({
     };
   }, [dismissError]);
 
-  function showError({
+  const showError = useCallback(({
     errorCode,
     validationErrors,
     statusCode,
     retryAfterSeconds,
-  }: ActionError) {
+  }: ActionError) => {
     if (!isMounted.current) {
       return;
     }
@@ -85,7 +85,7 @@ export function useActionErrorToast({
       description,
       duration: Infinity,
     });
-  }
+  }, [commonErrors, commonStatus, dismissError, featureErrors, title]);
 
   return { showError, dismissError };
 }

@@ -56,6 +56,16 @@ export class UsersRepository {
         });
     }
 
+    findIdByEmail(
+        email: string,
+        transaction: Prisma.TransactionClient = this.prisma,
+    ) {
+        return transaction.user.findUnique({
+            where: { email },
+            select: { id: true },
+        });
+    }
+
     findAuthenticationById(
         id: string,
         transaction: Prisma.TransactionClient = this.prisma,

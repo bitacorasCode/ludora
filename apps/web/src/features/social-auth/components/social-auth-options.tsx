@@ -3,11 +3,12 @@
 import { Google_Sans } from 'next/font/google';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
+import { useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 
 import { Button, FieldSeparator, Spinner } from '@/components/ui';
 import { useActionErrorToast } from '@/hooks';
-import { OPERATION_STATUS } from '@/lib/actions';
+import { type ActionError, OPERATION_STATUS } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 
 import { startGoogleAuth } from '../actions';
@@ -19,6 +20,7 @@ const googleSans = Google_Sans({
 
 type SocialAuthOptionsProps = {
   disabled?: boolean;
+  callbackError?: ActionError;
 };
 
 function GoogleSubmitButton({ disabled }: SocialAuthOptionsProps) {
@@ -61,6 +63,7 @@ function GoogleSubmitButton({ disabled }: SocialAuthOptionsProps) {
 
 export function SocialAuthOptions({
   disabled = false,
+  callbackError,
 }: SocialAuthOptionsProps) {
   const locale = useLocale();
   const t = useTranslations('SocialAuth');
@@ -70,6 +73,10 @@ export function SocialAuthOptions({
     title: t('feedback.errorTitle'),
     featureErrors: errors,
   });
+
+  useEffect(() => {
+    if (callbackError) showError(callbackError);
+  }, [callbackError, showError]);
 
   async function handleGoogleAction(): Promise<void> {
     dismissError();

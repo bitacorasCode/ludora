@@ -9,6 +9,7 @@ export declare const INTERNAL_REQUEST_HEADERS: Readonly<{
 export declare const AUTH_NEXT_STEP: Readonly<{
     authenticated: 'authenticated';
     verifyEmail: 'verifyEmail';
+    completeRegistration: 'completeRegistration';
 }>;
 
 export declare const AUTH_ERROR_CODES: Readonly<{
@@ -30,6 +31,12 @@ export declare const AUTH_ERROR_CODES: Readonly<{
     oauthFlowInvalid: string;
     oauthAuthenticationFailed: string;
     oauthUnavailable: string;
+    oauthAccountLinkRequired: string;
+    oauthRegistrationInvalid: string;
+    oauthEmailRequired: string;
+    oauthEmailMismatch: string;
+    oauthIdentityAlreadyLinked: string;
+    oauthCancelled: string;
 }>;
 
 export declare const AUTH_VALIDATION: Readonly<{

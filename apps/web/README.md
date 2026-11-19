@@ -137,6 +137,40 @@ expire. The reset page uses `noindex` and `no-referrer` metadata. After a succes
 reset, the web app removes the session cookie and returns to login; it does not
 automatically sign the user in.
 
+### Google sign-in and registration
+
+Login and registration share the Google authorization entry point. A Server Action
+requests the authorization URL from Nest and saves the signed flow token, expected
+state, and locale in an HttpOnly cookie before redirecting to Google. Configure
+Google's authorized redirect URI to match `GOOGLE_REDIRECT_URI` in the API; locally
+it is `http://localhost:3000/api/auth/google/callback`.
+
+The callback Route Handler checks browser state before consuming the flow cookie
+and asks Nest to validate the authorization response. A linked account receives
+the normal session or resumes pending email verification. A new identity receives
+a separate registration cookie and goes to `/complete-registration` to choose a
+username. Nest validates that pending token before the page displays its email
+context and validates it again when the form is submitted.
+
+Provider email addresses cannot be edited during registration. If the provider
+supplies no email, the form collects one and Ludora verifies it. A provider-verified
+address permits immediate sign-in after account creation. Matching an existing
+account's email never links accounts automatically; the user must use the original
+sign-in method. Explicit linking and Discord sign-in are not implemented yet.
+
+Temporary tokens stay on the server side of browser JavaScript in HttpOnly
+cookies, use the API's expiration, and never enter query parameters or client
+component props. Production cookies are Secure and use the `__Host-` prefix;
+deletion preserves their Secure and path attributes. Callback redirects are local,
+noncached, and suppress referrers. Errors return to localized login with safe error
+metadata for the existing toast presentation. A callback with a missing or
+mismatched state leaves the active authorization cookie intact.
+
+Deferred tests: callback cookie and state handling, linked and new-account
+redirects, registration-context validation, nickname and email conflicts,
+cancellation, expiration, and successful session creation. Update or run these
+only when requested.
+
 ## Account settings
 
 The account settings page reads the authenticated user on the server. The email

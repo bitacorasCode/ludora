@@ -7,6 +7,7 @@ export const GOOGLE_OAUTH = {
     scope: 'openid email profile',
     codeChallengeMethod: 'S256',
     requestTimeoutSeconds: 10,
+    accessDeniedError: 'access_denied',
 } as const;
 
 const googleAuthEnvironmentSchema = z.object({

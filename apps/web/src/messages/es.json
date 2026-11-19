@@ -352,16 +352,32 @@
     },
     "SocialAuth": {
         "errors": {
+            "AUTH_OAUTH_ACCOUNT_LINK_REQUIRED": "Ya existe una cuenta con este correo. Accede con el método que utilizaste al crearla.",
             "AUTH_OAUTH_AUTHENTICATION_FAILED": "No pudimos verificar tu cuenta. Inténtalo de nuevo.",
+            "AUTH_OAUTH_CANCELLED": "Cancelaste el inicio de sesión. Puedes volver a intentarlo cuando quieras.",
+            "AUTH_OAUTH_EMAIL_MISMATCH": "Usa el correo asociado a tu cuenta para completar el registro.",
+            "AUTH_OAUTH_EMAIL_REQUIRED": "Introduce un correo electrónico para completar el registro.",
             "AUTH_OAUTH_FLOW_INVALID": "Tu intento de acceso ha caducado o ya no es válido. Vuelve a empezar.",
+            "AUTH_OAUTH_IDENTITY_ALREADY_LINKED": "Esta cuenta ya está registrada. Vuelve a iniciar sesión.",
+            "AUTH_OAUTH_REGISTRATION_INVALID": "Tu registro pendiente ha caducado o ya no es válido. Vuelve a empezar.",
             "AUTH_OAUTH_UNAVAILABLE": "El acceso no está disponible en este momento. Inténtalo de nuevo más tarde."
         },
         "feedback": {
-            "errorTitle": "No pudimos iniciar el acceso"
+            "errorTitle": "No pudimos iniciar sesión"
         },
         "google": {
             "continue": "Continuar con Google",
             "redirecting": "Redirigiendo a Google..."
+        },
+        "registration": {
+            "description": "Elige un nombre de usuario para terminar de crear tu cuenta de Ludora.",
+            "email": {
+                "account": "Te estás registrando con {email}.",
+                "verificationRequired": "Enviaremos un código para confirmar tu correo electrónico.",
+                "verified": "Tu correo electrónico ya está confirmado."
+            },
+            "restart": "Volver a empezar",
+            "title": "Completa tu registro"
         },
         "separator": "o usa tu correo"
     },

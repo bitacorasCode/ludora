@@ -16,10 +16,16 @@ import { AUTH_RATE_LIMIT_CONFIG } from '../config/rate-limit.js';
 import {
     type ChangePasswordDto,
     changePasswordSchema,
+    type CompleteOAuthRegistrationDto,
+    completeOAuthRegistrationSchema,
     type ForgotPasswordDto,
     forgotPasswordSchema,
+    type GoogleCallbackDto,
+    googleCallbackSchema,
     type LoginDto,
     loginSchema,
+    type OAuthRegistrationContextDto,
+    oauthRegistrationContextSchema,
     type RegisterDto,
     registerSchema,
     type ResendVerificationDto,
@@ -120,5 +126,38 @@ export class AuthController {
     @Header('Cache-Control', 'no-store')
     startGoogleAuthorization() {
         return this.googleAuthService.createAuthorizationRequest();
+    }
+
+    @Post('google/callback')
+    @UseGuards(InternalRequestGuard)
+    @Throttle({ default: AUTH_RATE_LIMIT_CONFIG.login })
+    @HttpCode(HttpStatus.OK)
+    @Header('Cache-Control', 'no-store')
+    loginWithGoogle(
+        @Body({ schema: googleCallbackSchema }) data: GoogleCallbackDto,
+    ) {
+        return this.authService.loginWithGoogle(data);
+    }
+
+    @Post('oauth/register')
+    @UseGuards(InternalRequestGuard)
+    @Throttle({ default: AUTH_RATE_LIMIT_CONFIG.register })
+    @HttpCode(HttpStatus.CREATED)
+    @Header('Cache-Control', 'no-store')
+    completeOAuthRegistration(
+        @Body({ schema: completeOAuthRegistrationSchema }) data: CompleteOAuthRegistrationDto,
+    ) {
+        return this.authService.completeOAuthRegistration(data);
+    }
+
+    @Post('oauth/registration-context')
+    @UseGuards(InternalRequestGuard)
+    @Throttle({ default: AUTH_RATE_LIMIT_CONFIG.login })
+    @HttpCode(HttpStatus.OK)
+    @Header('Cache-Control', 'no-store')
+    getOAuthRegistrationContext(
+        @Body({ schema: oauthRegistrationContextSchema }) data: OAuthRegistrationContextDto,
+    ) {
+        return this.authService.getOAuthRegistrationContext(data);
     }
 }

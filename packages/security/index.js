@@ -9,6 +9,7 @@ export const INTERNAL_REQUEST_HEADERS = Object.freeze({
 export const AUTH_NEXT_STEP = Object.freeze({
     authenticated: 'authenticated',
     verifyEmail: 'verifyEmail',
+    completeRegistration: 'completeRegistration',
 });
 
 export const AUTH_ERROR_CODES = Object.freeze({
@@ -30,6 +31,12 @@ export const AUTH_ERROR_CODES = Object.freeze({
     oauthFlowInvalid: 'AUTH_OAUTH_FLOW_INVALID',
     oauthAuthenticationFailed: 'AUTH_OAUTH_AUTHENTICATION_FAILED',
     oauthUnavailable: 'AUTH_OAUTH_UNAVAILABLE',
+    oauthAccountLinkRequired: 'AUTH_OAUTH_ACCOUNT_LINK_REQUIRED',
+    oauthRegistrationInvalid: 'AUTH_OAUTH_REGISTRATION_INVALID',
+    oauthEmailRequired: 'AUTH_OAUTH_EMAIL_REQUIRED',
+    oauthEmailMismatch: 'AUTH_OAUTH_EMAIL_MISMATCH',
+    oauthIdentityAlreadyLinked: 'AUTH_OAUTH_IDENTITY_ALREADY_LINKED',
+    oauthCancelled: 'AUTH_OAUTH_CANCELLED',
 });
 
 export const AUTH_VALIDATION = Object.freeze({

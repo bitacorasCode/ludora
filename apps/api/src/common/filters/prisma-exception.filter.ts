@@ -44,6 +44,8 @@ export class PrismaExceptionFilter extends BaseExceptionFilter<unknown> {
             conflict = AUTH_ERRORS.nicknameAlreadyExists;
         } else if (constraintName === DATABASE_CONSTRAINTS.usersEmailUnique) {
             conflict = AUTH_ERRORS.emailAlreadyExists;
+        } else if (constraintName === DATABASE_CONSTRAINTS.authIdentityProviderUserUnique) {
+            conflict = AUTH_ERRORS.oauthIdentityAlreadyLinked;
         }
 
         const { message, errorCode } = conflict;

@@ -4,6 +4,7 @@ export const APP_ROUTES = {
     ranking: '/ranking',
     login: '/login',
     register: '/register',
+    completeRegistration: '/complete-registration',
     verifyEmail: '/verify-email',
     forgotPassword: '/forgot-password',
     resetPassword: '/reset-password',
