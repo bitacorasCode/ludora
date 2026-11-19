@@ -1,5 +1,6 @@
 import { setImmediate as settleBackgroundTasks } from 'node:timers/promises';
 
+import { PASSWORD_FORM_MODE } from '@ludora/security';
 import { HttpStatus, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
@@ -48,6 +49,7 @@ describe('PasswordRecoveryService', () => {
         createdAt: now,
         updatedAt: now,
     };
+    const storedReset = { userId: user.id, expiresAt, user: { passwordHash: user.passwordHash } };
     // The callback token models transaction propagation, not database rollback.
     const transaction = {} as Prisma.TransactionClient;
     const prisma = {
@@ -106,7 +108,7 @@ describe('PasswordRecoveryService', () => {
         tokenService.create.mockReturnValue({ token, tokenHash, expiresAt });
         tokenService.hash.mockReturnValue(tokenHash);
         repository.reserveRequest.mockResolvedValue(true);
-        repository.findByTokenHash.mockResolvedValue({ userId: user.id, expiresAt });
+        repository.findByTokenHash.mockResolvedValue(storedReset);
         repository.consume.mockResolvedValue(true);
         passwordService.hash.mockImplementation(async () => {
             events.push('password:hash');
@@ -177,7 +179,11 @@ describe('PasswordRecoveryService', () => {
             expect(mailService.send).not.toHaveBeenCalled();
         });
 
-        it('should reserve the token before sending an English link from trusted configuration', async () => {
+        it.each([
+            { passwordHash: user.passwordHash, mode: PASSWORD_FORM_MODE.reset, subject: 'Reset your Ludora password' },
+            { passwordHash: null, mode: PASSWORD_FORM_MODE.create, subject: 'Create your Ludora password' },
+        ])('should reserve the token before sending an English $mode link', async ({ passwordHash, mode, subject }) => {
+            usersService.findByEmail.mockResolvedValue({ ...user, passwordHash });
             service.request(user.email);
             await runBackgroundTasks();
 
@@ -191,8 +197,11 @@ describe('PasswordRecoveryService', () => {
             expect(events).toEqual(['transaction:start', 'transaction:resolved', 'mail:send']);
             const [mail] = mailService.send.mock.calls[0];
             expect(mail.to).toBe(user.email);
-            expect(mail.subject).toBe('Reset your Ludora password');
-            expect(mail.text).toContain(`${resetUrl}?token=${token}`);
+            expect(mail.subject).toBe(subject);
+            const link = new URL(mail.text.split('\n').find((line) => line.startsWith(resetUrl))!);
+            expect(link.origin + link.pathname).toBe(resetUrl);
+            expect(link.searchParams.get('token')).toBe(token);
+            expect(link.searchParams.get('mode')).toBe(mode);
             expect(mail.text).not.toContain(tokenHash);
             expect(mail.text).not.toContain(user.passwordHash);
         });
@@ -233,8 +242,8 @@ describe('PasswordRecoveryService', () => {
     describe('reset', () => {
         it.each([
             ['missing', null],
-            ['expired', { userId: user.id, expiresAt: new Date(now.getTime() - MILLISECONDS_PER_SECOND) }],
-            ['at the expiration deadline', { userId: user.id, expiresAt: now }],
+            ['expired', { ...storedReset, expiresAt: new Date(now.getTime() - MILLISECONDS_PER_SECOND) }],
+            ['at the expiration deadline', { ...storedReset, expiresAt: now }],
         ] as const)('should reject a %s link before hashing the password', async (_label, reset) => {
             repository.findByTokenHash.mockResolvedValue(reset);
 
@@ -249,7 +258,11 @@ describe('PasswordRecoveryService', () => {
             expect(scheduled.tasks).toHaveLength(0);
         });
 
-        it('should hash outside the transaction and use the same transaction for consumption and update', async () => {
+        it.each([
+            { passwordHash: user.passwordHash, subject: 'Your Ludora password has been changed' },
+            { passwordHash: null, subject: 'Your Ludora password has been created' },
+        ])('should commit the password before sending "$subject"', async ({ passwordHash, subject }) => {
+            repository.findByTokenHash.mockResolvedValue({ ...storedReset, user: { passwordHash } });
             await expect(service.reset(token, newPassword)).resolves.toBeUndefined();
 
             expect(passwordService.hash).toHaveBeenCalledExactlyOnceWith(newPassword);
@@ -263,6 +276,11 @@ describe('PasswordRecoveryService', () => {
             await runBackgroundTasks();
 
             expect(events).toEqual(['password:hash', 'transaction:start', 'transaction:resolved', 'mail:send']);
+            expect(mailService.send).toHaveBeenCalledExactlyOnceWith({
+                to: user.email,
+                subject,
+                text: expect.stringContaining(subject.replace('Your Ludora password', 'The password for your Ludora account') + '.'),
+            });
         });
 
         it('should capture a fresh expiration check after hashing finishes', async () => {
@@ -374,7 +392,7 @@ describe('PasswordRecoveryService', () => {
             await expect(service.reset(token, newPassword)).resolves.toBeUndefined();
             await runBackgroundTasks();
 
-            expect(Logger.prototype.error).toHaveBeenCalledExactlyOnceWith('Could not send password change notification.');
+            expect(Logger.prototype.error).toHaveBeenCalledExactlyOnceWith('Could not send password update notification.');
             expect(prisma.$transaction).toHaveBeenCalledOnce();
             expect(usersService.updatePassword).toHaveBeenCalledOnce();
         });

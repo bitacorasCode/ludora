@@ -7,7 +7,7 @@ describe('createPasswordResetMail', () => {
     const resetUrl = 'https://ludora.example/reset-password?token=temporary-token';
 
     it('should create an English message containing the supplied recovery link', () => {
-        const mail = createPasswordResetMail({ resetUrl, expiresInSeconds: PASSWORD_RESET_CONFIG.expiresInSeconds });
+        const mail = createPasswordResetMail({ resetUrl, expiresInSeconds: PASSWORD_RESET_CONFIG.expiresInSeconds, hasPassword: true });
 
         expect(mail.subject).toBe('Reset your Ludora password');
         expect(mail.text).toContain('We received a request to reset the password for your Ludora account.');
@@ -17,15 +17,15 @@ describe('createPasswordResetMail', () => {
 
     it('should state the configured expiration in minutes and one-time use', () => {
         const { expiresInSeconds } = PASSWORD_RESET_CONFIG;
-        const { text } = createPasswordResetMail({ resetUrl, expiresInSeconds });
+        const { text } = createPasswordResetMail({ resetUrl, expiresInSeconds, hasPassword: true });
 
         expect(text).toContain(`The link expires ${expiresInSeconds / SECONDS_PER_MINUTE} minutes after it is generated and can only be used once.`);
     });
 
     it('should explain that an unrequested recovery email can be ignored', () => {
-        const { text } = createPasswordResetMail({ resetUrl, expiresInSeconds: PASSWORD_RESET_CONFIG.expiresInSeconds });
+        const { text } = createPasswordResetMail({ resetUrl, expiresInSeconds: PASSWORD_RESET_CONFIG.expiresInSeconds, hasPassword: true });
 
-        expect(text).toContain('If you did not request a password reset, you can ignore this email.');
+        expect(text).toContain('If you did not request this email, you can ignore it.');
     });
 });
 

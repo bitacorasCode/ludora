@@ -14,12 +14,13 @@ vi.mock('@/lib/api', async () => ({
 beforeEach(() => vi.mocked(authenticatedApi.get).mockReset());
 
 describe('getCurrentUser', () => {
-  it('returns the validated current user', async () => {
+  it.each([true, false])('returns the validated current user with hasPassword=%s', async (hasPassword) => {
+    const user = { ...currentUser, hasPassword };
     vi.mocked(authenticatedApi.get).mockResolvedValue({
       status: OPERATION_STATUS.success,
-      data: { user: currentUser },
+      data: { user },
     });
-    expect(await getCurrentUser()).toEqual(currentUser);
+    expect(await getCurrentUser()).toEqual(user);
     expect(authenticatedApi.get).toHaveBeenCalledExactlyOnceWith('/auth/me');
   });
 

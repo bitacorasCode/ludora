@@ -4,13 +4,18 @@ import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import { vi } from 'vitest';
 
-import type { Prisma, User } from '../../generated/prisma/client.js';
+import { MILLISECONDS_PER_SECOND } from '../../common/constants/time.js';
+import { AuthProvider, type Prisma, type User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
+import { OAUTH_REGISTRATION_TOKEN_CONFIG } from '../constants/oauth-flow.js';
+import { AuthIdentityRepository } from '../repositories/auth-identity.repository.js';
 import { PasswordResetRepository } from '../repositories/password-reset.repository.js';
 import { AuthService } from './auth.service.js';
 import { EmailVerificationService } from './email-verification.service.js';
+import { GoogleAuthService } from './google-auth.service.js';
+import { OAuthFlowTokenService } from './oauth-flow-token.service.js';
 import { PasswordService } from './password.service.js';
 import { PasswordNotificationService } from './password-notification.service.js';
 
@@ -45,6 +50,9 @@ describe('AuthService', () => {
         resendAvailableAt: new Date('2026-10-20T12:01:00.000Z'),
     };
     const usersService = {
+        create: vi.fn<UsersService['create']>(),
+        findIdByEmail: vi.fn<UsersService['findIdByEmail']>(),
+        markEmailVerifiedIfPending: vi.fn<UsersService['markEmailVerifiedIfPending']>(),
         findByEmail: vi.fn<UsersService['findByEmail']>(),
         findById: vi.fn<(
             ...args: Parameters<UsersService['findById']>
@@ -75,6 +83,15 @@ describe('AuthService', () => {
         ) => Promise<Awaited<ReturnType<PasswordResetRepository['deleteForUser']>>>>(),
     };
     const notifications = { passwordChanged: vi.fn<PasswordNotificationService['passwordChanged']>() };
+    const identities = {
+        findByProviderUserId: vi.fn<AuthIdentityRepository['findByProviderUserId']>(),
+        create: vi.fn<AuthIdentityRepository['create']>(),
+    };
+    const google = { verifyAuthorization: vi.fn<GoogleAuthService['verifyAuthorization']>() };
+    const oauthTokens = {
+        createRegistration: vi.fn<OAuthFlowTokenService['createRegistration']>(),
+        verifyRegistration: vi.fn<OAuthFlowTokenService['verifyRegistration']>(),
+    };
     const verificationService = {
         getPending: vi.fn<EmailVerificationService['getPending']>(),
         confirm: vi.fn<EmailVerificationService['confirm']>(),
@@ -87,7 +104,11 @@ describe('AuthService', () => {
         vi.resetAllMocks();
         usersService.findByEmail.mockResolvedValue(user);
         usersService.findById.mockResolvedValue(publicUser);
-        usersService.findCurrentById.mockResolvedValue({ ...publicUser, profile: null });
+        usersService.findCurrentById.mockResolvedValue({ ...publicUser, profile: null, passwordHash: user.passwordHash });
+        usersService.create.mockResolvedValue(publicUser);
+        usersService.findIdByEmail.mockResolvedValue(null);
+        usersService.markEmailVerifiedIfPending.mockResolvedValue(true);
+        identities.findByProviderUserId.mockResolvedValue(null);
         usersService.findPasswordById.mockResolvedValue({ ...authenticationUser, passwordHash: user.passwordHash });
         usersService.changePasswordIfCurrent.mockResolvedValue(true);
         usersService.findAuthenticationById.mockResolvedValue(authenticationUser);
@@ -108,9 +129,12 @@ describe('AuthService', () => {
                 { provide: EmailVerificationService, useValue: verificationService },
                 { provide: PasswordResetRepository, useValue: resets },
                 { provide: PasswordNotificationService, useValue: notifications },
+                { provide: AuthIdentityRepository, useValue: identities },
+                { provide: GoogleAuthService, useValue: google },
+                { provide: OAuthFlowTokenService, useValue: oauthTokens },
                 {
                     provide: AuthService,
-                    inject: [UsersService, PasswordService, JwtService, PrismaService, EmailVerificationService, PasswordResetRepository, PasswordNotificationService],
+                    inject: [UsersService, PasswordService, JwtService, PrismaService, EmailVerificationService, PasswordResetRepository, PasswordNotificationService, AuthIdentityRepository, GoogleAuthService, OAuthFlowTokenService],
                     useFactory: (
                         users: UsersService,
                         passwords: PasswordService,
@@ -119,7 +143,10 @@ describe('AuthService', () => {
                         emailVerification: EmailVerificationService,
                         resetRepository: PasswordResetRepository,
                         passwordNotifications: PasswordNotificationService,
-                    ) => new AuthService(users, passwords, jwt, prisma, emailVerification, resetRepository, passwordNotifications),
+                        authIdentities: AuthIdentityRepository,
+                        googleAuth: GoogleAuthService,
+                        flowTokens: OAuthFlowTokenService,
+                    ) => new AuthService(users, passwords, jwt, prisma, emailVerification, resetRepository, passwordNotifications, authIdentities, googleAuth, flowTokens),
                 },
             ],
         }).compile();
@@ -155,8 +182,8 @@ describe('AuthService', () => {
             expect(jwtService.signAsync).not.toHaveBeenCalled();
         });
 
-        it('should reject an unknown email with the same error and perform dummy hashing', async () => {
-            usersService.findByEmail.mockResolvedValue(null);
+        it.each([null, { ...user, passwordHash: null }])('should reject unavailable password credentials generically and perform dummy hashing', async (account) => {
+            usersService.findByEmail.mockResolvedValue(account);
 
             await expect(service.login(credentials)).rejects.toMatchObject({
                 status: 401,
@@ -196,6 +223,76 @@ describe('AuthService', () => {
             expect(jwtService.signAsync).not.toHaveBeenCalled();
             expect(verificationService.create).not.toHaveBeenCalled();
             expect(verificationService.send).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Google authentication', () => {
+        const identity = {
+            provider: AuthProvider.GOOGLE,
+            providerUserId: 'google-subject',
+            email: user.email,
+            emailVerified: true,
+        };
+        const callback = { flowToken: 'flow-token', responseParameters: 'code=google-code&state=expected-state' };
+        const grant = { registrationToken: 'registration-token', expiresAt: verification.expiresAt };
+
+        beforeEach(() => {
+            const issuedAtSeconds = user.createdAt.getTime() / MILLISECONDS_PER_SECOND;
+            google.verifyAuthorization.mockResolvedValue(identity);
+            oauthTokens.createRegistration.mockResolvedValue(grant);
+            oauthTokens.verifyRegistration.mockResolvedValue({
+                ...identity,
+                iat: issuedAtSeconds,
+                exp: issuedAtSeconds + OAUTH_REGISTRATION_TOKEN_CONFIG.expiresInSeconds,
+            });
+        });
+
+        it('signs in an existing identity by provider ID even when its provider email changes', async () => {
+            google.verifyAuthorization.mockResolvedValue({ ...identity, email: 'changed@example.com' });
+            identities.findByProviderUserId.mockResolvedValue({ userId: user.id });
+
+            await expect(service.loginWithGoogle(callback)).resolves.toEqual({
+                nextStep: AUTH_NEXT_STEP.authenticated,
+                accessToken: 'signed-access-token',
+                user: publicUser,
+            });
+            expect(google.verifyAuthorization).toHaveBeenCalledExactlyOnceWith(callback.flowToken, callback.responseParameters);
+            expect(identities.findByProviderUserId).toHaveBeenCalledExactlyOnceWith(identity.provider, identity.providerUserId);
+            expect(usersService.findIdByEmail).not.toHaveBeenCalled();
+            expect(oauthTokens.createRegistration).not.toHaveBeenCalled();
+        });
+
+        it('prepares and completes a verified Google registration without creating a local password', async () => {
+            await expect(service.loginWithGoogle(callback)).resolves.toEqual({
+                nextStep: AUTH_NEXT_STEP.completeRegistration,
+                registration: { ...grant, email: identity.email, emailVerified: true },
+            });
+            expect(usersService.create).not.toHaveBeenCalled();
+
+            await expect(service.completeOAuthRegistration({ registrationToken: grant.registrationToken, nickname: user.nickname })).resolves.toEqual({
+                nextStep: AUTH_NEXT_STEP.authenticated,
+                accessToken: 'signed-access-token',
+                user: publicUser,
+            });
+            expect(oauthTokens.verifyRegistration).toHaveBeenCalledExactlyOnceWith(grant.registrationToken);
+            expect(usersService.create).toHaveBeenCalledExactlyOnceWith({ nickname: user.nickname, email: user.email, passwordHash: null }, transaction);
+            expect(identities.create).toHaveBeenCalledExactlyOnceWith({ userId: user.id, provider: identity.provider, providerUserId: identity.providerUserId }, transaction);
+            expect(usersService.markEmailVerifiedIfPending).toHaveBeenCalledExactlyOnceWith(user.id, transaction);
+            expect(passwordService.hash).not.toHaveBeenCalled();
+            expect(verificationService.create).not.toHaveBeenCalled();
+            expect(verificationService.send).not.toHaveBeenCalled();
+        });
+
+        it('rejects an existing email instead of linking an unrecognized identity automatically', async () => {
+            usersService.findIdByEmail.mockResolvedValue({ id: user.id });
+
+            await expect(service.loginWithGoogle(callback)).rejects.toMatchObject({
+                status: 409,
+                response: AUTH_ERRORS.oauthAccountLinkRequired,
+            });
+            expect(identities.create).not.toHaveBeenCalled();
+            expect(oauthTokens.createRegistration).not.toHaveBeenCalled();
+            expect(jwtService.signAsync).not.toHaveBeenCalled();
         });
     });
 
@@ -265,11 +362,15 @@ describe('AuthService', () => {
     });
 
     describe('getCurrentUser', () => {
-        it.each([null, { avatarPresetId: 'fox' }])('should return public identity with avatar %j', async (profile) => {
-            usersService.findCurrentById.mockResolvedValue({ ...publicUser, profile });
+        it.each([
+            { profile: null, passwordHash: user.passwordHash, hasPassword: true },
+            { profile: { avatarPresetId: 'fox' }, passwordHash: user.passwordHash, hasPassword: true },
+            { profile: null, passwordHash: null, hasPassword: false },
+        ])('returns password capability and avatar without exposing the hash: %j', async ({ profile, passwordHash, hasPassword }) => {
+            usersService.findCurrentById.mockResolvedValue({ ...publicUser, profile, passwordHash });
 
             await expect(service.getCurrentUser(user.id)).resolves.toEqual({
-                user: { ...publicUser, avatarPresetId: profile?.avatarPresetId ?? null },
+                user: { ...publicUser, avatarPresetId: profile?.avatarPresetId ?? null, hasPassword },
             });
 
             expect(usersService.findCurrentById).toHaveBeenCalledExactlyOnceWith(user.id);

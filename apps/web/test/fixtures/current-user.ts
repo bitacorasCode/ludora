@@ -6,4 +6,5 @@ export const currentUser = {
   email: 'jugador@example.test',
   createdAt: '2026-10-20T12:00:00.000Z',
   avatarPresetId: null,
+  hasPassword: true,
 } satisfies CurrentUser;

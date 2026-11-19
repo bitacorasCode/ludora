@@ -1,6 +1,16 @@
+import { PASSWORD_FORM_MODE } from '@ludora/security';
 import { describe, expect, it } from 'vitest';
 
-import { passwordResetTokenSchema } from './schema';
+import { passwordFormModeSchema, passwordResetTokenSchema } from './schema';
+
+describe('passwordFormModeSchema', () => {
+  it('accepts creation links while preserving reset wording for old or unknown modes', () => {
+    expect(passwordFormModeSchema.parse(PASSWORD_FORM_MODE.create)).toBe(PASSWORD_FORM_MODE.create);
+    expect(passwordFormModeSchema.parse(PASSWORD_FORM_MODE.reset)).toBe(PASSWORD_FORM_MODE.reset);
+    expect(passwordFormModeSchema.parse(undefined)).toBe(PASSWORD_FORM_MODE.reset);
+    expect(passwordFormModeSchema.parse('unknown')).toBe(PASSWORD_FORM_MODE.reset);
+  });
+});
 
 describe('passwordResetTokenSchema', () => {
   it('accepts the token format used in recovery links', () => {

@@ -173,10 +173,9 @@ noncached, and suppress referrers. Errors return to localized login with safe er
 metadata for the existing toast presentation. A callback with a missing or
 mismatched state leaves the active authorization cookie intact.
 
-Deferred tests: callback cookie and state handling, linked and new-account
-redirects, registration-context validation, nickname and email conflicts,
-cancellation, expiration, and successful session creation. Update or run these
-only when requested.
+Focused callback tests cover mismatched state, HttpOnly session and registration
+cookies, and localized redirects without exposing tokens. Google consent and
+provider responses are mocked; these checks do not replace a real provider flow.
 
 ## Account settings
 
@@ -215,11 +214,10 @@ the editor, refreshes server content, and leaves this browser signed in. Previou
 JWTs and pending password-reset links are invalidated by the API. Unsaved edits
 use the shared navigation confirmation and are cleared when the page is hidden.
 
-Deferred tests: add `hasPassword` to current-user fixtures, verify the creation and
-change branches, bind requests to the session's user and email, cover expired-session
-and rate-limit handling, and confirm that Google accounts can add a password and
-then use either sign-in method. Also cover creation/reset copy and invalid-mode
-fallbacks. Test files remain unchanged until requested.
+Focused tests cover both password actions, binding creation requests to the session
+user and email, existing session/error handling, and creation/reset labels and
+success feedback. Current-user fixtures include `hasPassword`; legacy and unknown
+link modes retain reset wording. No real email is sent by these unit/component tests.
 
 ## Profile persistence
 

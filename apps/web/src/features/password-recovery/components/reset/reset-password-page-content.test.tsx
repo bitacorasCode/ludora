@@ -1,4 +1,4 @@
-import { AUTH_ERROR_CODES } from '@ludora/security';
+import { AUTH_ERROR_CODES, PASSWORD_FORM_MODE, type PasswordFormMode } from '@ludora/security';
 import {
   act,
   cleanup,
@@ -38,10 +38,10 @@ vi.mock('../../actions', () => ({ resetPassword: vi.fn() }));
 
 expect.extend(toHaveNoViolations);
 
-function renderPasswordReset(nextToken: string | null = token) {
+function renderPasswordReset(nextToken: string | null = token, mode: PasswordFormMode = PASSWORD_FORM_MODE.reset) {
   return render(
     <NextIntlClientProvider locale='es' messages={esMessages}>
-      <ResetPasswordPageContent token={nextToken} />
+      <ResetPasswordPageContent token={nextToken} mode={mode} />
     </NextIntlClientProvider>,
   );
 }
@@ -85,7 +85,7 @@ describe('ResetPasswordPageContent integration', () => {
   it('didnt have accessibility violations', async () => {
     const { container } = render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordPageContent token={token} />
+        <ResetPasswordPageContent token={token} mode={PASSWORD_FORM_MODE.reset} />
       </NextIntlClientProvider>,
     );
 
@@ -97,7 +97,7 @@ describe('ResetPasswordPageContent integration', () => {
   it('renders a skip link and a link back to login', () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordPageContent token={token} />
+        <ResetPasswordPageContent token={token} mode={PASSWORD_FORM_MODE.reset} />
       </NextIntlClientProvider>,
     );
 
@@ -108,7 +108,7 @@ describe('ResetPasswordPageContent integration', () => {
   it('shows errors for a short password and empty confirmation', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordPageContent token={token} />
+        <ResetPasswordPageContent token={token} mode={PASSWORD_FORM_MODE.reset} />
       </NextIntlClientProvider>,
     );
 
@@ -124,7 +124,7 @@ describe('ResetPasswordPageContent integration', () => {
   it('shows the mismatch error on the confirmation field', async () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordPageContent token={token} />
+        <ResetPasswordPageContent token={token} mode={PASSWORD_FORM_MODE.reset} />
       </NextIntlClientProvider>,
     );
 
@@ -144,7 +144,7 @@ describe('ResetPasswordPageContent integration', () => {
     const user = userEvent.setup();
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordPageContent token={token} />
+        <ResetPasswordPageContent token={token} mode={PASSWORD_FORM_MODE.reset} />
       </NextIntlClientProvider>,
     );
 
@@ -161,8 +161,12 @@ describe('ResetPasswordPageContent integration', () => {
     expect(screen.getByLabelText('Confirmar contraseña nueva').getAttribute('type')).toBe('password');
   });
 
-  it('clears the passwords, confirms success, and navigates to login', async () => {
-    const { unmount } = renderPasswordReset();
+  it.each([PASSWORD_FORM_MODE.reset, PASSWORD_FORM_MODE.create])('submits and confirms the %s flow before navigating to login', async (mode) => {
+    const feedback = esMessages.PasswordRecovery[mode];
+    const pending = Promise.withResolvers<Awaited<ReturnType<typeof resetPassword>>>();
+    vi.mocked(resetPassword).mockReturnValue(pending.promise);
+    const { unmount } = renderPasswordReset(token, mode);
+    expect(screen.getByRole('button', { name: feedback.submit })).toBeTruthy();
     submitValidPasswordReset();
 
     await waitFor(() => expect(resetPassword).toHaveBeenCalledExactlyOnceWith(
@@ -170,11 +174,13 @@ describe('ResetPasswordPageContent integration', () => {
       token,
       { password: newPassword, confirmPassword: newPassword },
     ));
+    expect(screen.getByRole('button', { name: feedback.submitting })).toHaveProperty('disabled', true);
+    await act(async () => pending.resolve({ status: OPERATION_STATUS.success, data: null }));
     await waitFor(() => expect(toast.success).toHaveBeenCalledExactlyOnceWith(
-      esMessages.PasswordRecovery.reset.success.title,
+      feedback.success.title,
       {
         id: PASSWORD_RESET_SUCCESS_TOAST_ID,
-        description: esMessages.PasswordRecovery.reset.success.message,
+        description: feedback.success.message,
       },
     ));
     expect(router.replace).toHaveBeenCalledExactlyOnceWith(APP_ROUTES.login);
@@ -239,7 +245,7 @@ describe('ResetPasswordPageContent integration', () => {
 
     rerender(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordPageContent token={replacementToken} />
+        <ResetPasswordPageContent token={replacementToken} mode={PASSWORD_FORM_MODE.reset} />
       </NextIntlClientProvider>,
     );
 
@@ -357,7 +363,7 @@ describe('ResetPasswordPageContent integration', () => {
 
     rerender(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <ResetPasswordPageContent token={replacementToken} />
+        <ResetPasswordPageContent token={replacementToken} mode={PASSWORD_FORM_MODE.reset} />
       </NextIntlClientProvider>,
     );
     await act(async () => pending.resolve({ status: OPERATION_STATUS.success, data: null }));
@@ -382,7 +388,7 @@ describe('ResetPasswordPageContent integration', () => {
 
     rerender(
       <NextIntlClientProvider locale='en' messages={esMessages}>
-        <ResetPasswordPageContent token={token} />
+        <ResetPasswordPageContent token={token} mode={PASSWORD_FORM_MODE.reset} />
       </NextIntlClientProvider>,
     );
     await act(async () => pending.resolve({ status: OPERATION_STATUS.success, data: null }));

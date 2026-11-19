@@ -3,6 +3,10 @@ import { vi } from 'vitest';
 // Next enforces this boundary in builds; Vitest runs server units outside Next.
 vi.mock('server-only', () => ({}));
 
+vi.mock('next/font/google', () => ({
+  Google_Sans: () => ({ className: 'google-sans' }),
+}));
+
 // jsdom has no layout engine. Browser tests cover real sizing and focus behavior.
 vi.stubGlobal(
   'ResizeObserver',

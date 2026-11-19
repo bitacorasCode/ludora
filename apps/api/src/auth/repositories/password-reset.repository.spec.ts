@@ -86,15 +86,15 @@ describe('PasswordResetRepository', () => {
     });
 
     describe('findByTokenHash', () => {
-        it('should select only the user identifier and expiration using the default database client', async () => {
-            const reset = { userId, expiresAt };
+        it('should read the owner, expiration and prior credential state using the default client', async () => {
+            const reset = { userId, expiresAt, user: { passwordHash: null } };
             databaseQueries.findUnique.mockResolvedValue(reset);
 
             await expect(repository.findByTokenHash(tokenHash)).resolves.toEqual(reset);
 
             expect(databaseQueries.findUnique).toHaveBeenCalledExactlyOnceWith({
                 where: { tokenHash },
-                select: { userId: true, expiresAt: true },
+                select: { userId: true, expiresAt: true, user: { select: { passwordHash: true } } },
             });
             expect(transactionQueries.findUnique).not.toHaveBeenCalled();
         });

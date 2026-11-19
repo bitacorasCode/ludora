@@ -56,18 +56,18 @@ describe('UsersRepository authentication queries', () => {
     });
 
     describe('user selection', () => {
-        it('should include only the avatar relation for a current-user response', async () => {
+        it('should read avatar and private password state for the current-user projection', async () => {
             databaseQueries.findUnique.mockResolvedValue(null);
 
             await expect(repository.findCurrentById(userId)).resolves.toBeNull();
 
             expect(databaseQueries.findUnique).toHaveBeenCalledExactlyOnceWith({
                 where: { id: userId },
-                select: { ...publicSelection, profile: { select: { avatarPresetId: true } } },
+                select: { ...publicSelection, passwordHash: true, profile: { select: { avatarPresetId: true } } },
             });
         });
 
-        it('should read the private hash only for password-change verification', async () => {
+        it('should read the hash and authentication state for password-change verification', async () => {
             databaseQueries.findUnique.mockResolvedValue(null);
 
             await expect(repository.findPasswordById(userId)).resolves.toBeNull();

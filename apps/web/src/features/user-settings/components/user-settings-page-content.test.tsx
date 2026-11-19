@@ -11,7 +11,7 @@ import { API_ERROR_CODES, HTTP_STATUS } from '@/lib/api/constants';
 import esMessages from '@/messages/es.json';
 
 import { currentUser } from '../../../../test/fixtures/current-user';
-import { changePassword } from '../actions';
+import { changePassword, requestPasswordCreation } from '../actions';
 import { UserSettingsPageContent } from './user-settings-page-content';
 
 const router = vi.hoisted(() => ({ refresh: vi.fn() }));
@@ -19,16 +19,16 @@ vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   useRouter: () => router,
 }));
-vi.mock('../actions', () => ({ changePassword: vi.fn() }));
+vi.mock('../actions', () => ({ changePassword: vi.fn(), requestPasswordCreation: vi.fn() }));
 
 const messages = esMessages.UserSettings.password;
 
-function renderSettings() {
+function renderSettings(hasPassword = true) {
   render(
     <NextIntlClientProvider locale='es' messages={esMessages}>
       <NavigationGuardProvider>
         <SessionBoundary>
-          <UserSettingsPageContent userId={currentUser.id} email={currentUser.email} />
+          <UserSettingsPageContent userId={currentUser.id} email={currentUser.email} hasPassword={hasPassword} />
         </SessionBoundary>
       </NavigationGuardProvider>
     </NextIntlClientProvider>,
@@ -49,6 +49,7 @@ function fillPasswords() {
 
 beforeEach(() => {
   vi.mocked(changePassword).mockReset().mockResolvedValue({ status: OPERATION_STATUS.success, data: null });
+  vi.mocked(requestPasswordCreation).mockReset().mockResolvedValue({ status: OPERATION_STATUS.success, data: null });
   router.refresh.mockReset();
   vi.spyOn(toast, 'success').mockReturnValue('password-changed');
   vi.spyOn(toast, 'error').mockReturnValue('password-change-error');
@@ -61,6 +62,29 @@ afterEach(() => {
 });
 
 describe('UserSettingsPageContent', () => {
+  it('requests the first password by email without asking for a current password', async () => {
+    const pending = Promise.withResolvers<ActionResult>();
+    vi.mocked(requestPasswordCreation).mockReturnValue(pending.promise);
+    renderSettings(false);
+
+    expect(screen.queryByRole('button', { name: messages.change })).toBeNull();
+    expect(screen.queryByLabelText(messages.form.currentPassword)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: messages.create.submit }));
+
+    await waitFor(() => expect(requestPasswordCreation).toHaveBeenCalledExactlyOnceWith('es', currentUser.id));
+    expect(screen.getByRole('button', { name: messages.create.submitting }).matches(':disabled')).toBe(true);
+    expect(toast.success).not.toHaveBeenCalled();
+
+    await act(async () => pending.resolve({ status: OPERATION_STATUS.success, data: null }));
+
+    await waitFor(() => expect(toast.success).toHaveBeenCalledExactlyOnceWith(messages.create.success.title, {
+      id: 'password-creation-request',
+      description: messages.create.success.message,
+    }));
+    expect(changePassword).not.toHaveBeenCalled();
+    expect(router.refresh).not.toHaveBeenCalled();
+  });
+
   it('shows the signed-in email without an edit control and opens an enabled password editor', () => {
     renderSettings();
 

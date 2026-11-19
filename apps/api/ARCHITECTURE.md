@@ -184,12 +184,10 @@ provider supplied none. Successful creation opens the usual session or continues
 the existing email-verification flow. Authenticated account linking and Discord
 sign-in remain subsequent steps.
 
-Tests for linked and unlinked identities, email collisions, pending verification,
-registration-token audiences and expiration, callback DTO validation, registration
-completion, token reuse, email binding, concurrent identity conflicts, and mail
-failure after commit are deferred until requested. Browser callback state binding,
-cookie creation and consumption, registration-context expiration, completion-form
-field errors, cancellation, and locale-preserving redirects also need coverage.
+Focused service tests cover login by stable provider identity, verified Google
+registration without a local password, and rejection of existing-email collisions.
+Google verification is mocked in these tests. Real provider integration, grant
+expiration/audience checks, and database concurrency remain outside that coverage.
 
 ## Authentication version
 
@@ -302,8 +300,8 @@ intent. Token issuance, waiting periods, consumption, authentication-version
 updates, and the password-change notification remain shared. Provider identities
 are not modified, so external sign-in remains available after adding a password.
 
-Deferred tests: current-user capability projection without hash disclosure, mail
-wording for first-time creation, and adding a password to a provider-only account.
+Focused tests cover current-user capability projection without hash disclosure,
+creation/reset email links, and establishing the first password through recovery.
 
 `PASSWORD_RESET_URL` is a complete URL from trusted configuration. Locally, it
 points to `http://localhost:3000/reset-password`, leaving language selection to
@@ -360,8 +358,9 @@ The English template tells the user that the password was created or changed,
 that previous sessions are invalid, and what to do if they did not make the change.
 It includes no password, hash, token, or recovery link.
 
-Deferred tests: include the previous credential in reset lookup fixtures and cover
-creation versus replacement notification wording after a successful commit.
+Reset lookup fixtures include the previous credential. Service tests cover creation
+versus replacement notification wording and require the update to commit before
+notification is scheduled; existing tests also cover mail failures after commit.
 
 Email submission is not awaited by the HTTP request. A delivery failure produces
 a generic log without recipient details or credentials. It does not undo the change or

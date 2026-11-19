@@ -1,6 +1,7 @@
 import { createTranslator } from 'next-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { requestPasswordRecovery } from '@/features/password-recovery/actions';
 import { ACTION_ERROR_CODES, OPERATION_STATUS } from '@/lib/actions';
 import { API_ERROR_CODES, authenticatedApi, HTTP_STATUS } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
@@ -8,7 +9,9 @@ import { createSession } from '@/lib/session';
 import esMessages from '@/messages/es.json';
 
 import { currentUser } from '../../../test/fixtures/current-user';
-import { changePassword } from './actions';
+import { changePassword, requestPasswordCreation } from './actions';
+
+vi.mock('@/features/password-recovery/actions', () => ({ requestPasswordRecovery: vi.fn() }));
 
 vi.mock('@/lib/api', async () => ({
   ...(await import('@/lib/api/constants')),
@@ -37,10 +40,36 @@ const otherUserId = '223e4567-e89b-42d3-a456-426614174000';
 beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(getCurrentUser).mockResolvedValue(currentUser);
+  vi.mocked(requestPasswordRecovery).mockResolvedValue({ status: OPERATION_STATUS.success, data: null });
   vi.mocked(authenticatedApi.post).mockResolvedValue({
     status: OPERATION_STATUS.success,
     data: { accessToken: 'rotated-token', user: currentUser },
   });
+});
+
+describe('requestPasswordCreation', () => {
+  it('requests the session email and preserves the current session', async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue({ ...currentUser, hasPassword: false });
+
+    expect(await requestPasswordCreation('es', currentUser.id)).toEqual({
+      status: OPERATION_STATUS.success,
+      data: null,
+    });
+    expect(requestPasswordRecovery).toHaveBeenCalledExactlyOnceWith('es', { email: currentUser.email });
+    expect(createSession).not.toHaveBeenCalled();
+  });
+
+  it.each([null, { ...currentUser, id: otherUserId }])(
+    'rejects missing or changed sessions before requesting an email', async (user) => {
+      vi.mocked(getCurrentUser).mockResolvedValue(user);
+
+      expect(await requestPasswordCreation('es', currentUser.id)).toEqual({
+        status: OPERATION_STATUS.error,
+        error: { errorCode: API_ERROR_CODES.authenticationRequired, statusCode: HTTP_STATUS.unauthorized },
+      });
+      expect(requestPasswordRecovery).not.toHaveBeenCalled();
+    },
+  );
 });
 
 describe('changePassword', () => {
