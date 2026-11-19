@@ -3,6 +3,7 @@
 import { getTranslations } from 'next-intl/server';
 import { z } from 'zod';
 
+import { requestPasswordRecovery } from '@/features/password-recovery/actions';
 import { resolveLocale } from '@/i18n/resolve-locale';
 import { type ActionResult, createValidationFailure, OPERATION_STATUS } from '@/lib/actions';
 import { API_ERROR_CODES, authenticatedApi, HTTP_STATUS } from '@/lib/api';
@@ -15,6 +16,26 @@ const CHANGE_PASSWORD_ENDPOINT = '/auth/change-password';
 const changePasswordResponseSchema = authResponseSchema.extend({
   user: z.object({ id: z.uuid() }),
 });
+const AUTHENTICATION_REQUIRED_RESULT = {
+  status: OPERATION_STATUS.error,
+  error: {
+    errorCode: API_ERROR_CODES.authenticationRequired,
+    statusCode: HTTP_STATUS.unauthorized,
+  },
+} as const;
+
+export async function requestPasswordCreation(
+  locale: string,
+  expectedUserId: string,
+): Promise<ActionResult> {
+  const user = await getCurrentUser();
+
+  if (!user || user.id !== expectedUserId) {
+    return AUTHENTICATION_REQUIRED_RESULT;
+  }
+
+  return requestPasswordRecovery(locale, { email: user.email });
+}
 
 export async function changePassword(
   locale: string,
@@ -35,13 +56,7 @@ export async function changePassword(
   const user = await getCurrentUser();
 
   if (!user || user.id !== expectedUserId) {
-    return {
-      status: OPERATION_STATUS.error,
-      error: {
-        errorCode: API_ERROR_CODES.authenticationRequired,
-        statusCode: HTTP_STATUS.unauthorized,
-      },
-    };
+    return AUTHENTICATION_REQUIRED_RESULT;
   }
 
   const { currentPassword, newPassword: password } = validation.data;

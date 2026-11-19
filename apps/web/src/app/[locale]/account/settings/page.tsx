@@ -26,5 +26,12 @@ export default async function AccountSettingsPage({
 
   if (!user) return redirect({ href: APP_ROUTES.login, locale });
 
-  return <UserSettingsPageContent key={user.id} userId={user.id} email={user.email} />;
+  return (
+    <UserSettingsPageContent
+      key={user.id}
+      userId={user.id}
+      email={user.email}
+      hasPassword={user.hasPassword}
+    />
+  );
 }

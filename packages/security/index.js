@@ -12,6 +12,11 @@ export const AUTH_NEXT_STEP = Object.freeze({
     completeRegistration: 'completeRegistration',
 });
 
+export const PASSWORD_FORM_MODE = Object.freeze({
+    create: 'create',
+    reset: 'reset',
+});
+
 export const AUTH_ERROR_CODES = Object.freeze({
     invalidCredentials: 'AUTH_INVALID_CREDENTIALS',
     authenticationRequired: 'AUTHENTICATION_REQUIRED',

@@ -83,10 +83,12 @@ The email lookup used for authentication includes the password hash. That comple
 row belongs to the internal authentication flow and is never returned directly
 in an HTTP response.
 
-The dedicated current-user read also selects the optional profile's avatar preset.
-`GET /auth/me` flattens it to nullable `avatarPresetId` for the authenticated header;
-other public user selections keep their existing response fields. The email is
-account data and is not part of the profile response.
+The dedicated current-user read selects the optional profile's avatar preset and
+the password hash for internal capability detection. `GET /auth/me` removes the
+hash, flattens the preset to nullable `avatarPresetId`, and exposes only a boolean
+`hasPassword` for account settings. This capability follows the stored credential,
+not the provider used to sign in. Other public user selections keep their existing
+response fields. The email is account data and is not part of the profile response.
 
 Login checks the password before returning the next step:
 
@@ -293,6 +295,16 @@ is 60 seconds. Email is sent after commit. A mail provider failure keeps the
 reservation and produces only a generic log, without email addresses, links, or tokens.
 Requesting recovery does not change the password or verify the email.
 
+The same flow can establish the first password for an account created through an
+external provider. The mail subject and request description distinguish creation
+from reset using the stored password state, without accepting a caller-supplied
+intent. Token issuance, waiting periods, consumption, authentication-version
+updates, and the password-change notification remain shared. Provider identities
+are not modified, so external sign-in remains available after adding a password.
+
+Deferred tests: current-user capability projection without hash disclosure, mail
+wording for first-time creation, and adding a password to a provider-only account.
+
 `PASSWORD_RESET_URL` is a complete URL from trusted configuration. Locally, it
 points to `http://localhost:3000/reset-password`, leaving language selection to
 the Next proxy. Both apps share `parseHttpUrl()` validation; recovery additionally
@@ -338,10 +350,18 @@ fields remain internal; the endpoint still returns only `{ "reset": true }`.
 
 Only after the transaction commits does `PasswordNotificationService` schedule a
 notification using `setImmediate` and the existing `MailService`. Password recovery
-and authenticated password changes use the same notification service. The English template tells
-the user that the password changed, that previous sessions are invalid, and
-what to do if they did not make the change. It includes no password, hash, token,
-or recovery link.
+and authenticated password changes use the same notification service. The token
+lookup includes the user's previous password hash internally so recovery can
+distinguish first-time creation from replacement. The service passes only that
+boolean to the notification after commit; URL presentation modes do not determine
+the notification wording. The hash is never included in a response or email.
+
+The English template tells the user that the password was created or changed,
+that previous sessions are invalid, and what to do if they did not make the change.
+It includes no password, hash, token, or recovery link.
+
+Deferred tests: include the previous credential in reset lookup fixtures and cover
+creation versus replacement notification wording after a successful commit.
 
 Email submission is not awaited by the HTTP request. A delivery failure produces
 a generic log without recipient details or credentials. It does not undo the change or

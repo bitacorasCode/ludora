@@ -1,3 +1,3 @@
 export { RecoveryRequestPageContent } from './components/request/recovery-request-page-content';
 export { ResetPasswordPageContent } from './components/reset/reset-password-page-content';
-export { passwordResetTokenSchema } from './schema';
+export { passwordFormModeSchema, passwordResetTokenSchema } from './schema';

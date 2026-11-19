@@ -11,11 +11,11 @@ export class PasswordNotificationService {
 
     constructor(private readonly mailService: MailService) {}
 
-    passwordChanged(to: string): void {
+    passwordChanged(to: string, isFirstPassword = false): void {
         // The caller has committed the change; SMTP cannot fail its response.
         setImmediate(() => {
-            void this.mailService.send({ to, ...createPasswordChangedMail() }).catch(() => {
-                this.logger.error('Could not send password change notification.');
+            void this.mailService.send({ to, ...createPasswordChangedMail(isFirstPassword) }).catch(() => {
+                this.logger.error('Could not send password update notification.');
             });
         });
     }

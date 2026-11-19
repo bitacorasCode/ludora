@@ -1,6 +1,6 @@
 'use client';
 
-import { AUTH_ERROR_CODES } from '@ludora/security';
+import { AUTH_ERROR_CODES, PASSWORD_FORM_MODE, type PasswordFormMode } from '@ludora/security';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
@@ -23,11 +23,15 @@ const formId = 'reset-password-form';
 
 type ResetPasswordPageContentProps = {
   token: string | null;
+  mode: PasswordFormMode;
 };
 
-export function ResetPasswordPageContent({ token }: ResetPasswordPageContentProps) {
+export function ResetPasswordPageContent({ token, mode }: ResetPasswordPageContentProps) {
   const t = useTranslations('PasswordRecovery');
-  const { form, onSubmit, hasInvalidLink, isSubmitting } = usePasswordResetForm(token);
+  const action = useTranslations(
+    mode === PASSWORD_FORM_MODE.create ? 'PasswordRecovery.create' : 'PasswordRecovery.reset',
+  );
+  const { form, onSubmit, hasInvalidLink, isSubmitting } = usePasswordResetForm(token, mode);
   const invalidLinkRegion = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -106,8 +110,8 @@ export function ResetPasswordPageContent({ token }: ResetPasswordPageContentProp
             >
               <SubmitButton
                 isSubmitting={isSubmitting}
-                mainText={t('reset.submit')}
-                submittingText={t('reset.submitting')}
+                mainText={action('submit')}
+                submittingText={action('submitting')}
               />
             </FormActions>
           </FieldGroup>

@@ -1,5 +1,6 @@
 import { setImmediate } from 'node:timers';
 
+import { PASSWORD_FORM_MODE } from '@ludora/security';
 import { parseHttpUrl } from '@ludora/security/server';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -62,7 +63,8 @@ export class PasswordRecoveryService {
             throw new BadRequestException(message, { errorCode });
         }
 
-        const { userId } = reset;
+        const { userId, user } = reset;
+        const isFirstPassword = user.passwordHash === null;
         const passwordHash = await this.passwordService.hash(password);
 
         const { email: recipient } = await this.prisma.$transaction(async (transaction) => {
@@ -78,7 +80,7 @@ export class PasswordRecoveryService {
             return this.usersService.updatePassword(userId, passwordHash, transaction);
         });
 
-        this.passwordNotificationService.passwordChanged(recipient);
+        this.passwordNotificationService.passwordChanged(recipient, isFirstPassword);
     }
 
     private async processRequest(email: string): Promise<void> {
@@ -109,11 +111,14 @@ export class PasswordRecoveryService {
 
         if (!reserved) return;
 
+        const hasPassword = user.passwordHash !== null;
+        const mode = hasPassword ? PASSWORD_FORM_MODE.reset : PASSWORD_FORM_MODE.create;
         const resetUrl = new URL(this.resetUrl);
-        resetUrl.search = new URLSearchParams({ token }).toString();
+        resetUrl.search = new URLSearchParams({ token, mode }).toString();
         const message = createPasswordResetMail({
             resetUrl: resetUrl.href,
             expiresInSeconds,
+            hasPassword,
         });
 
         // Sending mail happens only after the reservation has committed.

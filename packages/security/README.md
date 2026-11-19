@@ -8,6 +8,7 @@ Public security and authentication definitions shared by Nest and Next.
 | `DIGITS_PATTERN` | Codes containing only ASCII digits. |
 | `INTERNAL_REQUEST_HEADERS` | Header names used between Next and Nest. |
 | `AUTH_NEXT_STEP` | Authentication next steps, including pending social registration. |
+| `PASSWORD_FORM_MODE` / `PasswordFormMode` | Creation/reset wording in password email links and web forms; presentation only, never authorization. |
 | `AUTH_ERROR_CODES` | Public authentication error identifiers. |
 | `AUTH_VALIDATION` | Minimum nickname and new password lengths. |
 | `EMAIL_VERIFICATION_CODE_LENGTH` | Length of the generated and validated code. |

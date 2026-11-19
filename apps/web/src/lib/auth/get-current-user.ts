@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { PROFILE_AVATAR_PRESET_IDS } from '@ludora/contracts/profile';
+import { io } from 'next/cache';
 import { cache } from 'react';
 import { z } from 'zod';
 
@@ -21,6 +22,7 @@ const currentUserSchema = z.object({
     email: z.email(),
     createdAt: z.iso.datetime(),
     avatarPresetId: z.enum(PROFILE_AVATAR_PRESET_IDS).nullable(),
+    hasPassword: z.boolean(),
 });
 
 const currentUserResponseSchema = z.object({
@@ -31,6 +33,9 @@ export type CurrentUser = z.infer<typeof currentUserSchema>;
 
 export const getCurrentUser = cache(
     async (): Promise<CurrentUser | null> => {
+        // Keep session validation outside build-time and runtime prerenders.
+        await io();
+
         const result = await authenticatedApi.get(
             CURRENT_USER_ENDPOINT,
         );

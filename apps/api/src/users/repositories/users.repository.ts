@@ -100,6 +100,7 @@ export class UsersRepository {
             where: { id },
             select: {
                 ...userResponseSelect,
+                passwordHash: true,
                 profile: { select: { avatarPresetId: true } },
             },
         });

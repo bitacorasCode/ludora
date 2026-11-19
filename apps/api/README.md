@@ -156,7 +156,7 @@ There is no global URL prefix. Bodies are JSON. Protected routes require
 | `POST` | `/auth/forgot-password`     | Accepts `email`; acknowledges a valid request without revealing account existence or delivery status (`202`).           |
 | `POST` | `/auth/reset-password`      | Accepts `token` and `password`; consumes the recovery link and updates the password (`200`).                            |
 | `POST` | `/auth/change-password`     | Requires a verified JWT; accepts `currentPassword` and `password`; returns a replacement access token and user (`200`). |
-| `GET`  | `/auth/me`                  | Returns the authenticated user and nullable `avatarPresetId`.                                                           |
+| `GET`  | `/auth/me`                  | Returns the authenticated user, nullable `avatarPresetId`, and boolean `hasPassword`; never returns a password hash.      |
 | `GET`  | `/profile`                  | Returns the authenticated user's avatar preset and biography.                                                           |
 | `PUT`  | `/profile`                  | Saves `avatarPresetId` and `bio` for the authenticated user.                                                            |
 
@@ -210,9 +210,11 @@ page calls `POST /auth/oauth/registration-context` through Next to validate the
 pending token before displaying its email. Only Nest verifies these tokens; no
 JWT signing secret is shared with the browser or Next.
 
-Social accounts initially have no password. The existing email-based password
-recovery flow can establish one later. Explicit account linking and Discord
-sign-in are later steps.
+Social accounts initially have no password. Account settings offer a creation
+link through the existing email-based password recovery flow. The email uses
+creation wording when no password exists. Submitting the link creates the password
+and invalidates previous sessions, while Google sign-in remains available.
+Explicit account linking and Discord sign-in are later steps.
 
 ### Changing a password while signed in
 

@@ -201,6 +201,15 @@
     },
     "PasswordRecovery": {
         "backToLogin": "Back to sign in",
+        "create": {
+            "errorTitle": "Could not create your password",
+            "submit": "Create password",
+            "submitting": "Creating password…",
+            "success": {
+                "message": "Your password has been created. Sign in with your new password or continue using your usual sign-in method.",
+                "title": "Password created"
+            }
+        },
         "errors": {
             "AUTH_PASSWORD_RESET_INVALID": "This recovery link is invalid, expired, or already used. Request a new one."
         },
@@ -394,6 +403,16 @@
         "loading": "Loading account settings",
         "password": {
             "change": "Change password",
+            "create": {
+                "description": "You don't have a password yet. Request an email link to create one. After choosing it, you will need to sign in again.",
+                "errorTitle": "Could not request password creation",
+                "submit": "Create password",
+                "submitting": "Requesting link…",
+                "success": {
+                    "message": "Your request has been received. Check your inbox and spam folder for a link to create your password.",
+                    "title": "Check your email"
+                }
+            },
             "description": "Choose a new password. Your other sessions will be signed out.",
             "errors": {
                 "AUTH_CURRENT_PASSWORD_INVALID": "The current password is incorrect.",

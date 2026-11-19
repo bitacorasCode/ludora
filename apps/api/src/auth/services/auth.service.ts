@@ -270,9 +270,15 @@ export class AuthService {
             });
         }
 
-        const { profile, ...publicUser } = user;
+        const { profile, passwordHash, ...publicUser } = user;
 
-        return { user: { ...publicUser, avatarPresetId: profile?.avatarPresetId ?? null } };
+        return {
+            user: {
+                ...publicUser,
+                avatarPresetId: profile?.avatarPresetId ?? null,
+                hasPassword: passwordHash !== null,
+            },
+        };
     }
 
     async changePassword(userId: string, expectedAuthVersion: number, data: ChangePasswordDto) {

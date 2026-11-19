@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
 import {
+  passwordFormModeSchema,
   passwordResetTokenSchema,
   ResetPasswordPageContent,
 } from '@/features/password-recovery';
@@ -23,8 +24,13 @@ export async function generateMetadata({
 export default async function ResetPasswordPage({
   searchParams,
 }: PageProps<'/[locale]/reset-password'>) {
-  const { token } = await searchParams;
+  const { token, mode } = await searchParams;
   const validation = passwordResetTokenSchema.safeParse(token);
 
-  return <ResetPasswordPageContent token={validation.success ? validation.data : null} />;
+  return (
+    <ResetPasswordPageContent
+      token={validation.success ? validation.data : null}
+      mode={passwordFormModeSchema.parse(mode)}
+    />
+  );
 }

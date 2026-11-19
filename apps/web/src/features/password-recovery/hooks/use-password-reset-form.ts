@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AUTH_ERROR_CODES } from '@ludora/security';
+import { AUTH_ERROR_CODES, PASSWORD_FORM_MODE, type PasswordFormMode } from '@ludora/security';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
@@ -18,11 +18,13 @@ import { resetPassword } from '../actions';
 
 const PASSWORD_RESET_SUCCESS_TOAST_ID = 'password-reset-success';
 
-export default function usePasswordResetForm(token: string | null) {
+export default function usePasswordResetForm(token: string | null, mode: PasswordFormMode) {
     const locale = useLocale();
     const router = useRouter();
     const validation = useTranslations('PasswordRecovery.validation');
-    const feedback = useTranslations('PasswordRecovery.reset');
+    const feedback = useTranslations(
+        mode === PASSWORD_FORM_MODE.create ? 'PasswordRecovery.create' : 'PasswordRecovery.reset',
+    );
     const { showError, dismissError } = useActionErrorToast({
         title: feedback('errorTitle'),
     });
@@ -39,11 +41,11 @@ export default function usePasswordResetForm(token: string | null) {
 
     useEffect(() => {
         return () => {
-            // Ignore responses from a previous token, locale, or unmounted form.
+            // Ignore responses from a previous token, mode, locale, or unmounted form.
             requestVersion.current += 1;
             dismissError();
         };
-    }, [dismissError, locale, token]);
+    }, [dismissError, locale, mode, token]);
 
     function onSubmit(data: PasswordResetFormData) {
         if (!token || requestInFlight.current) return;

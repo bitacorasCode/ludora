@@ -116,8 +116,12 @@ authorization on protected operations.
   the session; logging in with valid credentials for an unverified account
   returns the user to the verification flow.
 - `getCurrentUser()` validates `/auth/me` and memoizes the result within the
-  server render. Authentication failures return `null`; connection failures and
-  invalid API responses remain errors rather than being treated as guest access.
+  server render. It awaits `io()` before session access so validation runs on an
+  actual request, outside build-time and runtime prerenders. With partial
+  prefetching, cookies can resolve during a runtime prerender; cookie access alone
+  does not defer later clock-dependent work. Authentication failures return `null`;
+  connection failures and invalid API responses remain errors rather than being
+  treated as guest access.
 - The account layout redirects guests to login. `SessionBoundary` and
   `useProtectedRequest` handle authentication failures during later client
   interactions by refreshing the server tree. Reads may opt into one retry;
@@ -130,6 +134,9 @@ Server-side handlers around request APIs and `fetch` use Next's `unstable_rethro
 before logging or mapping application errors. This preserves framework control
 flow for prerendering, redirects, and missing routes; those signals are not API
 outages or expired sessions.
+
+Deferred coverage: session reads during partial prefetching and authenticated
+navigation, including the `io()` boundary and per-render memoization.
 
 The recovery request returns a generic confirmation without exposing whether an
 account exists. Reset links are validated on submission, are single-use, and
@@ -176,6 +183,24 @@ only when requested.
 The account settings page reads the authenticated user on the server. The email
 address is displayed without an edit control and is not exposed on the profile.
 
+The API's `hasPassword` capability determines the password action. Accounts with
+a password keep the change-password form. Accounts without one, including new
+Google accounts, see **Create password** instead. Its Server Action verifies that
+the session still belongs to the displayed user and requests the existing recovery
+flow using the email from that session; the browser cannot choose the recipient.
+The request does not change credentials or end the session. Its acknowledgement
+does not guarantee email delivery, and existing cooldowns and rate limits apply.
+
+The email link uses the existing reset page, which also accepts signed-in users.
+Its `mode` query parameter selects creation or reset wording for the button,
+pending state, error title, and success feedback. This is presentation context
+only: submitting the password still requires a valid, unexpired, single-use token
+and does not send the mode to the API. Missing or unknown modes preserve the reset
+wording, including previously sent links that contain only a token.
+Successful submission establishes the password, invalidates previous JWTs through
+the API, clears this browser's session, and returns to login. Google sign-in remains
+available, and subsequent account visits offer **Change password**.
+
 Changing a password requires the current password, a different new password, and
 confirmation. Client and Server Action validation use the shared password minimum.
 The action binds the operation to the displayed user, sends only `currentPassword`
@@ -189,6 +214,12 @@ use the error toast, including the server's retry period. Success clears and clo
 the editor, refreshes server content, and leaves this browser signed in. Previous
 JWTs and pending password-reset links are invalidated by the API. Unsaved edits
 use the shared navigation confirmation and are cleared when the page is hidden.
+
+Deferred tests: add `hasPassword` to current-user fixtures, verify the creation and
+change branches, bind requests to the session's user and email, cover expired-session
+and rate-limit handling, and confirm that Google accounts can add a password and
+then use either sign-in method. Also cover creation/reset copy and invalid-mode
+fallbacks. Test files remain unchanged until requested.
 
 ## Profile persistence
 

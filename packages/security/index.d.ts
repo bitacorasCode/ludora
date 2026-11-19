@@ -12,6 +12,13 @@ export declare const AUTH_NEXT_STEP: Readonly<{
     completeRegistration: 'completeRegistration';
 }>;
 
+export declare const PASSWORD_FORM_MODE: Readonly<{
+    create: 'create';
+    reset: 'reset';
+}>;
+
+export type PasswordFormMode = typeof PASSWORD_FORM_MODE[keyof typeof PASSWORD_FORM_MODE];
+
 export declare const AUTH_ERROR_CODES: Readonly<{
     invalidCredentials: string;
     authenticationRequired: string;

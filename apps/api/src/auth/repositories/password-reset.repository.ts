@@ -62,6 +62,7 @@ export class PasswordResetRepository {
             select: {
                 userId: true,
                 expiresAt: true,
+                user: { select: { passwordHash: true } },
             },
         });
     }

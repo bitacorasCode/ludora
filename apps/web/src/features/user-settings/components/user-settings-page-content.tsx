@@ -5,15 +5,17 @@ import { ItemList, type ItemListEntry } from '@/components/lists';
 import { PageHeading } from '@/components/typography';
 import { Card, CardContent } from '@/components/ui';
 
+import { CreatePasswordButton } from './create-password-button';
 import { EmailSettingsContent } from './email-settings-content';
 import { PasswordSettingsContent } from './password-settings-content';
 
 type UserSettingsPageContentProps = {
   userId: string;
   email: string;
+  hasPassword: boolean;
 };
 
-export function UserSettingsPageContent({ userId, email }: UserSettingsPageContentProps) {
+export function UserSettingsPageContent({ userId, email, hasPassword }: UserSettingsPageContentProps) {
   const t = useTranslations('UserSettings');
   const passwordDescriptionId = useId();
   const items = [
@@ -26,9 +28,11 @@ export function UserSettingsPageContent({ userId, email }: UserSettingsPageConte
     {
       id: 'password',
       title: t('password.title'),
-      description: t('password.description'),
+      description: t(hasPassword ? 'password.description' : 'password.create.description'),
       descriptionId: passwordDescriptionId,
-      content: <PasswordSettingsContent userId={userId} descriptionId={passwordDescriptionId} />,
+      content: hasPassword
+        ? <PasswordSettingsContent userId={userId} descriptionId={passwordDescriptionId} />
+        : <CreatePasswordButton userId={userId} descriptionId={passwordDescriptionId} />,
     },
   ] satisfies readonly ItemListEntry[];
 
