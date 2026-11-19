@@ -16,6 +16,8 @@ import { startGoogleAuth } from '../actions';
 const googleSans = Google_Sans({
   subsets: ['latin'],
   weight: '500',
+  adjustFontFallback: false,
+  fallback: ['Arial', 'sans-serif'],
 });
 
 type SocialAuthOptionsProps = {
