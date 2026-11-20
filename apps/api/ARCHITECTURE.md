@@ -91,6 +91,21 @@ the same `Prisma.TransactionClient` through the `transaction` argument.
 Services own process decisions. Repositories receive prepared data, timestamps,
 and limits to build the corresponding queries.
 
+## Authentication session cleanup
+
+The scheduled job uses a standalone Nest application context with the existing
+Prisma provider and session repository. Each batch selects up to 500 session IDs
+and repeats the eligibility filter when deleting them. A concurrent activity
+update can therefore preserve a session that is still eligible for renewal.
+Each run uses a fixed cutoff so sessions that expire during the run are handled
+by a later run.
+
+The job only deletes from `auth_sessions`. The existing foreign key cascades to
+`refresh_tokens`, so active sessions retain their consumed token hashes for
+reuse detection. Re-running an interrupted job picks up remaining eligible
+sessions. Database-backed coverage for cascade deletion, concurrent activity,
+and retention of consumed tokens is deferred until requested.
+
 ## Reads and responses
 
 User creation and public reads select `id`, `nickname`, `email`, and `createdAt`.

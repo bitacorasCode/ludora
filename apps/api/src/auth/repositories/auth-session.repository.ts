@@ -94,6 +94,36 @@ export class AuthSessionRepository {
         });
     }
 
+    async deleteInactiveBatch(cutoff: Date, batchSize: number) {
+        const inactiveSessions = {
+            OR: [
+                { revokedAt: { lte: cutoff } },
+                { idleExpiresAt: { lte: cutoff } },
+                { absoluteExpiresAt: { lte: cutoff } },
+            ],
+        } satisfies Prisma.AuthSessionWhereInput;
+
+        const candidates = await this.prisma.authSession.findMany({
+            where: inactiveSessions,
+            select: { id: true },
+            take: batchSize,
+        });
+
+        if (candidates.length === 0) {
+            return { selectedCount: 0, deletedCount: 0 };
+        }
+
+        // Recheck the deadlines in case activity renewed a selected session.
+        const { count: deletedCount } = await this.prisma.authSession.deleteMany({
+            where: {
+                id: { in: candidates.map(({ id }) => id) },
+                ...inactiveSessions,
+            },
+        });
+
+        return { selectedCount: candidates.length, deletedCount };
+    }
+
     findRefreshTokenByHash(
         tokenHash: string,
         transaction: Prisma.TransactionClient = this.prisma,

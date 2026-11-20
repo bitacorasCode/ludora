@@ -394,6 +394,27 @@ host, use the deployment database connection, and set `PASSWORD_RESET_URL` to th
 public HTTPS web reset route. Both hosts need the same `INTERNAL_API_SECRET`;
 JWT and verification secrets stay with Nest.
 
+### Scheduled session cleanup
+
+Create a Render Cron Job from the same repository and branch as the API. Leave
+the root directory at the workspace root and choose the database's region.
+Apply the API migrations before the first run.
+
+| Setting | Value |
+| ------- | ----- |
+| Build Command | `pnpm install --frozen-lockfile --prod=false && pnpm --filter api exec prisma generate --config prisma7.config.ts && pnpm --filter api build` |
+| Command | `pnpm --filter api cleanup:auth-sessions` |
+| Schedule | `0 4 * * *` (daily at 04:00 UTC) |
+| Environment | `DATABASE_URL` set to the internal connection URL of the production database |
+
+Each run deletes sessions whose idle or absolute deadline has passed, or whose
+revocation has taken effect. PostgreSQL cascades the deletion to their refresh
+tokens. Consumed tokens are retained for active sessions so reuse remains
+detectable. The job logs the number of deleted sessions, closes its database
+connection, and exits. See [Render Cron Jobs](https://render.com/docs/cronjobs).
+
+### Deployment checks
+
 Verify client-IP handling, email delivery, and database access in the deployed
 environment. Add shared rate-limit storage before scaling replicas and a
 persistent mail queue when delivery must survive deployments. Database backup and
