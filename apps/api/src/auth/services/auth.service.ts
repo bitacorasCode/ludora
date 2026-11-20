@@ -6,10 +6,9 @@ import {
     Injectable,
     UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 
 import { MILLISECONDS_PER_SECOND } from '../../common/constants/index.js';
-import type { User } from '../../generated/prisma/client.js';
+import type { Prisma, User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/index.js';
@@ -25,6 +24,7 @@ import type {
 } from '../dto/index.js';
 import { AuthIdentityRepository, PasswordResetRepository } from '../repositories/index.js';
 import type { ExternalIdentity } from '../schemas/external-identity.schema.js';
+import { AuthSessionService } from './auth-session.service.js';
 import { EmailVerificationService } from './email-verification.service.js';
 import { GoogleAuthService } from './google-auth.service.js';
 import { OAuthFlowTokenService } from './oauth-flow-token.service.js';
@@ -45,7 +45,7 @@ export class AuthService {
     constructor(
         private readonly usersService: UsersService,
         private readonly passwordService: PasswordService,
-        private readonly jwtService: JwtService,
+        private readonly authSessionService: AuthSessionService,
         private readonly prisma: PrismaService,
         private readonly emailVerificationService: EmailVerificationService,
         private readonly passwordResetRepository: PasswordResetRepository,
@@ -310,7 +310,7 @@ export class AuthService {
 
         const passwordHash = await this.passwordService.hash(data.password);
 
-        const updatedUser = await this.prisma.$transaction(async (transaction) => {
+        const response = await this.prisma.$transaction(async (transaction) => {
             // Match recovery's lock order: reset rows first, then the user row.
             await this.passwordResetRepository.deleteForUser(userId, transaction);
             const changed = await this.usersService.changePasswordIfCurrent({
@@ -332,12 +332,12 @@ export class AuthService {
                 throw new UnauthorizedException(message, { errorCode });
             }
 
-            return updated;
+            return this.createAuthResponse(updated, transaction);
         });
 
-        this.passwordNotificationService.passwordChanged(updatedUser.email);
+        this.passwordNotificationService.passwordChanged(response.user.email);
 
-        return this.createAuthResponse(updatedUser);
+        return response;
     }
 
     private async createRegistrationResponse(
@@ -426,16 +426,13 @@ export class AuthService {
 
     private async createAuthResponse(
         user: Pick<User, 'id' | 'nickname' | 'email' | 'createdAt' | 'authVersion'>,
+        transaction?: Prisma.TransactionClient,
     ) {
-        const { id, nickname, email, createdAt, authVersion } = user;
-
-        const accessToken = await this.jwtService.signAsync({
-            sub: id,
-            authVersion,
-        });
+        const { id, nickname, email, createdAt } = user;
+        const credentials = await this.authSessionService.create(user, transaction);
 
         return {
-            accessToken,
+            ...credentials,
             user: {
                 id,
                 nickname,

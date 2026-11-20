@@ -13,6 +13,7 @@ export {
     type OAuthRegistrationContextDto,
     oauthRegistrationContextSchema,
 } from './oauth-registration-context.dto.js';
+export { type RefreshTokenDto, refreshTokenSchema } from './refresh-token.dto.js';
 export { type RegisterDto, registerSchema } from './register.dto.js';
 export {
     type ResendVerificationDto,

@@ -1,4 +1,5 @@
 export { AuthService } from './auth.service.js';
+export { AuthSessionService } from './auth-session.service.js';
 export { EmailVerificationService } from './email-verification.service.js';
 export { EmailVerificationCodeService } from './email-verification-code.service.js';
 export { GoogleAuthService } from './google-auth.service.js';

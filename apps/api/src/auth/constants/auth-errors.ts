@@ -19,6 +19,10 @@ export const AUTH_ERRORS = {
         errorCode: AUTH_ERROR_CODES.invalidTokenPayload,
         message: 'Invalid token payload.',
     },
+    refreshTokenAlreadyRotated: {
+        errorCode: AUTH_ERROR_CODES.refreshTokenAlreadyRotated,
+        message: 'The refresh token was already rotated.',
+    },
     emailAlreadyExists: {
         errorCode: AUTH_ERROR_CODES.emailAlreadyExists,
         message: 'Email already in use.',

@@ -13,11 +13,13 @@ import { googleAuthConfig } from './config/google-auth.config.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import {
     AuthIdentityRepository,
+    AuthSessionRepository,
     EmailVerificationRepository,
     PasswordResetRepository,
 } from './repositories/index.js';
 import {
     AuthService,
+    AuthSessionService,
     EmailVerificationCodeService,
     EmailVerificationService,
     GoogleAuthService,
@@ -65,10 +67,12 @@ const { algorithm, issuer, audience } = JWT_CONFIG;
     controllers: [AuthController],
     providers: [
         AuthIdentityRepository,
+        AuthSessionRepository,
         InternalRequestGuard,
         EmailVerificationRepository,
         PasswordResetRepository,
         AuthService,
+        AuthSessionService,
         GoogleAuthService,
         PasswordService,
         PasswordNotificationService,
@@ -80,6 +84,6 @@ const { algorithm, issuer, audience } = JWT_CONFIG;
         EmailVerificationCodeService,
         EmailVerificationService
     ],
-    exports: [JwtModule, UsersModule],
+    exports: [AuthSessionService, JwtModule, UsersModule],
 })
 export class AuthModule { }

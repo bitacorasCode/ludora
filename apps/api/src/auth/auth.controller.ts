@@ -26,6 +26,8 @@ import {
     loginSchema,
     type OAuthRegistrationContextDto,
     oauthRegistrationContextSchema,
+    type RefreshTokenDto,
+    refreshTokenSchema,
     type RegisterDto,
     registerSchema,
     type ResendVerificationDto,
@@ -38,6 +40,7 @@ import {
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import {
     AuthService,
+    AuthSessionService,
     GoogleAuthService,
     PasswordRecoveryService,
 } from './services/index.js';
@@ -50,6 +53,7 @@ export class AuthController {
         private readonly authService: AuthService,
         private readonly passwordRecoveryService: PasswordRecoveryService,
         private readonly googleAuthService: GoogleAuthService,
+        private readonly authSessionService: AuthSessionService,
     ) { }
 
     @Post('register')
@@ -70,14 +74,35 @@ export class AuthController {
     @Post('verify-email')
     @Throttle({ default: AUTH_RATE_LIMIT_CONFIG.verifyEmail })
     @HttpCode(HttpStatus.OK)
+    @Header('Cache-Control', 'no-store')
     verifyEmail(@Body({ schema: verifyEmailSchema }) data: VerifyEmailDto) {
         return this.authService.verifyEmail(data);
     }
 
     @Post('login')
-    @Throttle({ default: AUTH_RATE_LIMIT_CONFIG.login }) @HttpCode(HttpStatus.OK)
+    @Throttle({ default: AUTH_RATE_LIMIT_CONFIG.login })
+    @HttpCode(HttpStatus.OK)
+    @Header('Cache-Control', 'no-store')
     login(@Body({ schema: loginSchema }) data: LoginDto) {
         return this.authService.login(data);
+    }
+
+    @Post('refresh')
+    @UseGuards(InternalRequestGuard)
+    @HttpCode(HttpStatus.OK)
+    @Header('Cache-Control', 'no-store')
+    refresh(@Body({ schema: refreshTokenSchema }) { refreshToken }: RefreshTokenDto) {
+        return this.authSessionService.rotateRefreshToken(refreshToken);
+    }
+
+    @Post('logout')
+    @UseGuards(InternalRequestGuard)
+    @HttpCode(HttpStatus.OK)
+    @Header('Cache-Control', 'no-store')
+    async logout(@Body({ schema: refreshTokenSchema }) { refreshToken }: RefreshTokenDto) {
+        await this.authSessionService.revokeByRefreshToken(refreshToken);
+
+        return { loggedOut: true };
     }
 
     @Post('forgot-password')
@@ -112,6 +137,7 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Throttle({ default: AUTH_RATE_LIMIT_CONFIG.changePassword })
     @HttpCode(HttpStatus.OK)
+    @Header('Cache-Control', 'no-store')
     changePassword(
         @Req() { auth: { userId, authVersion } }: AuthenticatedRequest,
         @Body({ schema: changePasswordSchema }) data: ChangePasswordDto,

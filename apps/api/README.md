@@ -149,6 +149,8 @@ There is no global URL prefix. Bodies are JSON. Protected routes require
 | `POST` | `/auth/verify-email`        | Accepts `verificationId` and `code`; confirms the email and returns an access token and user (`200`).                   |
 | `POST` | `/auth/resend-verification` | Accepts `verificationId`; renews the code when allowed and returns delivery and retry information (`200`).              |
 | `POST` | `/auth/login`               | Accepts `email` and `password`; returns an authenticated session or the pending-verification next step (`200`).         |
+| `POST` | `/auth/refresh`             | Internal requests only. Accepts `refreshToken` and returns rotated credentials and session deadlines (`200`).          |
+| `POST` | `/auth/logout`              | Internal requests only. Accepts `refreshToken` and revokes its session (`200`).                                            |
 | `POST` | `/auth/google/start`        | Internal requests only; returns the Google authorization URL and expiring signed flow context (`200`).                |
 | `POST` | `/auth/google/callback`     | Internal requests only; accepts `flowToken` and `responseParameters`; resolves sign-in or pending registration (`200`). |
 | `POST` | `/auth/oauth/registration-context` | Internal requests only; validates `registrationToken` and returns its email context and expiration (`200`). |
@@ -179,12 +181,27 @@ session cookie and attaches the bearer header on server-to-server requests. Nest
 does not read that cookie directly. The internal-request secret is separate from
 user authentication and does not grant access to protected routes.
 
-Each protected request verifies the JWT and checks the user's verified email and
-current `authVersion` in PostgreSQL. Password recovery and authenticated password
-changes increment this version, so previous tokens fail on subsequent protected
-requests. Resetting a password does
-not verify the email or issue a session. Logout currently clears the web cookie;
-there is no API refresh-token or per-session revocation endpoint.
+New JWTs include the ID of a persisted session. Each protected request verifies
+the JWT and checks the session's ownership, expiration, revocation status, and
+the verified user's current `authVersion` in PostgreSQL. Tokens issued before
+session binding continue to use the user version check until expiration. Password
+recovery and authenticated password changes increment this version, so previous
+tokens fail on subsequent protected requests. Resetting a password does
+not verify the email or issue a session.
+
+`POST /auth/refresh` requires the internal request secret and the current refresh
+token. The response includes `accessToken`, `refreshToken`, `idleExpiresAt`, and
+`absoluteExpiresAt`, with `Cache-Control: no-store`. The API returns `409` with
+`AUTH_REFRESH_TOKEN_ALREADY_ROTATED` for overlapping rotations and `401` for an
+invalid or expired session. The web integration will manage cookie replacement
+and coordinate overlapping refresh requests.
+
+`POST /auth/logout` requires the internal request secret and accepts the refresh
+token even after its access token expires. An already-rotated token can identify
+the same session if logout overlaps with refresh. The endpoint returns
+`{ "loggedOut": true }` for revocation, an already-revoked session, or an unknown
+well-formed token. The existing web logout clears its cookie. The endpoint will
+be used by the web logout when Next stores the refresh cookie.
 
 ### Google account resolution
 

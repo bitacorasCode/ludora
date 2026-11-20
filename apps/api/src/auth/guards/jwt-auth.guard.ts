@@ -9,12 +9,14 @@ import { z } from 'zod';
 
 import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/index.js';
+import { AuthSessionService } from '../services/auth-session.service.js';
 import type { AuthenticatedRequest } from '../types/authenticated-request.js';
 
 const BEARER_TOKEN_PATTERN = /^Bearer (\S+)$/i;
 
 const tokenPayloadSchema = z.object({
     sub: z.uuid(),
+    sid: z.uuid().optional(),
     exp: z.number().int(),
     authVersion: z.number().int().nonnegative(),
 });
@@ -24,6 +26,7 @@ export class JwtAuthGuard implements CanActivate {
     constructor(
         private readonly jwtService: JwtService,
         private readonly usersService: UsersService,
+        private readonly authSessionService: AuthSessionService,
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -64,10 +67,12 @@ export class JwtAuthGuard implements CanActivate {
             });
         }
 
-        const { sub: userId, authVersion } = result.data;
-        const user = await this.usersService.findAuthenticationById(userId);
+        const { sub: userId, sid: sessionId, authVersion } = result.data;
+        const isActive = sessionId === undefined
+            ? await this.isLegacyTokenValid(userId, authVersion)
+            : await this.authSessionService.isActive(sessionId, userId, authVersion);
 
-        if (!user?.emailVerifiedAt || user.authVersion !== authVersion) {
+        if (!isActive) {
             const { message, errorCode } = AUTH_ERRORS.invalidToken;
 
             throw new UnauthorizedException(message, { errorCode });
@@ -76,5 +81,11 @@ export class JwtAuthGuard implements CanActivate {
         request.auth = { userId, authVersion };
 
         return true;
+    }
+
+    private async isLegacyTokenValid(userId: string, authVersion: number): Promise<boolean> {
+        const user = await this.usersService.findAuthenticationById(userId);
+
+        return Boolean(user?.emailVerifiedAt && user.authVersion === authVersion);
     }
 }

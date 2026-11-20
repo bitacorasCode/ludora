@@ -30,9 +30,10 @@ the existing service without registering it again.
 ## Cryptographic configuration
 
 Shared algorithm and encoding names are declared in `common/constants/crypto.ts`.
-Each flow selects those values while keeping its own lengths, expiration periods,
-and rules. Internal authentication converts the secret to UTF-8 bytes to compare
-its exact text representation.
+The opaque token helper centralizes the size, encoding, and hashing of random
+credentials. Each flow controls its own expiration and validation rules.
+Internal authentication converts the secret to UTF-8 bytes to compare its exact
+text representation.
 
 ## Responsibilities
 
@@ -72,6 +73,16 @@ the same `Prisma.TransactionClient` through the `transaction` argument.
   finishes so failed attempts remain recorded.
 - Email submission happens after the registration transaction commits.
 - Resends also contact the selected mail provider after their transaction commits.
+- Refresh token rotation conditionally consumes the previous token and stores its
+  replacement in the same transaction as signing the new access token. Requests
+  that lose a concurrent rotation or arrive within five seconds of consumption
+  receive a conflict. Later reuse revokes the session before the service reports
+  an authentication error. Database-backed tests for concurrent consumption,
+  rollback, and revocation are deferred until requested.
+- Logout revokes the session in one conditional update using the presented refresh
+  token's hash. Consumed refresh tokens can still identify their session so a
+  concurrent rotation cannot prevent logout. Idempotent logout coverage is
+  deferred until requested.
 
 Services own process decisions. Repositories receive prepared data, timestamps,
 and limits to build the corresponding queries.
@@ -193,10 +204,11 @@ expiration/audience checks, and database concurrency remain outside that coverag
 
 `User.authVersion` is an internal counter stored in `users.auth_version` with an
 initial value of zero. JWTs include this version alongside the user identifier.
-`JwtAuthGuard` verifies the signature and payload, then uses
-`UsersService.findAuthenticationById()` to require an existing user, a verified
-email, and a version matching the database. This read is performed for each
-protected request and must not use a cache shared across requests.
+New JWTs also carry the session ID in `sid`. After verifying the signature and
+payload, `JwtAuthGuard` checks that the session belongs to the subject, has not
+expired or been revoked, and matches the current version of a verified user.
+This check reads PostgreSQL on each protected request. JWTs issued before session
+binding continue to use the user version check until they expire.
 
 `UsersRepository.updatePassword()` requires a transaction and changes the
 password hash and increments `authVersion` in one update. Once that transaction
@@ -208,8 +220,11 @@ must not reload a newer version after checking an older password. Email
 confirmation reads the internal authentication fields after confirmation.
 The public user selection remains unchanged and excludes the counter.
 
-JWTs issued before this claim was introduced are rejected. Users with those
-tokens must sign in again after deployment.
+JWTs without `authVersion` are rejected.
+
+Deferred test work includes wiring the session service into the authentication
+fixtures and covering session-bound JWT issuance and guard rejection after
+revocation.
 
 ## Authenticated password changes
 
@@ -226,9 +241,10 @@ authentication version. It increments the version atomically. If the update lose
 a race or the user is no longer valid, the transaction rolls back and the request
 is rejected as stale authentication. Password reset rows remain intact on rollback.
 
-After commit, the API signs a replacement JWT using the updated version and
-schedules the shared password-change notification. Next validates the response's
-user identifier before replacing its HttpOnly cookie. The current browser remains
+The transaction also creates a replacement session and signs its JWT using the
+updated version. After commit, the API schedules the shared password-change
+notification. Next validates the response's user identifier before replacing its
+HttpOnly cookie. The current browser remains
 signed in; previously issued tokens are rejected. An incorrect current password
 uses `400`, so the frontend does not mistake it for an expired session. Email
 changes are not part of this use case and are not exposed by an endpoint.
