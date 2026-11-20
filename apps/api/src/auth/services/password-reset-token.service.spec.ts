@@ -4,6 +4,7 @@ import { vi } from 'vitest';
 
 import { MILLISECONDS_PER_SECOND } from '../../common/constants/time.js';
 import { PASSWORD_RESET_CONFIG } from '../constants/password-reset.js';
+import { OPAQUE_TOKEN_ENCODED_LENGTH } from '../utils/opaque-token.js';
 import { PasswordResetTokenService } from './password-reset-token.service.js';
 
 describe('PasswordResetTokenService', () => {
@@ -24,12 +25,12 @@ describe('PasswordResetTokenService', () => {
     });
 
     describe('create', () => {
-        it('should encode the configured number of random bytes as an unpadded URL-safe token', () => {
+        it('should return an unpadded URL-safe token of the configured length', () => {
             const { token } = service.create();
 
             expect(token).toMatch(/^[A-Za-z0-9_-]+$/u);
             expect(token).not.toContain('=');
-            expect(Buffer.from(token, PASSWORD_RESET_CONFIG.tokenEncoding)).toHaveLength(PASSWORD_RESET_CONFIG.tokenBytes);
+            expect(token).toHaveLength(OPAQUE_TOKEN_ENCODED_LENGTH);
         });
 
         it('should return the token hash rather than repeating its plaintext credential', () => {

@@ -9,6 +9,7 @@ import esMessages from '@/messages/es.json';
 
 import { currentUser } from '../../../../test/fixtures/current-user';
 import { resolveSuspendedComponent } from '../../../../test/resolve-suspended-component';
+import { AccountAccess } from './_components/account-access';
 import AccountLayout from './layout';
 
 const router = vi.hoisted(() => ({
@@ -29,6 +30,7 @@ const { redirect } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/auth', () => ({ getCurrentUser: vi.fn() }));
+vi.mock('@/lib/session', () => ({ getRefreshToken: vi.fn() }));
 vi.mock('@/features/logout', () => ({
   LogoutButton: () => <button>Log out</button>,
 }));
@@ -68,7 +70,9 @@ async function getContent() {
 describe('AccountLayout access', () => {
   it('redirects a guest to login preserving the locale', async () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
-    await expect(getContent()).rejects.toThrow('redirect');
+    const children = vi.fn(() => <p>Private</p>);
+    await expect(AccountAccess({ locale: 'es', children })).rejects.toThrow('redirect');
+    expect(children).not.toHaveBeenCalled();
     expect(redirect).toHaveBeenCalledExactlyOnceWith({
       href: '/login',
       locale: 'es',

@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useId, useTransition } from 'react';
+import { useTransition } from 'react';
 
 import {
   Select,
@@ -18,7 +18,6 @@ export function LocaleSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
   const t = useTranslations('LocaleSwitcher');
-  const labelId = useId();
   const [isPending, startTransition] = useTransition();
 
   const localeLabels: Record<Locale, string> = {
@@ -34,22 +33,20 @@ export function LocaleSwitcher() {
     const { search, hash } = window.location;
 
     startTransition(() => {
-      router.replace(`${pathname}${search}${hash}`, { locale: value as Locale });
+      router.replace(`${pathname}${search}${hash}`, {
+        locale: value as Locale,
+      });
     });
   }
 
   return (
     <div className='flex items-center gap-3'>
-      <span id={labelId} className='text-sm text-muted-foreground'>
-        {t('label')}
-      </span>
-
       <Select
         value={locale}
         onValueChange={handleLocaleChange}
         disabled={isPending}
       >
-        <SelectTrigger aria-labelledby={labelId} className='w-36'>
+        <SelectTrigger aria-label={t('label')} className='w-36'>
           <SelectValue />
         </SelectTrigger>
 

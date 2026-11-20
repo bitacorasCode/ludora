@@ -1,5 +1,8 @@
 // Fault injection for browser tests; the application itself is unchanged.
 import http from 'node:http';
+import { isIPv6 } from 'node:net';
+
+import { E2E_CLIENT_IP_HEADER } from '../config.ts';
 
 const apiUrl = process.env.LUDORA_E2E_API_URL;
 if (!apiUrl) throw new Error('LUDORA_E2E_API_URL is required for the browser test proxy.');
@@ -15,6 +18,7 @@ if (
   throw new Error('E2E tests must target a local HTTP API.');
 }
 let mode = 'healthy';
+let clientIp;
 const modes = ['healthy', 'unavailable', 'delayed'];
 
 const server = http.createServer(async (request, response) => {
@@ -25,17 +29,18 @@ const server = http.createServer(async (request, response) => {
   if (request.url === '/__control' && request.method === 'POST') {
     let body = '';
     for await (const chunk of request) body += chunk;
-    let nextMode;
+    let control;
     try {
-      nextMode = JSON.parse(body).mode;
+      control = JSON.parse(body);
     } catch {
       /* Reject invalid control input. */
     }
-    if (!modes.includes(nextMode)) {
+    if (!modes.includes(control?.mode) || !isIPv6(control.clientIp)) {
       response.writeHead(400).end();
       return;
     }
-    mode = nextMode;
+    mode = control.mode;
+    clientIp = control.clientIp;
     response.writeHead(200).end();
     return;
   }
@@ -48,7 +53,11 @@ const server = http.createServer(async (request, response) => {
       new URL(request.url ?? '/', target),
       {
         method: request.method,
-        headers: { ...request.headers, host: target.host },
+        headers: {
+          ...request.headers,
+          host: target.host,
+          ...(clientIp && { [E2E_CLIENT_IP_HEADER]: clientIp }),
+        },
       },
       (result) => {
         response.writeHead(result.statusCode ?? 502, result.headers);

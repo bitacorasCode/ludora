@@ -6,6 +6,7 @@ import { vi } from 'vitest';
 
 import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
+import { AuthSessionService } from '../services/auth-session.service.js';
 import type { AuthenticatedRequest } from '../types/authenticated-request.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 
@@ -16,6 +17,7 @@ describe('JwtAuthGuard', () => {
 
     const token = 'signed-access-token';
     const userId = 'a0db3414-7659-46ee-8435-1a32f52b1f26';
+    const sessionId = 'ecec41fa-b532-4cd3-9487-08dfadcd22ec';
     const payload = { sub: userId, exp: 1_793_793_600, authVersion: 0 };
     const user = {
         id: userId,
@@ -33,11 +35,13 @@ describe('JwtAuthGuard', () => {
             ...args: Parameters<UsersService['findAuthenticationById']>
         ) => Promise<Awaited<ReturnType<UsersService['findAuthenticationById']>>>>(),
     };
+    const authSessions = { isActive: vi.fn<AuthSessionService['isActive']>() };
 
     beforeEach(async () => {
         vi.resetAllMocks();
         jwtService.verifyAsync.mockResolvedValue(payload);
         usersService.findAuthenticationById.mockResolvedValue(user);
+        authSessions.isActive.mockResolvedValue(true);
         request = { headers: { authorization: `Bearer ${token}` } } as AuthenticatedRequest;
         context = new ExecutionContextHost([request]);
 
@@ -45,10 +49,12 @@ describe('JwtAuthGuard', () => {
             providers: [
                 { provide: JwtService, useValue: jwtService },
                 { provide: UsersService, useValue: usersService },
+                { provide: AuthSessionService, useValue: authSessions },
                 {
                     provide: JwtAuthGuard,
-                    inject: [JwtService, UsersService],
-                    useFactory: (jwt: JwtService, users: UsersService) => new JwtAuthGuard(jwt, users),
+                    inject: [JwtService, UsersService, AuthSessionService],
+                    useFactory: (jwt: JwtService, users: UsersService, sessions: AuthSessionService) =>
+                        new JwtAuthGuard(jwt, users, sessions),
                 },
             ],
         }).compile();
@@ -56,6 +62,23 @@ describe('JwtAuthGuard', () => {
     });
 
     describe('canActivate', () => {
+        it('checks the persisted session on every request and rejects it after revocation', async () => {
+            jwtService.verifyAsync.mockResolvedValue({ ...payload, sid: sessionId });
+
+            await expect(guard.canActivate(context)).resolves.toBe(true);
+            expect(authSessions.isActive).toHaveBeenCalledExactlyOnceWith(sessionId, userId, payload.authVersion);
+            expect(request.auth).toEqual({ userId, authVersion: payload.authVersion, sessionId });
+            expect(usersService.findAuthenticationById).not.toHaveBeenCalled();
+
+            authSessions.isActive.mockResolvedValue(false);
+            const nextRequest = { headers: request.headers } as AuthenticatedRequest;
+            await expect(guard.canActivate(new ExecutionContextHost([nextRequest]))).rejects.toMatchObject({
+                status: HttpStatus.UNAUTHORIZED,
+                response: AUTH_ERRORS.invalidToken,
+            });
+            expect(nextRequest.auth).toBeUndefined();
+        });
+
         it('should verify the JWT and current version before attaching the user identifier', async () => {
             await expect(guard.canActivate(context)).resolves.toBe(true);
 

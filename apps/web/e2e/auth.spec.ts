@@ -3,6 +3,7 @@ import {
   API_URL,
   createExpiredToken,
   expect,
+  REFRESH_COOKIE,
   SESSION_COOKIE,
   test,
 } from './fixtures/auth';
@@ -12,13 +13,17 @@ import { fillLogin } from './fixtures/login';
 test.use({ trace: 'off', screenshot: 'off' });
 
 test.describe('Real authentication', () => {
-  test('logs in, persists the HttpOnly cookie, protects guest pages and logs out', async ({
+  test('persists HttpOnly credentials and synchronizes login and logout across tabs', async ({
     page,
     context,
     testAccount,
   }) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
+    const peer = await context.newPage();
+    await peer.goto('/es/games');
+    const peerHeader = peer.locator('header');
+    await expect(peerHeader.getByRole('link', { name: esMessages.Header.login, exact: true })).toBeVisible();
     await page.goto('/es/login');
     await fillLogin(page, testAccount.email, testAccount.password);
     await expect(page).toHaveURL('/es');
@@ -31,7 +36,9 @@ test.describe('Real authentication', () => {
         exact: true,
       }),
     ).toBeVisible();
-    const cookie = (await context.cookies()).find(
+    await expect(peerHeader.getByRole('link', { name: testAccount.nickname, exact: true })).toBeVisible();
+    const cookies = await context.cookies();
+    const cookie = cookies.find(
       ({ name }) => name === SESSION_COOKIE,
     );
     expect(cookie).toMatchObject({
@@ -43,6 +50,9 @@ test.describe('Real authentication', () => {
     expect(await page.evaluate(() => document.cookie)).not.toContain(
       `${SESSION_COOKIE}=`,
     );
+    expect(cookies.find(({ name }) => name === REFRESH_COOKIE)).toMatchObject({
+      httpOnly: true, secure: false, sameSite: 'Lax', path: '/',
+    });
     await page.reload();
     await expect(
       navigation.getByRole('link', {
@@ -56,6 +66,10 @@ test.describe('Real authentication', () => {
     await expect(page).toHaveURL('/es');
     await page.goto('/es/preferences');
     await expect(page).toHaveURL('/es/account/preferences');
+    await peer.setViewportSize({ width: 390, height: 844 });
+    await peer.getByRole('button', { name: esMessages.Header.menu.label, exact: true }).click();
+    const peerMenu = peer.getByRole('dialog', { name: esMessages.Header.menu.title });
+    await expect(peerMenu.getByRole('link', { name: testAccount.nickname, exact: true })).toBeVisible();
     // Capture native document reloads: the logout should use Next navigation.
     await page.evaluate(() => {
       (window as Window & { logoutMarker?: boolean }).logoutMarker = true;
@@ -70,8 +84,10 @@ test.describe('Real authentication', () => {
       ),
     ).toBe(true);
     expect(
-      (await context.cookies()).find(({ name }) => name === SESSION_COOKIE),
+      (await context.cookies()).find(({ name }) => name === SESSION_COOKIE || name === REFRESH_COOKIE),
     ).toBeUndefined();
+    await expect(peerMenu.getByRole('link', { name: esMessages.Header.login, exact: true })).toBeVisible();
+    await expect(peerMenu.getByRole('link', { name: esMessages.Header.register, exact: true })).toBeVisible();
     await expect(
       navigation.getByRole('link', {
         name: esMessages.Header.login,

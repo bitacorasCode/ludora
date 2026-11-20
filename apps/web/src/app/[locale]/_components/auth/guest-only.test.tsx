@@ -10,6 +10,7 @@ import { resolveSuspendedComponent } from '../../../../../test/resolve-suspended
 import { GuestOnly } from './guest-only';
 
 vi.mock('@/lib/auth', () => ({ getCurrentUser: vi.fn() }));
+vi.mock('@/lib/session', () => ({ getRefreshToken: vi.fn() }));
 vi.mock('@/i18n/navigation', () => ({
   redirect: vi.fn(() => {
     throw new Error('redirect');

@@ -7,7 +7,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
-import { Activity, Suspense, use, useEffect, useState } from 'react';
+import { Activity } from 'react';
 import { renderToString } from 'react-dom/server';
 import { toast } from 'sonner';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -16,6 +16,11 @@ import { SessionBoundary } from '@/components/auth';
 import { NavigationGuardProvider } from '@/components/navigation';
 import { type ActionResult, OPERATION_STATUS } from '@/lib/actions';
 import { API_ERROR_CODES, HTTP_STATUS } from '@/lib/api/constants';
+import { refreshSession } from '@/lib/session/actions';
+import {
+  type RefreshSessionResult,
+  SESSION_REFRESH_OUTCOME,
+} from '@/lib/session/refresh-result';
 import esMessages from '@/messages/es.json';
 
 import { saveProfile } from '../actions';
@@ -26,6 +31,10 @@ import { ProfilePageContent } from './profile-page-content';
 
 vi.mock('../actions', () => ({ saveProfile: vi.fn() }));
 vi.mock('../client/load-profile', () => ({ loadProfile: vi.fn() }));
+vi.mock('@/lib/session/actions', () => ({
+  refreshSession: vi.fn(),
+  recordSessionActivity: vi.fn(),
+}));
 
 const router = vi.hoisted(() => ({ refresh: vi.fn() }));
 
@@ -54,23 +63,12 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
-function RefreshableProfile({ recovery }: { recovery: Promise<void> }) {
-  const [hasRefreshed, setHasRefreshed] = useState(false);
-
-  useEffect(() => {
-    router.refresh.mockImplementation(() => setHasRefreshed(true));
-  }, []);
-
-  if (hasRefreshed) use(recovery);
-
-  return (
-    <ProfilePageContent userId={PROFILE_USER_ID} nickname={PROFILE_NICKNAME} />
-  );
-}
+const renewed = { status: OPERATION_STATUS.success, data: SESSION_REFRESH_OUTCOME.renewed } as const;
 
 beforeEach(() => {
   localStorage.clear();
   router.refresh.mockReset();
+  vi.mocked(refreshSession).mockReset().mockResolvedValue(renewed);
   vi.mocked(loadProfile).mockReset().mockResolvedValue({
     status: OPERATION_STATUS.success,
     data: profileResponse,
@@ -570,7 +568,8 @@ describe('ProfilePageContent integration', () => {
   });
 
   it('rechecks the session and retries a protected read once without an error toast', async () => {
-    const recovery = deferred<void>();
+    const recovery = deferred<RefreshSessionResult>();
+    vi.mocked(refreshSession).mockReturnValue(recovery.promise);
     vi.mocked(loadProfile)
       .mockResolvedValueOnce({
         status: OPERATION_STATUS.error,
@@ -590,20 +589,18 @@ describe('ProfilePageContent integration', () => {
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <NavigationGuardProvider>
           <SessionBoundary>
-            <Suspense fallback={<p>Recovering session</p>}>
-              <RefreshableProfile recovery={recovery.promise} />
-            </Suspense>
+            <ProfilePageContent userId={PROFILE_USER_ID} nickname={PROFILE_NICKNAME} />
           </SessionBoundary>
         </NavigationGuardProvider>
       </NextIntlClientProvider>,
     );
-    await waitFor(() => expect(router.refresh).toHaveBeenCalledOnce());
+    await waitFor(() => expect(refreshSession).toHaveBeenCalledOnce());
     expect(loadProfile).toHaveBeenCalledOnce();
     expect(screen.queryByText(esMessages.Profile.loadError)).toBeNull();
     expect(toast.error).not.toHaveBeenCalled();
 
     await act(async () => {
-      recovery.resolve();
+      recovery.resolve(renewed);
       await recovery.promise;
     });
 
@@ -614,26 +611,31 @@ describe('ProfilePageContent integration', () => {
       screen.getByRole('button', { name: esMessages.Profile.edit }),
     ).toBeTruthy();
     expect(loadProfile).toHaveBeenCalledTimes(2);
-    expect(router.refresh).toHaveBeenCalledOnce();
+    expect(refreshSession).toHaveBeenCalledOnce();
     expect(toast.error).not.toHaveBeenCalled();
   });
 
-  it('rechecks an expired session during save without retrying the mutation or showing an error toast', async () => {
-    const recovery = deferred<void>();
-    vi.mocked(saveProfile).mockResolvedValueOnce({
-      status: OPERATION_STATUS.error,
-      error: {
-        errorCode: API_ERROR_CODES.authenticationRequired,
-        statusCode: HTTP_STATUS.unauthorized,
-      },
-    });
+  it('renews the session and saves the same draft without another submission', async () => {
+    const recovery = deferred<RefreshSessionResult>();
+    vi.mocked(refreshSession).mockReturnValue(recovery.promise);
+    const draft = { avatarPresetId: null, bio: 'Cambio pendiente' };
+    vi.mocked(saveProfile)
+      .mockResolvedValueOnce({
+        status: OPERATION_STATUS.error,
+        error: {
+          errorCode: API_ERROR_CODES.authenticationRequired,
+          statusCode: HTTP_STATUS.unauthorized,
+        },
+      })
+      .mockResolvedValueOnce({
+        status: OPERATION_STATUS.success,
+        data: { ...profileResponse, ...draft },
+      });
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
         <NavigationGuardProvider>
           <SessionBoundary>
-            <Suspense fallback={<p>Recovering session</p>}>
-              <RefreshableProfile recovery={recovery.promise} />
-            </Suspense>
+            <ProfilePageContent userId={PROFILE_USER_ID} nickname={PROFILE_NICKNAME} />
           </SessionBoundary>
         </NavigationGuardProvider>
       </NextIntlClientProvider>,
@@ -645,7 +647,7 @@ describe('ProfilePageContent integration', () => {
     fireEvent.change(
       screen.getByRole('textbox', { name: esMessages.Profile.bio.label }),
       {
-        target: { value: 'Cambio pendiente' },
+        target: { value: draft.bio },
       },
     );
     fireEvent.click(
@@ -653,7 +655,7 @@ describe('ProfilePageContent integration', () => {
         name: esMessages.Common.actions.saveChanges,
       }),
     );
-    await waitFor(() => expect(router.refresh).toHaveBeenCalledOnce());
+    await waitFor(() => expect(refreshSession).toHaveBeenCalledOnce());
     expect(saveProfile).toHaveBeenCalledOnce();
     expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(toast.error).not.toHaveBeenCalled();
@@ -661,21 +663,16 @@ describe('ProfilePageContent integration', () => {
     expect(profileStorage.getSnapshot()).toBe(original);
 
     await act(async () => {
-      recovery.resolve();
+      recovery.resolve(renewed);
       await recovery.promise;
     });
 
-    await waitFor(() =>
-      expect(
-        screen
-          .getByRole('button', { name: esMessages.Common.actions.saveChanges })
-          .matches(':disabled'),
-      ).toBe(false),
-    );
-    expect(saveProfile).toHaveBeenCalledOnce();
+    await waitFor(() => expect(toast.success).toHaveBeenCalledOnce());
+    expect(saveProfile).toHaveBeenCalledTimes(2);
+    expect(saveProfile).toHaveBeenNthCalledWith(1, PROFILE_USER_ID, draft);
+    expect(saveProfile).toHaveBeenNthCalledWith(2, PROFILE_USER_ID, draft);
     expect(toast.error).not.toHaveBeenCalled();
-    expect(toast.success).not.toHaveBeenCalled();
-    expect(profileStorage.getSnapshot()).toBe(original);
+    expect(profileStorage.getSnapshot()).toBe(JSON.stringify(draft));
   });
 
   it('rejects a loaded profile that belongs to a different user', async () => {

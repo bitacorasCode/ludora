@@ -9,6 +9,7 @@ import {
 import { NextIntlClientProvider } from 'next-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { type ActionResult, OPERATION_STATUS } from '@/lib/actions';
 import esMessages from '@/messages/es.json';
 
 import { logoutUser } from '../actions';
@@ -20,7 +21,7 @@ afterEach(() => cleanup());
 
 describe('LogoutButton', () => {
   it('runs the logout action with the current locale and displays its pending state', async () => {
-    const action = Promise.withResolvers<void>();
+    const action = Promise.withResolvers<ActionResult>();
     vi.mocked(logoutUser).mockReturnValue(action.promise);
     render(
       <NextIntlClientProvider locale="es" messages={esMessages}>
@@ -35,7 +36,7 @@ describe('LogoutButton', () => {
     });
     expect(pendingButton.hasAttribute('disabled')).toBe(true);
     expect(logoutUser).toHaveBeenCalledExactlyOnceWith('es');
-    await act(async () => action.resolve());
+    await act(async () => action.resolve({ status: OPERATION_STATUS.success, data: null }));
     await waitFor(() =>
       expect(
         screen

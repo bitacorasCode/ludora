@@ -1,6 +1,5 @@
 import { AUTH_NEXT_STEP } from '@ludora/security';
 import { BadRequestException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import { vi } from 'vitest';
 
@@ -13,6 +12,7 @@ import { OAUTH_REGISTRATION_TOKEN_CONFIG } from '../constants/oauth-flow.js';
 import { AuthIdentityRepository } from '../repositories/auth-identity.repository.js';
 import { PasswordResetRepository } from '../repositories/password-reset.repository.js';
 import { AuthService } from './auth.service.js';
+import { AuthSessionService } from './auth-session.service.js';
 import { EmailVerificationService } from './email-verification.service.js';
 import { GoogleAuthService } from './google-auth.service.js';
 import { OAuthFlowTokenService } from './oauth-flow-token.service.js';
@@ -72,7 +72,13 @@ describe('AuthService', () => {
         hash: vi.fn<PasswordService['hash']>(),
         verify: vi.fn<PasswordService['verify']>(),
     };
-    const jwtService = { signAsync: vi.fn<JwtService['signAsync']>() };
+    const authSessions = { create: vi.fn<AuthSessionService['create']>() };
+    const sessionCredentials = {
+        accessToken: 'signed-access-token',
+        refreshToken: 'opaque-refresh-token',
+        idleExpiresAt: new Date('2026-10-27T12:00:00.000Z'),
+        absoluteExpiresAt: new Date('2026-11-19T12:00:00.000Z'),
+    };
     const transaction = {} as Prisma.TransactionClient;
     const prisma = {
         $transaction: vi.fn(async <T>(operation: (client: Prisma.TransactionClient) => Promise<T>) => operation(transaction)),
@@ -116,7 +122,7 @@ describe('AuthService', () => {
         resets.deleteForUser.mockResolvedValue({ count: 1 });
         passwordService.hash.mockResolvedValue('unused-password-hash');
         passwordService.verify.mockResolvedValue(true);
-        jwtService.signAsync.mockResolvedValue('signed-access-token');
+        authSessions.create.mockResolvedValue(sessionCredentials);
         verificationService.getPending.mockResolvedValue(verification);
         verificationService.confirm.mockResolvedValue(user.id);
 
@@ -124,7 +130,7 @@ describe('AuthService', () => {
             providers: [
                 { provide: UsersService, useValue: usersService },
                 { provide: PasswordService, useValue: passwordService },
-                { provide: JwtService, useValue: jwtService },
+                { provide: AuthSessionService, useValue: authSessions },
                 { provide: PrismaService, useValue: prisma },
                 { provide: EmailVerificationService, useValue: verificationService },
                 { provide: PasswordResetRepository, useValue: resets },
@@ -134,11 +140,11 @@ describe('AuthService', () => {
                 { provide: OAuthFlowTokenService, useValue: oauthTokens },
                 {
                     provide: AuthService,
-                    inject: [UsersService, PasswordService, JwtService, PrismaService, EmailVerificationService, PasswordResetRepository, PasswordNotificationService, AuthIdentityRepository, GoogleAuthService, OAuthFlowTokenService],
+                    inject: [UsersService, PasswordService, AuthSessionService, PrismaService, EmailVerificationService, PasswordResetRepository, PasswordNotificationService, AuthIdentityRepository, GoogleAuthService, OAuthFlowTokenService],
                     useFactory: (
                         users: UsersService,
                         passwords: PasswordService,
-                        jwt: JwtService,
+                        sessions: AuthSessionService,
                         prisma: PrismaService,
                         emailVerification: EmailVerificationService,
                         resetRepository: PasswordResetRepository,
@@ -146,7 +152,7 @@ describe('AuthService', () => {
                         authIdentities: AuthIdentityRepository,
                         googleAuth: GoogleAuthService,
                         flowTokens: OAuthFlowTokenService,
-                    ) => new AuthService(users, passwords, jwt, prisma, emailVerification, resetRepository, passwordNotifications, authIdentities, googleAuth, flowTokens),
+                    ) => new AuthService(users, passwords, sessions, prisma, emailVerification, resetRepository, passwordNotifications, authIdentities, googleAuth, flowTokens),
                 },
             ],
         }).compile();
@@ -164,7 +170,7 @@ describe('AuthService', () => {
             expect(verificationService.getPending).toHaveBeenCalledWith(user.id);
             expect(result).not.toHaveProperty('accessToken');
             expect(result).not.toHaveProperty('user');
-            expect(jwtService.signAsync).not.toHaveBeenCalled();
+            expect(authSessions.create).not.toHaveBeenCalled();
             expect(verificationService.create).not.toHaveBeenCalled();
             expect(verificationService.resend).not.toHaveBeenCalled();
             expect(verificationService.send).not.toHaveBeenCalled();
@@ -179,7 +185,7 @@ describe('AuthService', () => {
             });
 
             expect(verificationService.getPending).not.toHaveBeenCalled();
-            expect(jwtService.signAsync).not.toHaveBeenCalled();
+            expect(authSessions.create).not.toHaveBeenCalled();
         });
 
         it.each([null, { ...user, passwordHash: null }])('should reject unavailable password credentials generically and perform dummy hashing', async (account) => {
@@ -193,7 +199,7 @@ describe('AuthService', () => {
             expect(passwordService.hash).toHaveBeenCalledWith(credentials.password);
             expect(passwordService.verify).not.toHaveBeenCalled();
             expect(verificationService.getPending).not.toHaveBeenCalled();
-            expect(jwtService.signAsync).not.toHaveBeenCalled();
+            expect(authSessions.create).not.toHaveBeenCalled();
         });
 
         it('should authenticate a verified user and return only public user fields', async () => {
@@ -201,14 +207,14 @@ describe('AuthService', () => {
 
             await expect(service.login(credentials)).resolves.toEqual({
                 nextStep: AUTH_NEXT_STEP.authenticated,
-                accessToken: 'signed-access-token',
+                ...sessionCredentials,
                 user: publicUser,
             });
 
-            expect(jwtService.signAsync).toHaveBeenCalledExactlyOnceWith({
-                sub: user.id,
-                authVersion: user.authVersion,
-            });
+            expect(authSessions.create).toHaveBeenCalledExactlyOnceWith(
+                expect.objectContaining({ id: user.id, authVersion: user.authVersion }),
+                undefined,
+            );
             expect(verificationService.getPending).not.toHaveBeenCalled();
         });
 
@@ -220,7 +226,7 @@ describe('AuthService', () => {
                 response: AUTH_ERRORS.emailNotVerified,
             });
 
-            expect(jwtService.signAsync).not.toHaveBeenCalled();
+            expect(authSessions.create).not.toHaveBeenCalled();
             expect(verificationService.create).not.toHaveBeenCalled();
             expect(verificationService.send).not.toHaveBeenCalled();
         });
@@ -253,7 +259,7 @@ describe('AuthService', () => {
 
             await expect(service.loginWithGoogle(callback)).resolves.toEqual({
                 nextStep: AUTH_NEXT_STEP.authenticated,
-                accessToken: 'signed-access-token',
+                ...sessionCredentials,
                 user: publicUser,
             });
             expect(google.verifyAuthorization).toHaveBeenCalledExactlyOnceWith(callback.flowToken, callback.responseParameters);
@@ -271,7 +277,7 @@ describe('AuthService', () => {
 
             await expect(service.completeOAuthRegistration({ registrationToken: grant.registrationToken, nickname: user.nickname })).resolves.toEqual({
                 nextStep: AUTH_NEXT_STEP.authenticated,
-                accessToken: 'signed-access-token',
+                ...sessionCredentials,
                 user: publicUser,
             });
             expect(oauthTokens.verifyRegistration).toHaveBeenCalledExactlyOnceWith(grant.registrationToken);
@@ -292,7 +298,7 @@ describe('AuthService', () => {
             });
             expect(identities.create).not.toHaveBeenCalled();
             expect(oauthTokens.createRegistration).not.toHaveBeenCalled();
-            expect(jwtService.signAsync).not.toHaveBeenCalled();
+            expect(authSessions.create).not.toHaveBeenCalled();
         });
     });
 
@@ -301,28 +307,28 @@ describe('AuthService', () => {
             verificationService.confirm.mockImplementation(async () => {
                 await Promise.resolve();
                 expect(usersService.findAuthenticationById).not.toHaveBeenCalled();
-                expect(jwtService.signAsync).not.toHaveBeenCalled();
+                expect(authSessions.create).not.toHaveBeenCalled();
                 return user.id;
             });
             usersService.findAuthenticationById.mockImplementation(async () => {
                 await Promise.resolve();
-                expect(jwtService.signAsync).not.toHaveBeenCalled();
+                expect(authSessions.create).not.toHaveBeenCalled();
                 return authenticationUser;
             });
 
             await expect(service.verifyEmail({ verificationId: verification.id, code: '123456' })).resolves.toEqual({
-                accessToken: 'signed-access-token',
+                ...sessionCredentials,
                 user: publicUser,
             });
 
             expect(verificationService.confirm).toHaveBeenCalledWith(verification.id, '123456');
             expect(usersService.findAuthenticationById).toHaveBeenCalledWith(user.id);
             expect(verificationService.confirm).toHaveBeenCalledBefore(usersService.findAuthenticationById);
-            expect(usersService.findAuthenticationById).toHaveBeenCalledBefore(jwtService.signAsync);
-            expect(jwtService.signAsync).toHaveBeenCalledExactlyOnceWith({
-                sub: user.id,
-                authVersion: user.authVersion,
-            });
+            expect(usersService.findAuthenticationById).toHaveBeenCalledBefore(authSessions.create);
+            expect(authSessions.create).toHaveBeenCalledExactlyOnceWith(
+                expect.objectContaining({ id: user.id, authVersion: user.authVersion }),
+                undefined,
+            );
         });
 
         it('should propagate a rejected code without looking up the user or creating a JWT', async () => {
@@ -334,7 +340,7 @@ describe('AuthService', () => {
             await expect(service.verifyEmail({ verificationId: verification.id, code: '999999' })).rejects.toBe(error);
 
             expect(usersService.findAuthenticationById).not.toHaveBeenCalled();
-            expect(jwtService.signAsync).not.toHaveBeenCalled();
+            expect(authSessions.create).not.toHaveBeenCalled();
         });
 
         it('should not issue a JWT when the user no longer exists after confirmation', async () => {
@@ -345,7 +351,7 @@ describe('AuthService', () => {
                 response: AUTH_ERRORS.authenticationRequired,
             });
 
-            expect(jwtService.signAsync).not.toHaveBeenCalled();
+            expect(authSessions.create).not.toHaveBeenCalled();
         });
     });
 
@@ -357,7 +363,7 @@ describe('AuthService', () => {
             await expect(service.resendVerification({ verificationId: verification.id })).resolves.toEqual(result);
 
             expect(verificationService.resend).toHaveBeenCalledExactlyOnceWith(verification.id);
-            expect(jwtService.signAsync).not.toHaveBeenCalled();
+            expect(authSessions.create).not.toHaveBeenCalled();
         });
     });
 
@@ -392,9 +398,9 @@ describe('AuthService', () => {
 
         beforeEach(() => usersService.findAuthenticationById.mockResolvedValue(updatedUser));
 
-        it('should verify the current password and commit revocation before issuing a replacement JWT', async () => {
+        it('should verify the current password and create a replacement session in the transaction', async () => {
             await expect(service.changePassword(user.id, user.authVersion, data)).resolves.toEqual({
-                accessToken: 'signed-access-token',
+                ...sessionCredentials,
                 user: publicUser,
             });
 
@@ -410,7 +416,8 @@ describe('AuthService', () => {
             }, transaction);
             expect(resets.deleteForUser).toHaveBeenCalledBefore(usersService.changePasswordIfCurrent);
             expect(usersService.findAuthenticationById).toHaveBeenCalledExactlyOnceWith(user.id, transaction);
-            expect(jwtService.signAsync).toHaveBeenCalledExactlyOnceWith({ sub: user.id, authVersion: updatedUser.authVersion });
+            expect(authSessions.create).toHaveBeenCalledExactlyOnceWith(updatedUser, transaction);
+            expect(usersService.findAuthenticationById).toHaveBeenCalledBefore(authSessions.create);
             expect(notifications.passwordChanged).toHaveBeenCalledExactlyOnceWith(user.email);
         });
 
@@ -424,7 +431,7 @@ describe('AuthService', () => {
 
             expect(passwordService.hash).not.toHaveBeenCalled();
             expect(prisma.$transaction).not.toHaveBeenCalled();
-            expect(jwtService.signAsync).not.toHaveBeenCalled();
+            expect(authSessions.create).not.toHaveBeenCalled();
             expect(notifications.passwordChanged).not.toHaveBeenCalled();
         });
 
@@ -463,11 +470,11 @@ describe('AuthService', () => {
             });
 
             expect(usersService.findAuthenticationById).not.toHaveBeenCalled();
-            expect(jwtService.signAsync).not.toHaveBeenCalled();
+            expect(authSessions.create).not.toHaveBeenCalled();
             expect(notifications.passwordChanged).not.toHaveBeenCalled();
         });
 
-        it('should not sign or notify before the transaction resolves', async () => {
+        it('should wait for the transaction to commit before notifying', async () => {
             let commit!: () => void;
             const pending = new Promise<void>((resolve) => { commit = resolve; });
             prisma.$transaction.mockImplementationOnce(async (operation) => {
@@ -477,11 +484,13 @@ describe('AuthService', () => {
             });
 
             const change = service.changePassword(user.id, user.authVersion, data);
-            await vi.waitFor(() => expect(usersService.changePasswordIfCurrent).toHaveBeenCalledOnce());
-            expect(jwtService.signAsync).not.toHaveBeenCalled();
-            expect(notifications.passwordChanged).not.toHaveBeenCalled();
-            commit();
-            await change;
+            try {
+                await vi.waitFor(() => expect(authSessions.create).toHaveBeenCalledOnce());
+                expect(notifications.passwordChanged).not.toHaveBeenCalled();
+            } finally {
+                commit();
+                await change;
+            }
             expect(notifications.passwordChanged).toHaveBeenCalledOnce();
         });
 
@@ -492,7 +501,7 @@ describe('AuthService', () => {
             await expect(service.changePassword(user.id, user.authVersion, data)).rejects.toBe(error);
 
             expect(usersService.changePasswordIfCurrent).not.toHaveBeenCalled();
-            expect(jwtService.signAsync).not.toHaveBeenCalled();
+            expect(authSessions.create).not.toHaveBeenCalled();
             expect(notifications.passwordChanged).not.toHaveBeenCalled();
         });
     });

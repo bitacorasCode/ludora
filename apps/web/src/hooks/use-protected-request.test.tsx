@@ -4,8 +4,6 @@ import {
   type Dispatch,
   type ReactNode,
   type SetStateAction,
-  Suspense,
-  use,
   useLayoutEffect,
   useState,
 } from 'react';
@@ -14,12 +12,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SessionBoundary } from '@/components/auth';
 import { type ActionResult, OPERATION_STATUS } from '@/lib/actions';
 import { API_ERROR_CODES, HTTP_STATUS } from '@/lib/api/constants';
+import { refreshSession } from '@/lib/session/actions';
+import {
+  type RefreshSessionResult,
+  SESSION_REFRESH_OUTCOME,
+} from '@/lib/session/refresh-result';
 
 import { useProtectedRequest } from './use-protected-request';
 
 const router = vi.hoisted(() => ({ refresh: vi.fn() }));
 
 vi.mock('next/navigation', () => ({ useRouter: () => router }));
+vi.mock('@/lib/session/actions', () => ({
+  refreshSession: vi.fn(),
+  recordSessionActivity: vi.fn(),
+}));
 
 function createDeferred<T>() {
   let resolve!: (value: T) => void;
@@ -34,30 +41,20 @@ function createDeferred<T>() {
 
 type ActivityMode = 'visible' | 'hidden';
 
-let refresh = createDeferred<void>();
+const renewed = { status: OPERATION_STATUS.success, data: SESSION_REFRESH_OUTCOME.renewed } as const;
+let recovery = createDeferred<RefreshSessionResult>();
 let setActivityMode!: Dispatch<SetStateAction<ActivityMode>>;
 
-function RefreshedRoute({ resource }: { resource: Promise<void> | null }) {
-  if (resource) use(resource);
-
-  return null;
-}
-
 function Wrapper({ children }: { children: ReactNode }) {
-  const [resource, setResource] = useState<Promise<void> | null>(null);
   const [mode, setMode] = useState<ActivityMode>('visible');
 
   useLayoutEffect(() => {
     setActivityMode = setMode;
-    router.refresh.mockImplementation(() => setResource(refresh.promise));
   }, []);
 
   return (
     <SessionBoundary>
-      <Suspense fallback={<p>Loading session</p>}>
-        <RefreshedRoute resource={resource} />
-        <Activity mode={mode}>{children}</Activity>
-      </Suspense>
+      <Activity mode={mode}>{children}</Activity>
     </SessionBoundary>
   );
 }
@@ -76,7 +73,8 @@ const authenticationFailure = {
 
 beforeEach(() => {
   router.refresh.mockReset();
-  refresh = createDeferred<void>();
+  recovery = createDeferred<RefreshSessionResult>();
+  vi.mocked(refreshSession).mockReset().mockReturnValue(recovery.promise);
 });
 
 afterEach(() => {
@@ -93,7 +91,7 @@ describe('useProtectedRequest', () => {
 
     await expect(result.current.execute(operation)).resolves.toEqual(success);
     expect(operation).toHaveBeenCalledOnce();
-    expect(router.refresh).not.toHaveBeenCalled();
+    expect(refreshSession).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -108,10 +106,10 @@ describe('useProtectedRequest', () => {
     const operation = vi.fn().mockResolvedValue(failure);
 
     await expect(result.current.execute(operation)).resolves.toEqual(failure);
-    expect(router.refresh).not.toHaveBeenCalled();
+    expect(refreshSession).not.toHaveBeenCalled();
   });
 
-  it('recovers a rejected mutation without automatically submitting it again', async () => {
+  it('does not replay a mutation when the session has ended', async () => {
     const { result } = renderHook(() => useProtectedRequest(), {
       wrapper: Wrapper,
     });
@@ -122,20 +120,21 @@ describe('useProtectedRequest', () => {
       pending = result.current.execute(operation);
     });
 
-    expect(router.refresh).toHaveBeenCalledOnce();
+    expect(refreshSession).toHaveBeenCalledOnce();
     expect(result.current.isRecoveringSession).toBe(true);
     expect(operation).toHaveBeenCalledOnce();
 
     await act(async () => {
-      refresh.resolve(undefined);
-      await refresh.promise;
+      recovery.resolve({ status: OPERATION_STATUS.success, data: SESSION_REFRESH_OUTCOME.ended });
+      await recovery.promise;
     });
 
     await expect(pending).resolves.toBeNull();
     expect(operation).toHaveBeenCalledOnce();
+    expect(router.refresh).toHaveBeenCalledOnce();
   });
 
-  it('retries an opted-in query once after the refreshed session is ready', async () => {
+  it('retries a rejected operation once after the server renews the session', async () => {
     const { result } = renderHook(() => useProtectedRequest(), {
       wrapper: Wrapper,
     });
@@ -145,19 +144,19 @@ describe('useProtectedRequest', () => {
     let pending!: ReturnType<typeof result.current.execute>;
 
     await act(async () => {
-      pending = result.current.execute(operation, { retryAfterRecovery: true });
+      pending = result.current.execute(operation);
     });
 
     expect(operation).toHaveBeenCalledOnce();
 
     await act(async () => {
-      refresh.resolve(undefined);
-      await refresh.promise;
+      recovery.resolve(renewed);
+      await recovery.promise;
     });
 
     await expect(pending).resolves.toEqual(success);
     expect(operation).toHaveBeenCalledTimes(2);
-    expect(router.refresh).toHaveBeenCalledOnce();
+    expect(refreshSession).toHaveBeenCalledOnce();
   });
 
   it('returns a second authentication failure without starting a recovery loop', async () => {
@@ -168,16 +167,16 @@ describe('useProtectedRequest', () => {
     let pending!: ReturnType<typeof result.current.execute>;
 
     await act(async () => {
-      pending = result.current.execute(operation, { retryAfterRecovery: true });
+      pending = result.current.execute(operation);
     });
     await act(async () => {
-      refresh.resolve(undefined);
-      await refresh.promise;
+      recovery.resolve(renewed);
+      await recovery.promise;
     });
 
     await expect(pending).resolves.toEqual(authenticationFailure);
     expect(operation).toHaveBeenCalledTimes(2);
-    expect(router.refresh).toHaveBeenCalledOnce();
+    expect(refreshSession).toHaveBeenCalledOnce();
   });
 
   it('does not start an already aborted request', async () => {
@@ -192,7 +191,7 @@ describe('useProtectedRequest', () => {
       signal: controller.signal,
     })).resolves.toBeNull();
     expect(operation).not.toHaveBeenCalled();
-    expect(router.refresh).not.toHaveBeenCalled();
+    expect(refreshSession).not.toHaveBeenCalled();
   });
 
   it('ignores an authentication response after its request was aborted', async () => {
@@ -209,7 +208,7 @@ describe('useProtectedRequest', () => {
     response.resolve(authenticationFailure);
 
     await expect(pending).resolves.toBeNull();
-    expect(router.refresh).not.toHaveBeenCalled();
+    expect(refreshSession).not.toHaveBeenCalled();
   });
 
   it('does not retry a query aborted while the session is being recovered', async () => {
@@ -223,13 +222,12 @@ describe('useProtectedRequest', () => {
     await act(async () => {
       pending = result.current.execute(operation, {
         signal: controller.signal,
-        retryAfterRecovery: true,
       });
     });
     controller.abort();
     await act(async () => {
-      refresh.resolve(undefined);
-      await refresh.promise;
+      recovery.resolve(renewed);
+      await recovery.promise;
     });
 
     await expect(pending).resolves.toBeNull();
@@ -247,7 +245,7 @@ describe('useProtectedRequest', () => {
     response.resolve(authenticationFailure);
 
     await expect(pending).resolves.toBeNull();
-    expect(router.refresh).not.toHaveBeenCalled();
+    expect(refreshSession).not.toHaveBeenCalled();
   });
 
   it('ignores a previous activity generation even after the route becomes visible again', async () => {
@@ -262,7 +260,7 @@ describe('useProtectedRequest', () => {
     response.resolve(authenticationFailure);
 
     await expect(pending).resolves.toBeNull();
-    expect(router.refresh).not.toHaveBeenCalled();
+    expect(refreshSession).not.toHaveBeenCalled();
     await expect(result.current.execute(async () => success)).resolves.toEqual(
       success,
     );
@@ -277,7 +275,7 @@ describe('useProtectedRequest', () => {
     await expect(result.current.execute(operation)).rejects.toThrow(
       'Invalid API configuration',
     );
-    expect(router.refresh).not.toHaveBeenCalled();
+    expect(refreshSession).not.toHaveBeenCalled();
   });
 
   it('ignores a rejected request after its activity was hidden', async () => {
@@ -291,6 +289,6 @@ describe('useProtectedRequest', () => {
     response.reject(new Error('Request no longer relevant'));
 
     await expect(pending).resolves.toBeNull();
-    expect(router.refresh).not.toHaveBeenCalled();
+    expect(refreshSession).not.toHaveBeenCalled();
   });
 });

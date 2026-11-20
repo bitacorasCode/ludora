@@ -17,6 +17,7 @@ const { redirect } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/auth', () => ({ getCurrentUser: vi.fn() }));
+vi.mock('@/lib/session', () => ({ getRefreshToken: vi.fn() }));
 vi.mock('@/i18n/navigation', () => ({ redirect }));
 vi.mock('next-intl', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next-intl')>()),

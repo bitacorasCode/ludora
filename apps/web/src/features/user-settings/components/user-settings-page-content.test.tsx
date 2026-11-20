@@ -8,6 +8,8 @@ import { SessionBoundary } from '@/components/auth';
 import { NavigationGuardProvider } from '@/components/navigation';
 import { type ActionResult, OPERATION_STATUS } from '@/lib/actions';
 import { API_ERROR_CODES, HTTP_STATUS } from '@/lib/api/constants';
+import { refreshSession } from '@/lib/session/actions';
+import { SESSION_REFRESH_OUTCOME } from '@/lib/session/refresh-result';
 import esMessages from '@/messages/es.json';
 
 import { currentUser } from '../../../../test/fixtures/current-user';
@@ -20,6 +22,10 @@ vi.mock('next/navigation', async (importOriginal) => ({
   useRouter: () => router,
 }));
 vi.mock('../actions', () => ({ changePassword: vi.fn(), requestPasswordCreation: vi.fn() }));
+vi.mock('@/lib/session/actions', () => ({
+  refreshSession: vi.fn(),
+  recordSessionActivity: vi.fn(),
+}));
 
 const messages = esMessages.UserSettings.password;
 
@@ -51,6 +57,10 @@ beforeEach(() => {
   vi.mocked(changePassword).mockReset().mockResolvedValue({ status: OPERATION_STATUS.success, data: null });
   vi.mocked(requestPasswordCreation).mockReset().mockResolvedValue({ status: OPERATION_STATUS.success, data: null });
   router.refresh.mockReset();
+  vi.mocked(refreshSession).mockReset().mockResolvedValue({
+    status: OPERATION_STATUS.success,
+    data: SESSION_REFRESH_OUTCOME.renewed,
+  });
   vi.spyOn(toast, 'success').mockReturnValue('password-changed');
   vi.spyOn(toast, 'error').mockReturnValue('password-change-error');
   vi.spyOn(toast, 'dismiss').mockReturnValue('password-change-error');
@@ -181,8 +191,8 @@ describe('UserSettingsPageContent', () => {
     expect(changePassword).not.toHaveBeenCalled();
   });
 
-  it('rechecks an expired session without replaying the password change or showing an error toast', async () => {
-    vi.mocked(changePassword).mockResolvedValue({
+  it('renews an expired session and completes the password change on the same submission', async () => {
+    vi.mocked(changePassword).mockResolvedValueOnce({
       status: OPERATION_STATUS.error,
       error: { errorCode: API_ERROR_CODES.authenticationRequired, statusCode: HTTP_STATUS.unauthorized },
     });
@@ -192,10 +202,12 @@ describe('UserSettingsPageContent', () => {
     fireEvent.click(screen.getByRole('button', { name: messages.form.submit }));
 
     await waitFor(() => expect(router.refresh).toHaveBeenCalledOnce());
-    await waitFor(() => expect(screen.getByRole('button', { name: messages.form.submit }).matches(':disabled')).toBe(false));
-    expect(changePassword).toHaveBeenCalledOnce();
+    await waitFor(() => expect(screen.queryByRole('form')).toBeNull());
+    expect(refreshSession).toHaveBeenCalledOnce();
+    expect(changePassword).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(changePassword).mock.calls[1]).toEqual(vi.mocked(changePassword).mock.calls[0]);
     expect(toast.error).not.toHaveBeenCalled();
-    expect(toast.success).not.toHaveBeenCalled();
+    expect(toast.success).toHaveBeenCalledOnce();
   });
 
   it('preserves the form after a network failure and uses the existing error toast', async () => {

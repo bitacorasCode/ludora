@@ -9,6 +9,7 @@ import { AUTH_NEXT_STEP } from '@/lib/auth/constants';
 import { createSession } from '@/lib/session';
 import esMessages from '@/messages/es.json';
 
+import { sessionCredentials } from '../../../test/fixtures/session-credentials';
 import { loginUser } from './actions';
 
 vi.mock('next-intl/server', () => ({ getTranslations: vi.fn() }));
@@ -39,7 +40,7 @@ beforeEach(() => {
     status: OPERATION_STATUS.success,
     data: {
       nextStep: AUTH_NEXT_STEP.authenticated,
-      accessToken: 'test-access-token',
+      ...sessionCredentials,
     },
   });
 });
@@ -54,7 +55,10 @@ describe('loginUser', () => {
       '/auth/login',
       validData,
     );
-    expect(createSession).toHaveBeenCalledExactlyOnceWith('test-access-token');
+    expect(createSession).toHaveBeenCalledExactlyOnceWith({
+      nextStep: AUTH_NEXT_STEP.authenticated,
+      ...sessionCredentials,
+    });
   });
 
   it('returns the pending verification without creating a session', async () => {

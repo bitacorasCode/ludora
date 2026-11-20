@@ -241,9 +241,8 @@ The public user selection remains unchanged and excludes the counter.
 
 JWTs without `authVersion` are rejected.
 
-Deferred test work includes wiring the session service into the authentication
-fixtures and covering session-bound JWT issuance and guard rejection after
-revocation.
+Authentication tests cover session creation during credential issuance and
+guard rejection after revocation.
 
 ## Authenticated password changes
 

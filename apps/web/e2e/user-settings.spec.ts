@@ -189,7 +189,6 @@ test.describe('Account settings', () => {
           const restoredSession = await restored.json();
           expect(restoredSession.user.id).toBe(testAccount.id);
           expect(typeof restoredSession.accessToken === 'string', 'The restored session must include a token').toBe(true);
-          testAccount.accessToken = restoredSession.accessToken;
         }
       }
     }

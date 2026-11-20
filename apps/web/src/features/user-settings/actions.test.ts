@@ -9,6 +9,7 @@ import { createSession } from '@/lib/session';
 import esMessages from '@/messages/es.json';
 
 import { currentUser } from '../../../test/fixtures/current-user';
+import { sessionCredentials } from '../../../test/fixtures/session-credentials';
 import { changePassword, requestPasswordCreation } from './actions';
 
 vi.mock('@/features/password-recovery/actions', () => ({ requestPasswordRecovery: vi.fn() }));
@@ -43,7 +44,7 @@ beforeEach(() => {
   vi.mocked(requestPasswordRecovery).mockResolvedValue({ status: OPERATION_STATUS.success, data: null });
   vi.mocked(authenticatedApi.post).mockResolvedValue({
     status: OPERATION_STATUS.success,
-    data: { accessToken: 'rotated-token', user: currentUser },
+    data: { ...sessionCredentials, user: { id: currentUser.id } },
   });
 });
 
@@ -82,7 +83,7 @@ describe('changePassword', () => {
       currentPassword: validData.currentPassword,
       password: validData.newPassword,
     });
-    expect(createSession).toHaveBeenCalledExactlyOnceWith('rotated-token');
+    expect(createSession).toHaveBeenCalledExactlyOnceWith({ ...sessionCredentials, user: { id: currentUser.id } });
   });
 
   it.each([
@@ -141,7 +142,7 @@ describe('changePassword', () => {
     {},
     { accessToken: '' },
     { accessToken: 'rotated-token' },
-    { accessToken: 'rotated-token', user: { id: otherUserId } },
+    { ...sessionCredentials, user: { id: otherUserId } },
   ])('keeps the current cookie when the server response is invalid: %j', async (data) => {
     vi.mocked(authenticatedApi.post).mockResolvedValue({ status: OPERATION_STATUS.success, data });
 

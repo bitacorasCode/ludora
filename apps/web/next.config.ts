@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from 'next-intl/plugin';
 
 import { ENV_ENABLED_FLAG } from './src/config/environment';
+import { routing } from './src/i18n/routing';
 
 const NEXT_OUTPUT_DIRECTORIES = {
     app: '.next',
@@ -18,6 +19,17 @@ const nextConfig: NextConfig = {
     experimental: {
         agentUpgrade: 'security',
         globalNotFound: true,
+    },
+    async rewrites() {
+        return {
+            afterFiles: [
+                {
+                    // Keep missing root files from being interpreted as a locale.
+                    source: '/:file([^/]*\\.[^/]*)',
+                    destination: `/${routing.defaultLocale}/:file`,
+                },
+            ],
+        };
     },
     turbopack: {
         rules: {

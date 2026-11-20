@@ -6,22 +6,26 @@ import { expect, test as base } from '@playwright/test';
 import { z } from 'zod';
 
 import { MILLISECONDS_PER_SECOND } from '../../src/lib/time/constants';
-import { E2E_API_URL as API_URL, E2E_PROXY_URL as PROXY_URL } from '../config';
+import {
+  E2E_API_URL as API_URL,
+  E2E_CLIENT_IP_HEADER,
+  E2E_PROXY_URL as PROXY_URL,
+} from '../config';
 import { deleteVerificationEmails, waitForVerificationEmail } from './mailpit';
 
 export { API_URL, PROXY_URL };
 export const SESSION_COOKIE = 'ludora_session';
+export const REFRESH_COOKIE = 'ludora_refresh';
 const ACCOUNT_FIXTURE_TIMEOUT_MS = 10_000;
 const JWT_PAYLOAD_INDEX = 1;
-const TOKEN_RENEWAL_MARGIN_SECONDS = 60;
 
 export type TestCredentials = {
   email: string;
   nickname: string;
   password: string;
 };
-type TestAccount = TestCredentials & { id: string; accessToken: string };
-type PendingAccount = Omit<TestAccount, 'accessToken'> & {
+type TestAccount = TestCredentials & { id: string };
+type PendingAccount = TestAccount & {
   verificationId: string;
   resendAvailableAt: string;
 };
@@ -36,6 +40,8 @@ const registrationSchema = z.object({
 });
 const verifiedAccountSchema = z.object({
   accessToken: z.string().min(1),
+  refreshToken: z.base64url().min(1),
+  absoluteExpiresAt: z.iso.datetime(),
   user: z.object({ id: z.uuid() }),
 });
 const accessTokenPayloadSchema = z.object({
@@ -56,6 +62,11 @@ function getTokenExpiresAtSeconds(accessToken: string): number {
   }
 
   return accessTokenPayloadSchema.parse(data).exp;
+}
+
+function createTestClientIp() {
+  const groups = randomUUID().replaceAll('-', '').match(/.{4}/gu)!;
+  return `2001:db8:${groups.slice(2).join(':')}`;
 }
 
 function createCredentials(): TestCredentials {
@@ -100,15 +111,25 @@ export function expirePasswordReset(account: TestAccount) {
 
 export const test = base.extend<
   {
+    clientIp: string;
     apiMode: (mode: 'healthy' | 'unavailable' | 'delayed') => Promise<void>;
     registrationAccount: TestCredentials;
     pendingAccount: PendingAccount;
   },
   { testAccount: TestAccount }
 >({
+  clientIp: async ({}, provide) => {
+    await provide(createTestClientIp());
+  },
+  extraHTTPHeaders: async ({ clientIp }, provide) => {
+    await provide({ [E2E_CLIENT_IP_HEADER]: clientIp });
+  },
   testAccount: [
     async ({ playwright }, provide) => {
-      const api = await playwright.request.newContext({ baseURL: API_URL });
+      const api = await playwright.request.newContext({
+        baseURL: API_URL,
+        extraHTTPHeaders: { [E2E_CLIENT_IP_HEADER]: createTestClientIp() },
+      });
       const credentials = createCredentials();
       let id: string | undefined;
       try {
@@ -123,7 +144,7 @@ export const test = base.extend<
         expect(confirmation.status()).toBe(200);
         const authenticated = verifiedAccountSchema.parse(await confirmation.json());
         expect(authenticated.user.id).toBe(id);
-        await provide({ ...credentials, id, accessToken: authenticated.accessToken });
+        await provide({ ...credentials, id });
       } finally {
         try {
           await runAccountFixture('delete', { ...credentials, id });
@@ -171,52 +192,54 @@ export const test = base.extend<
     });
   },
 
-  storageState: async ({ playwright, testAccount }, provide, testInfo) => {
+  storageState: async ({ playwright, testAccount, extraHTTPHeaders }, provide, testInfo) => {
     if (testInfo.project.name !== 'signed-in') {
       await provide({ cookies: [], origins: [] });
       return;
     }
-    let expiresAtSeconds = getTokenExpiresAtSeconds(testAccount.accessToken);
-    const nowSeconds = Math.floor(Date.now() / MILLISECONDS_PER_SECOND);
 
-    if (expiresAtSeconds <= nowSeconds + TOKEN_RENEWAL_MARGIN_SECONDS) {
-      const api = await playwright.request.newContext({ baseURL: API_URL });
-      try {
-        const response = await api.post('/auth/login', {
-          data: { email: testAccount.email, password: testAccount.password },
-        });
-        expect(response.status()).toBe(200);
-        const authenticated = verifiedAccountSchema.parse(await response.json());
-        expect(authenticated.user.id).toBe(testAccount.id);
-        testAccount.accessToken = authenticated.accessToken;
-        expiresAtSeconds = getTokenExpiresAtSeconds(testAccount.accessToken);
-      } finally {
-        await api.dispose();
-      }
+    const api = await playwright.request.newContext({ baseURL: API_URL, extraHTTPHeaders });
+    const scope = {
+      domain: 'localhost',
+      path: '/',
+      httpOnly: true,
+      secure: false,
+      sameSite: 'Lax',
+    } as const;
+    try {
+      const response = await api.post('/auth/login', {
+        data: { email: testAccount.email, password: testAccount.password },
+      });
+      expect(response.status()).toBe(200);
+      const session = verifiedAccountSchema.parse(await response.json());
+      expect(session.user.id).toBe(testAccount.id);
+      await provide({
+        cookies: [
+          {
+            ...scope,
+            name: SESSION_COOKIE,
+            value: session.accessToken,
+            expires: getTokenExpiresAtSeconds(session.accessToken),
+          },
+          {
+            ...scope,
+            name: REFRESH_COOKIE,
+            value: session.refreshToken,
+            expires: Date.parse(session.absoluteExpiresAt) / MILLISECONDS_PER_SECOND,
+          },
+        ],
+        origins: [],
+      });
+    } finally {
+      await api.dispose();
     }
-
-    await provide({
-      cookies: [
-        {
-          name: SESSION_COOKIE,
-          value: testAccount.accessToken,
-          domain: 'localhost',
-          path: '/',
-          httpOnly: true,
-          secure: false,
-          sameSite: 'Lax',
-          expires: expiresAtSeconds,
-        },
-      ],
-      origins: [],
-    });
   },
 
   apiMode: [
-    async ({ request }, provide) => {
+    async ({ request, clientIp }, provide) => {
       const setMode = async (mode: 'healthy' | 'unavailable' | 'delayed') => {
         const response = await request.post(`${PROXY_URL}/__control`, {
-          data: { mode },
+          data: { mode, clientIp },
         });
         expect(response.ok()).toBe(true);
       };

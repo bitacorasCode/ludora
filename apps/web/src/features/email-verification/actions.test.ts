@@ -8,6 +8,7 @@ import { API_ERROR_CODES, HTTP_STATUS, publicApi } from '@/lib/api';
 import { createSession } from '@/lib/session';
 import esMessages from '@/messages/es.json';
 
+import { sessionCredentials } from '../../../test/fixtures/session-credentials';
 import { resendVerification, verifyEmail } from './actions';
 
 vi.mock('next-intl/server', () => ({ getTranslations: vi.fn() }));
@@ -48,7 +49,7 @@ describe('verifyEmail', () => {
   beforeEach(() => {
     vi.mocked(publicApi.post).mockResolvedValue({
       status: OPERATION_STATUS.success,
-      data: { accessToken: 'test-access-token' },
+      data: sessionCredentials,
     });
   });
 
@@ -58,7 +59,7 @@ describe('verifyEmail', () => {
       data: null,
     });
     expect(publicApi.post).toHaveBeenCalledExactlyOnceWith('/auth/verify-email', validData);
-    expect(createSession).toHaveBeenCalledExactlyOnceWith('test-access-token');
+    expect(createSession).toHaveBeenCalledExactlyOnceWith(sessionCredentials);
   });
 
   it('trims the code before sending it to the API', async () => {

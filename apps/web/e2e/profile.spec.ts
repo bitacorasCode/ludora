@@ -1,5 +1,5 @@
 import esMessages from '../src/messages/es.json';
-import { API_URL, expect, SESSION_COOKIE, test } from './fixtures/auth';
+import { API_URL, expect, REFRESH_COOKIE, SESSION_COOKIE, test } from './fixtures/auth';
 
 test.beforeEach(async ({ context, request, testAccount }) => {
   const session = (await context.cookies()).find(
@@ -215,6 +215,8 @@ test.describe('Profile persistence', () => {
 
     await page.goBack();
     await expect(page).toHaveURL('/es/games');
+    await expect(page.getByRole('heading', { name: esMessages.Catalog.title, exact: true })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: esMessages.Profile.edit })).toBeHidden();
     await expect(page.getByRole('alertdialog')).toHaveCount(0);
 
     await page.goForward();
@@ -325,7 +327,28 @@ test.describe('Profile persistence', () => {
     await expect(page.getByRole('alertdialog')).toHaveCount(0);
   });
 
-  test('recovers an expired session without a profile error toast or discard dialog', async ({
+  test('renews the access cookie and saves after one submission', async ({ page, context }) => {
+    await page.goto('/es/account/profile');
+    const before = await context.cookies();
+    const refreshToken = before.find(({ name }) => name === REFRESH_COOKIE)?.value;
+    expect(refreshToken).toBeDefined();
+    await page.getByRole('button', { name: esMessages.Profile.edit }).click();
+    const draft = 'Cambio guardado tras renovar la sesión';
+    await page.getByRole('textbox', { name: esMessages.Profile.bio.label }).fill(draft);
+    await context.clearCookies({ name: SESSION_COOKIE });
+    await page.getByRole('button', { name: esMessages.Common.actions.saveChanges }).click();
+
+    await expect(page.getByText(esMessages.Profile.saved, { exact: true })).toBeVisible();
+    await expect(page.getByText(draft, { exact: true })).toBeVisible();
+    const cookies = await context.cookies();
+    expect(cookies.find(({ name }) => name === SESSION_COOKIE)?.httpOnly).toBe(true);
+    const refreshCookie = cookies.find(({ name }) => name === REFRESH_COOKIE);
+    expect(refreshCookie?.httpOnly).toBe(true);
+    expect(refreshCookie?.value).not.toBe(refreshToken);
+    await expect(page.getByText(esMessages.Profile.saveError, { exact: true })).toHaveCount(0);
+  });
+
+  test('returns to login without a profile error toast when both session cookies are gone', async ({
     page,
     context,
   }) => {
@@ -334,6 +357,7 @@ test.describe('Profile persistence', () => {
     await page.getByRole('textbox', { name: esMessages.Profile.bio.label })
       .fill('Cambio pendiente');
     await context.clearCookies({ name: SESSION_COOKIE });
+    await context.clearCookies({ name: REFRESH_COOKIE });
     await page.getByRole('button', { name: esMessages.Common.actions.saveChanges }).click();
 
     await expect(page).toHaveURL('/es/login');

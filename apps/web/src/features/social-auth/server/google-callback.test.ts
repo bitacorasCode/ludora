@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OPERATION_STATUS } from '@/lib/actions';
 import { HTTP_STATUS, publicApi } from '@/lib/api';
 
+import { sessionCredentials } from '../../../../test/fixtures/session-credentials';
 import { SOCIAL_AUTH_QUERY_PARAMS } from '../config';
 import { SOCIAL_AUTH_ENDPOINTS } from './config';
 import { handleGoogleCallback } from './google-callback';
@@ -17,9 +18,9 @@ vi.mock('@/lib/api', async () => ({
 }));
 
 const flow = { flowToken: 'signed-flow-context', state: 'expected-state', locale: 'es' } as const;
-const accessToken = 'private-access-token';
 const cookieNames = {
   session: 'ludora_session',
+  refresh: 'ludora_refresh',
   flow: 'ludora_oauth_flow',
   registration: 'ludora_oauth_registration',
 };
@@ -35,7 +36,7 @@ beforeEach(() => {
   cookieStore.get.mockReturnValue({ value: JSON.stringify(flow) });
   vi.mocked(publicApi.post).mockResolvedValue({
     status: OPERATION_STATUS.success,
-    data: { nextStep: AUTH_NEXT_STEP.authenticated, accessToken },
+    data: { nextStep: AUTH_NEXT_STEP.authenticated, ...sessionCredentials },
   });
 });
 
@@ -61,10 +62,14 @@ describe('Google browser callback', () => {
       responseParameters: request.nextUrl.searchParams.toString(),
     }, { signal: request.signal });
     expect(cookieStore.set).toHaveBeenCalledWith(cookieNames.flow, '', expect.objectContaining({ maxAge: 0 }));
-    expect(cookieStore.set).toHaveBeenCalledWith(cookieNames.session, accessToken, expect.objectContaining({
+    expect(cookieStore.set).toHaveBeenCalledWith(cookieNames.session, sessionCredentials.accessToken, expect.objectContaining({
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
+    }));
+    expect(cookieStore.set).toHaveBeenCalledWith(cookieNames.refresh, sessionCredentials.refreshToken, expect.objectContaining({
+      httpOnly: true,
+      expires: new Date(sessionCredentials.absoluteExpiresAt),
     }));
     expect(response.headers.get('Location')).toBe('/es');
     expect(response.headers.get('Cache-Control')).toBe('private, no-store');
@@ -90,7 +95,8 @@ describe('Google browser callback', () => {
       JSON.stringify({ registrationToken: registration.registrationToken, locale: flow.locale }),
       expect.objectContaining({ httpOnly: true, expires: new Date(registration.expiresAt) }),
     );
-    expect(cookieStore.delete).toHaveBeenCalledExactlyOnceWith(cookieNames.session);
+    expect(cookieStore.set).toHaveBeenCalledWith(cookieNames.session, '', expect.objectContaining({ maxAge: 0 }));
+    expect(cookieStore.set).toHaveBeenCalledWith(cookieNames.refresh, '', expect.objectContaining({ maxAge: 0 }));
     expect(response.headers.get('Location')).toBe('/es/complete-registration');
     expect(await response.text()).toBe('');
   });

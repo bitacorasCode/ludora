@@ -191,17 +191,11 @@ before logging or mapping application errors. This preserves framework control
 flow for prerendering, redirects, and missing routes; those signals are not API
 outages or expired sessions.
 
-Deferred coverage: session reads during partial prefetching and authenticated
-navigation, including the `io()` boundary and per-render memoization.
-Mobile header coverage should exercise opening the menu as account links stream
-in and closing it by following a link.
-Session fixtures need the refresh credential and deadlines. Cookie replacement
-and failed logout handling are also deferred until testing is requested. The
-renewal checks should cover direct account entry, Home and guest-only
-navigation, guest header links after losing credentials, early renewal on
-activity, immediate header updates after login and logout in another tab,
-logout during refresh, a single retry of reads and writes after authentication
-rejection, and preservation of cookies on temporary errors.
+Tests cover replacement and removal of both cookies, a single retry after
+confirmed authentication rejection, and header updates on login and logout
+across tabs. Deferred coverage includes session reads during partial
+prefetching, early renewal on activity, logout during refresh, and failed
+renewals that preserve the current cookies.
 
 The recovery request returns a generic confirmation without exposing whether an
 account exists. Reset links are validated on submission, are single-use, and
@@ -317,6 +311,11 @@ helpers in `i18n/navigation` to preserve the locale. The language preference use
 the next-intl cookie; the theme preference uses next-themes browser persistence.
 Their controls belong to the preferences feature.
 
+`app/global-not-found.tsx` renders the shared English 404 for unmatched URLs.
+An `afterFiles` rewrite prefixes missing root-level paths containing a dot
+with the default locale for routing. This prevents `[locale]` from treating
+the filename as a locale and leaves the requested URL unchanged.
+
 Keep matching translation keys in `messages/en.json` and `messages/es.json`,
 sorted alphabetically at every level. Group related labels under meaningful
 objects and keep feature-specific errors with their feature. Code, comments,
@@ -358,11 +357,17 @@ Run a targeted suite with a path relative to `apps/web`:
 pnpm --filter web test src/components/navigation/navigation-guard-provider.test.tsx
 ```
 
+If a dependency upgrade leaves stale imports in Vitest's module cache, clear
+it with `pnpm --filter web exec vitest --clearCache`.
+
 Coverage reports are written to `apps/web/coverage`, including
 `coverage/index.html`. Real navigation, layout, and browser lifecycle behavior
 are covered by Playwright rather than jsdom alone.
 
 ### Browser tests
+
+Deferred: update the browser assertions to expect the shared English 404 for
+unknown localized routes and missing root-level files.
 
 Authentication and profile scenarios use the real Nest API, local PostgreSQL,
 and Mailpit. Complete the root setup and apply the existing migrations first.
@@ -374,14 +379,8 @@ pnpm --filter web exec playwright install chromium
 pnpm --filter web test:e2e
 ```
 
-The API mail configuration must select Mailpit: `MAIL_PROVIDER="smtp"`,
-`SMTP_HOST="127.0.0.1"`, `SMTP_PORT="1025"`, and `SMTP_SECURE="false"`.
-
-Deferred follow-up: Playwright's API server currently inherits mail settings from
-the API environment. Before the next explicitly requested browser-test run, pin
-the provider, local SMTP settings, and a local test sender in Playwright's server
-configuration, and clear the inherited Resend key. This isolation update is
-pending; the tests have not been adapted to the new provider selector yet.
+Playwright configures the test API to send mail to Mailpit and puts the browser
+test origin in password reset links. The test API uses a local database.
 
 Useful focused commands:
 
@@ -393,8 +392,9 @@ pnpm --filter web test:e2e e2e/user-settings.spec.ts --project=signed-in
 ```
 
 Playwright runs one worker. Each run starts a dedicated Nest process, an isolated
-web server, and a test-only API proxy. It does not reuse the development API on
-`3001`, so test requests have their own in-memory rate-limit counters:
+web server, and a test-only API proxy. Each scenario uses its own simulated
+client IP with the real rate limiter, so earlier scenarios cannot exhaust its
+request allowance.
 
 | Service               | Address                 |
 | --------------------- | ----------------------- |
@@ -423,14 +423,9 @@ Account settings tests cover the read-only email, dirty-editor cancellation,
 current-password rejection, session renewal, and invalidation of old JWTs. The
 password-change scenario restores only its temporary test account afterward.
 
-The fixture reuses the JWT issued when its temporary account is verified instead
-of logging in before every test. It uses the token's actual expiration and renews
-it only when needed. Password-change cleanup replaces that cached token after
-restoring the temporary password. The dedicated API still applies the real limits;
-large or repeated flows within one run can return `429`. Respect the server's
-waiting period rather than lowering application limits for tests. Both API
-processes use the configured local database, while fixtures change only their
-temporary accounts.
+The signed-in fixture reuses a verified temporary account and creates a fresh
+session per test. It installs both credential cookies using the deadlines
+returned by the API, so a rotation or revocation cannot affect a later test.
 
 Open the report after a run:
 
