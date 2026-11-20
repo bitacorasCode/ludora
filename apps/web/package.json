@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "branding:generate": "node scripts/generate-branding.mjs",
     "dev": "next dev",
-    "build": "next build",
+    "build": "pnpm branding:generate && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",

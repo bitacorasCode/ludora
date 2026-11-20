@@ -146,6 +146,18 @@
 }
 
 @layer components {
+  [data-ludora-brand] {
+    --brand-foreground: var(--brand-light-foreground);
+    --brand-accent: var(--brand-light-accent);
+    --brand-background: var(--brand-light-background);
+  }
+
+  .dark [data-ludora-brand] {
+    --brand-foreground: var(--brand-dark-foreground);
+    --brand-accent: var(--brand-dark-accent);
+    --brand-background: var(--brand-dark-background);
+  }
+
   [data-slot='card'][data-variant='hero'] {
     background-image:
       radial-gradient(

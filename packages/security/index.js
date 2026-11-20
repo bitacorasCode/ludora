@@ -22,6 +22,7 @@ export const AUTH_ERROR_CODES = Object.freeze({
     authenticationRequired: 'AUTHENTICATION_REQUIRED',
     invalidToken: 'AUTH_INVALID_TOKEN',
     invalidTokenPayload: 'AUTH_INVALID_TOKEN_PAYLOAD',
+    refreshTokenAlreadyRotated: 'AUTH_REFRESH_TOKEN_ALREADY_ROTATED',
     emailAlreadyExists: 'AUTH_EMAIL_ALREADY_EXISTS',
     emailNotVerified: 'AUTH_EMAIL_NOT_VERIFIED',
     emailVerificationInvalid: 'AUTH_EMAIL_VERIFICATION_INVALID',

@@ -3,6 +3,7 @@ import 'server-only';
 import { useTranslations } from 'next-intl';
 import { Suspense } from 'react';
 
+import { LudoraLogo } from '@/components/branding/ludora-logo';
 import { SideMenu } from '@/components/overlays';
 import { Button, Skeleton } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
@@ -27,15 +28,9 @@ export function Header() {
         aria-label={t('navigation.main')}
         className='mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8'
       >
-        <Button asChild variant='link' size='sm'>
-          <Link href={APP_ROUTES.home}>
-            <span
-              aria-hidden='true'
-              className='grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground'
-            >
-              L
-            </span>
-            <span>Ludora</span>
+        <Button asChild variant='link'>
+          <Link href={APP_ROUTES.home} aria-label='Ludora'>
+            <LudoraLogo aria-hidden='true' className='size-8 w-36' />
           </Link>
         </Button>
 

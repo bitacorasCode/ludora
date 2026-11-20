@@ -24,6 +24,7 @@ export declare const AUTH_ERROR_CODES: Readonly<{
     authenticationRequired: string;
     invalidToken: string;
     invalidTokenPayload: string;
+    refreshTokenAlreadyRotated: string;
     emailAlreadyExists: string;
     emailNotVerified: string;
     emailVerificationInvalid: string;

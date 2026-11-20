@@ -95,6 +95,22 @@ from its root `index.ts`; keep internal dependencies direct to avoid circular
 imports. Server-only modules use `server-only` and must stay out of client import
 graphs.
 
+## Branding
+
+The logo artwork and its light and dark palettes live in
+[`ludora-logo.tsx`](src/components/branding/ludora-logo.tsx). The header renders
+the component directly. The favicons and standalone logos in `public/branding`
+are generated from the same component.
+
+After updating the artwork or palette, run the following from the monorepo root:
+
+```bash
+pnpm --filter web branding:generate
+```
+
+Commit the regenerated SVGs with the source change. The production build also
+regenerates them before running Next.
+
 ## Authentication and API access
 
 The normal request path is:
@@ -110,8 +126,10 @@ authorization on protected operations.
 
 - `lib/api` provides public and authenticated JSON clients. The authenticated
   client reads the session on the server and adds the bearer token.
-- `lib/session` manages the `HttpOnly`, `SameSite=Lax` session cookie. It also
-  marks the cookie `Secure` in production. Tokens are not stored in local storage.
+- `lib/session` stores the access and refresh tokens in separate `HttpOnly`,
+  `SameSite=Lax` cookies. Both are `Secure` in production, where the refresh
+  cookie uses the `__Host-` prefix. The refresh cookie expires at the absolute
+  deadline returned by Nest.
 - Registration creates an unverified account. Successful verification creates
   the session; logging in with valid credentials for an unverified account
   returns the user to the verification flow.
@@ -122,13 +140,17 @@ authorization on protected operations.
   does not defer later clock-dependent work. Authentication failures return `null`;
   connection failures and invalid API responses remain errors rather than being
   treated as guest access.
-- The account layout redirects guests to login. `SessionBoundary` and
-  `useProtectedRequest` handle authentication failures during later client
-  interactions by refreshing the server tree. Reads may opt into one retry;
-  writes are not automatically repeated.
-- Logout deletes the Next session cookie. It does not revoke copies of the JWT
-  held elsewhere. Password reset and authenticated password changes invalidate
-  previous JWTs through the API.
+- The account layout redirects guests to login. During client interactions,
+  `SessionBoundary` shares one refresh attempt for authentication failures on
+  the same page. A Server Action replaces both cookies after a successful
+  rotation. Reads can opt into one retry. Writes prompt the user to submit again.
+  An explicitly invalid refresh token clears the cookies. Rotation conflicts
+  and service failures preserve the cookies and return actionable feedback.
+- Logout passes the refresh token to Nest to revoke the session, then expires
+  both cookies. A failed revocation shows an error and allows retrying with the
+  existing cookies. Sessions issued before refresh cookies were introduced can
+  still sign out locally. Password reset and authenticated password changes
+  invalidate previous credentials through the API.
 
 Server-side handlers around request APIs and `fetch` use Next's `unstable_rethrow`
 before logging or mapping application errors. This preserves framework control
@@ -137,11 +159,15 @@ outages or expired sessions.
 
 Deferred coverage: session reads during partial prefetching and authenticated
 navigation, including the `io()` boundary and per-render memoization.
+Session fixtures need the refresh credential and deadlines. Cookie replacement
+and failed logout handling are also deferred until testing is requested. The
+renewal checks should cover one shared attempt, opted-in read retries, write
+feedback, and preservation of cookies on temporary errors.
 
 The recovery request returns a generic confirmation without exposing whether an
 account exists. Reset links are validated on submission, are single-use, and
 expire. The reset page uses `noindex` and `no-referrer` metadata. After a successful
-reset, the web app removes the session cookie and returns to login; it does not
+reset, the web app removes both session cookies and returns to login; it does not
 automatically sign the user in.
 
 ### Google sign-in and registration

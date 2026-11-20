@@ -8,6 +8,8 @@ import { NotFoundPageContent } from '@/features/not-found';
 import { routing } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 
+import { ThemeProvider } from './_providers/theme-provider';
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations({
     locale: routing.defaultLocale,
@@ -24,6 +26,7 @@ export default function GlobalNotFound() {
   return (
     <html
       lang={routing.defaultLocale}
+      suppressHydrationWarning
       className={cn(
         'h-full font-sans antialiased',
         geistSans.variable,
@@ -32,9 +35,11 @@ export default function GlobalNotFound() {
       )}
     >
       <body className='min-h-full'>
-        <main>
-          <NotFoundPageContent locale={routing.defaultLocale} />
-        </main>
+        <ThemeProvider>
+          <main>
+            <NotFoundPageContent locale={routing.defaultLocale} />
+          </main>
+        </ThemeProvider>
       </body>
     </html>
   );
