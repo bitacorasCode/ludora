@@ -52,10 +52,10 @@ export function Header() {
           description={t('menu.description')}
           navigationLabel={t('navigation.mobile')}
         >
+          <HeaderLinks isSideMenu />
           <Suspense fallback={sessionFallback}>
             <HeaderAccountLinks isSideMenu />
           </Suspense>
-          <HeaderLinks isSideMenu />
         </SideMenu>
       </nav>
     </header>

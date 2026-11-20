@@ -1,3 +1,4 @@
+import { SESSION_ACTIVITY_INTERVAL_SECONDS } from '@ludora/security';
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
@@ -14,6 +15,12 @@ type SessionForCredentials = Pick<
     'id' | 'userId' | 'authVersion' | 'idleExpiresAt' | 'absoluteExpiresAt'
 >;
 
+function getIdleExpiration(nowMs: number, absoluteExpiresAt: Date) {
+    const idleExpiresAtMs = nowMs + SESSION_CONFIG.idleTimeoutSeconds * MILLISECONDS_PER_SECOND;
+
+    return new Date(Math.min(idleExpiresAtMs, absoluteExpiresAt.getTime()));
+}
+
 @Injectable()
 export class AuthSessionService {
     constructor(
@@ -26,13 +33,12 @@ export class AuthSessionService {
         { id: userId, authVersion }: Pick<User, 'id' | 'authVersion'>,
         transaction?: Prisma.TransactionClient,
     ) {
-        const { idleTimeoutSeconds, absoluteTimeoutSeconds } = SESSION_CONFIG;
+        const { absoluteTimeoutSeconds } = SESSION_CONFIG;
         const createdAt = new Date();
         const createdAtMs = createdAt.getTime();
         const absoluteExpiresAtMs = createdAtMs + absoluteTimeoutSeconds * MILLISECONDS_PER_SECOND;
-        const idleExpiresAtMs = createdAtMs + idleTimeoutSeconds * MILLISECONDS_PER_SECOND;
         const absoluteExpiresAt = new Date(absoluteExpiresAtMs);
-        const idleExpiresAt = new Date(Math.min(idleExpiresAtMs, absoluteExpiresAtMs));
+        const idleExpiresAt = getIdleExpiration(createdAtMs, absoluteExpiresAt);
         const { token: refreshToken, tokenHash: refreshTokenHash } = createOpaqueToken();
 
         const { id: sessionId } = await this.authSessionRepository.create(
@@ -61,6 +67,32 @@ export class AuthSessionService {
         );
 
         return session !== null;
+    }
+
+    async recordActivity(sessionId: string, userId: string, authVersion: number): Promise<void> {
+        const session = await this.authSessionRepository.findActiveById(
+            sessionId,
+            userId,
+            authVersion,
+            new Date(),
+        );
+
+        if (!session) return;
+
+        const now = new Date();
+        const nowMs = now.getTime();
+        const activityBefore = new Date(
+            nowMs - SESSION_ACTIVITY_INTERVAL_SECONDS * MILLISECONDS_PER_SECOND,
+        );
+
+        await this.authSessionRepository.recordActivity({
+            sessionId,
+            userId,
+            authVersion,
+            now,
+            activityBefore,
+            idleExpiresAt: getIdleExpiration(nowMs, session.absoluteExpiresAt),
+        });
     }
 
     revokeByRefreshToken(refreshToken: string): Promise<void> {

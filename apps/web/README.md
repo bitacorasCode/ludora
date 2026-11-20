@@ -140,12 +140,46 @@ authorization on protected operations.
   does not defer later clock-dependent work. Authentication failures return `null`;
   connection failures and invalid API responses remain errors rather than being
   treated as guest access.
-- The account layout redirects guests to login. During client interactions,
+- Each account page checks access before rendering its content. The layout
+  always renders the page segment and adds the account navigation for a
+  verified user. When a request has a refresh cookie and lacks a valid access
+  token, the browser attempts renewal on the requested page. Private content
+  renders after Nest authenticates the request. Temporary failures show a
+  retry control. Requests without recoverable credentials redirect to login.
+  If the shared header still shows an authenticated user on login, it requests
+  a fresh server render once to update both desktop and mobile links.
+- Home renders immediately and attempts session recovery in the background
+  when the access token is invalid and a refresh cookie remains. The header
+  reflects the recovered user after renewal. Guest-only pages wait for the
+  same recovery before displaying their content. A valid session follows each
+  page's existing redirect, and an expired session can proceed as a guest.
+- During client interactions,
   `SessionBoundary` shares one refresh attempt for authentication failures on
   the same page. A Server Action replaces both cookies after a successful
-  rotation. Reads can opt into one retry. Writes prompt the user to submit again.
+  rotation. `useProtectedRequest` retries the original operation once after
+  a confirmed authentication rejection. Use a rejection code before committing
+  any changes, and bind mutations to the user who initiated them. Timeouts and
+  other uncertain outcomes leave the original result in place.
   An explicitly invalid refresh token clears the cookies. Rotation conflicts
   and service failures preserve the cookies and return actionable feedback.
+- Refresh and logout share a browser lock across tabs on the same origin.
+  A waiting tab checks the current access cookie and reuses it when Nest
+  confirms it is valid. Browsers without Web Locks fall back to the API's
+  rotation conflict handling.
+- Creating or ending a session also updates a separate revision cookie that
+  contains a random value. Open tabs use a local storage notification to
+  recheck this revision and refresh the current route, including both menus.
+  Returning to a tab checks the revision as well. Nest remains responsible
+  for authenticating the request, and routine credential rotation does not
+  advance the revision.
+- Pointer and keyboard interactions in a visible account tab report session
+  activity at most once every five minutes while the account stays mounted.
+  A successful report can rotate credentials when the access token has at most
+  ten minutes left. It uses the same browser lock as refresh and logout. If
+  early renewal fails, the browser keeps its current cookies. If the access
+  token has already expired, the report can use shared session recovery and
+  retry once. Opening a tab or rotating credentials alone leaves the idle
+  deadline unchanged.
 - Logout passes the refresh token to Nest to revoke the session, then expires
   both cookies. A failed revocation shows an error and allows retrying with the
   existing cookies. Sessions issued before refresh cookies were introduced can
@@ -159,10 +193,15 @@ outages or expired sessions.
 
 Deferred coverage: session reads during partial prefetching and authenticated
 navigation, including the `io()` boundary and per-render memoization.
+Mobile header coverage should exercise opening the menu as account links stream
+in and closing it by following a link.
 Session fixtures need the refresh credential and deadlines. Cookie replacement
 and failed logout handling are also deferred until testing is requested. The
-renewal checks should cover one shared attempt, opted-in read retries, write
-feedback, and preservation of cookies on temporary errors.
+renewal checks should cover direct account entry, Home and guest-only
+navigation, guest header links after losing credentials, early renewal on
+activity, immediate header updates after login and logout in another tab,
+logout during refresh, a single retry of reads and writes after authentication
+rejection, and preservation of cookies on temporary errors.
 
 The recovery request returns a generic confirmation without exposing whether an
 account exists. Reset links are validated on submission, are single-use, and

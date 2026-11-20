@@ -54,3 +54,4 @@ export declare const AUTH_VALIDATION: Readonly<{
 
 export declare const EMAIL_VERIFICATION_CODE_LENGTH: number;
 export declare const ACCESS_TOKEN_TTL_SECONDS: number;
+export declare const SESSION_ACTIVITY_INTERVAL_SECONDS: number;

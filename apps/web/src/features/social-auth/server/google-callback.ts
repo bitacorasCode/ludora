@@ -68,7 +68,7 @@ export async function handleGoogleCallback(request: NextRequest): Promise<Respon
     const response = validation.data;
 
     if (response.nextStep === AUTH_NEXT_STEP.authenticated) {
-        await createSession(response.accessToken);
+        await createSession(response);
         await deleteOAuthRegistrationCookie();
 
         return redirectResponse(getPathname({ locale, href: APP_ROUTES.home }));

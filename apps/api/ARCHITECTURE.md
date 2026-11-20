@@ -83,6 +83,10 @@ the same `Prisma.TransactionClient` through the `transaction` argument.
   token's hash. Consumed refresh tokens can still identify their session so a
   concurrent rotation cannot prevent logout. Idempotent logout coverage is
   deferred until requested.
+- Session activity conditionally updates `lastActiveAt` and `idleExpiresAt`
+  together. The update rechecks session validity and the activity cutoff so
+  simultaneous requests from different tabs share the same write limit. Coverage
+  of concurrent activity and the absolute deadline cap is deferred until requested.
 
 Services own process decisions. Repositories receive prepared data, timestamps,
 and limits to build the corresponding queries.

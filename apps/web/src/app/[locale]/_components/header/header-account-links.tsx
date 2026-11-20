@@ -3,12 +3,12 @@ import 'server-only';
 import { unstable_rethrow } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 
-import { SideMenuClose } from '@/components/overlays';
-import { Button } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
 import { ProfileAvatar } from '@/features/profile';
-import { Link } from '@/i18n/navigation';
 import { type CurrentUser, getCurrentUser } from '@/lib/auth';
+
+import { HeaderNavLink } from './header-nav-link';
+import { RefreshHeaderOnLogin } from './refresh-header-on-login';
 
 type HeaderAccountLinksProps = {
   isSideMenu?: boolean;
@@ -30,44 +30,35 @@ export async function HeaderAccountLinks({
   }
 
   const links = user
-    ? [{
-        href: APP_ROUTES.accountProfile,
-        content: (
-          <>
-            <ProfileAvatar
-              nickname={user.nickname}
-              avatarPresetId={user.avatarPresetId}
-              size='sm'
-            />
-            <span className='max-w-40 truncate'>{user.nickname}</span>
-          </>
-        ),
-      }]
+    ? [
+        {
+          href: APP_ROUTES.accountProfile,
+          content: (
+            <>
+              <ProfileAvatar
+                nickname={user.nickname}
+                avatarPresetId={user.avatarPresetId}
+                size='sm'
+              />
+              <span className='max-w-40 truncate'>{user.nickname}</span>
+            </>
+          ),
+        },
+      ]
     : [
         { href: APP_ROUTES.preferences, content: t('preferences') },
         { href: APP_ROUTES.login, content: t('login') },
         { href: APP_ROUTES.register, content: t('register') },
       ];
 
-  return links.map(({ href, content }) => {
-    const button = (
-      <Button
-        asChild
-        key={href}
-        variant='ghost'
-        size='sm'
-        className={isSideMenu ? 'justify-start' : undefined}
-      >
-        <Link href={href}>{content}</Link>
-      </Button>
-    );
-
-    return isSideMenu ? (
-      <SideMenuClose asChild key={href}>
-        {button}
-      </SideMenuClose>
-    ) : (
-      button
-    );
-  });
+  return (
+    <>
+      {user && !isSideMenu && <RefreshHeaderOnLogin />}
+      {links.map(({ href, content }) => (
+        <HeaderNavLink key={href} href={href} isSideMenu={isSideMenu}>
+          {content}
+        </HeaderNavLink>
+      ))}
+    </>
+  );
 }

@@ -2,6 +2,7 @@
 
 import { createContext, type ReactNode, useContext } from 'react';
 
+import { useSessionActivity } from './use-session-activity';
 import { useSessionRecoveryController } from './use-session-recovery-controller';
 
 type SessionRecoveryContextValue = ReturnType<
@@ -13,6 +14,7 @@ const SessionRecoveryContext =
 
 export function SessionBoundary({ children }: { children: ReactNode }) {
   const value = useSessionRecoveryController();
+  useSessionActivity(value.recoverSession);
 
   return (
     <SessionRecoveryContext.Provider value={value}>

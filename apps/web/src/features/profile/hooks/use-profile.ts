@@ -81,10 +81,7 @@ export function useProfile(userId: string, nickname: string) {
         async function refreshProfile() {
             const result = await execute(
                 () => loadProfile(controller.signal),
-                {
-                    signal: controller.signal,
-                    retryAfterRecovery: true,
-                },
+                { signal: controller.signal },
             );
 
             if (controller.signal.aborted) return;

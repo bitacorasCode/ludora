@@ -4,5 +4,6 @@ export type AuthenticatedRequest = Request & {
     auth: {
         userId: string;
         authVersion: number;
+        sessionId?: string;
     };
 };

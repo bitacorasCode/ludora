@@ -105,6 +105,17 @@ export class AuthController {
         return { loggedOut: true };
     }
 
+    @Post('activity')
+    @UseGuards(InternalRequestGuard, JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async recordActivity(@Req() { auth: { sessionId, userId, authVersion } }: AuthenticatedRequest) {
+        if (sessionId) {
+            await this.authSessionService.recordActivity(sessionId, userId, authVersion);
+        }
+
+        return { accepted: true };
+    }
+
     @Post('forgot-password')
     @Throttle({ default: AUTH_RATE_LIMIT_CONFIG.forgotPassword })
     @HttpCode(HttpStatus.ACCEPTED)

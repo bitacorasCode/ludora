@@ -19,6 +19,15 @@ type RotateRefreshTokenData = {
     now: Date;
 };
 
+type RecordSessionActivityData = {
+    sessionId: string;
+    userId: string;
+    authVersion: number;
+    now: Date;
+    activityBefore: Date;
+    idleExpiresAt: Date;
+};
+
 function activeSessionWhere(authVersion: number, now: Date) {
     return {
         authVersion,
@@ -62,7 +71,26 @@ export class AuthSessionRepository {
     findActiveById(sessionId: string, userId: string, authVersion: number, now: Date) {
         return this.prisma.authSession.findUnique({
             where: { id: sessionId, userId, ...activeSessionWhere(authVersion, now) },
-            select: { id: true },
+            select: { absoluteExpiresAt: true },
+        });
+    }
+
+    async recordActivity({
+        sessionId,
+        userId,
+        authVersion,
+        now,
+        activityBefore,
+        idleExpiresAt,
+    }: RecordSessionActivityData): Promise<void> {
+        await this.prisma.authSession.updateMany({
+            where: {
+                id: sessionId,
+                userId,
+                lastActiveAt: { lte: activityBefore },
+                ...activeSessionWhere(authVersion, now),
+            },
+            data: { lastActiveAt: now, idleExpiresAt },
         });
     }
 

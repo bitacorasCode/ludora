@@ -56,6 +56,7 @@
             "API_REQUEST_FAILED": "No pudimos completar la solicitud.",
             "API_UNAVAILABLE": "No pudimos conectar con el servicio. Inténtalo de nuevo.",
             "AUTHENTICATION_REQUIRED": "Inicia sesión para continuar.",
+            "AUTH_REFRESH_TOKEN_ALREADY_ROTATED": "La sesión acaba de renovarse en otra solicitud. Espera un momento y vuelve a intentarlo.",
             "RATE_LIMIT_EXCEEDED": "Se ha alcanzado el límite de solicitudes. Inténtalo de nuevo más tarde.",
             "unknown": "No pudimos completar la operación. Inténtalo de nuevo."
         },
@@ -182,6 +183,7 @@
         }
     },
     "Logout": {
+        "errorTitle": "No pudimos cerrar la sesión",
         "submit": "Cerrar sesión",
         "submitting": "Cerrando sesión..."
     },

@@ -76,7 +76,7 @@ export async function changePassword(
     };
   }
 
-  await createSession(response.data.accessToken);
+  await createSession(response.data);
 
   return { status: OPERATION_STATUS.success, data: null };
 }

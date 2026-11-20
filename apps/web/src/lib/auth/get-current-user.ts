@@ -6,6 +6,7 @@ import { cache } from 'react';
 import { z } from 'zod';
 
 import {
+    type ActionResult,
     isAuthenticationError,
     OPERATION_STATUS,
 } from '@/lib/actions';
@@ -31,14 +32,29 @@ const currentUserResponseSchema = z.object({
 
 export type CurrentUser = z.infer<typeof currentUserSchema>;
 
+export async function fetchCurrentUser(): Promise<ActionResult<CurrentUser>> {
+    const result = await authenticatedApi.get(CURRENT_USER_ENDPOINT);
+
+    if (result.status === OPERATION_STATUS.error) return result;
+
+    const validation = currentUserResponseSchema.safeParse(result.data);
+
+    if (!validation.success) {
+        return {
+            status: OPERATION_STATUS.error,
+            error: { errorCode: API_ERROR_CODES.invalidResponse },
+        };
+    }
+
+    return { status: OPERATION_STATUS.success, data: validation.data.user };
+}
+
 export const getCurrentUser = cache(
     async (): Promise<CurrentUser | null> => {
         // Keep session validation outside build-time and runtime prerenders.
         await io();
 
-        const result = await authenticatedApi.get(
-            CURRENT_USER_ENDPOINT,
-        );
+        const result = await fetchCurrentUser();
 
         if (result.status === OPERATION_STATUS.error) {
             if (isAuthenticationError(result.error)) {
@@ -52,16 +68,6 @@ export const getCurrentUser = cache(
             });
         }
 
-        const validation = currentUserResponseSchema.safeParse(
-            result.data,
-        );
-
-        if (!validation.success) {
-            throw new Error(API_ERROR_CODES.invalidResponse);
-        }
-
-        const { user } = validation.data;
-
-        return user;
+        return result.data;
     },
 );

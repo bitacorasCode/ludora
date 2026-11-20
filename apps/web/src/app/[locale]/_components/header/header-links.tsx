@@ -1,9 +1,9 @@
 import { useTranslations } from 'next-intl';
 
-import { SideMenuClose } from '@/components/overlays';
-import { Button } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
-import { Link } from '@/i18n/navigation';
+
+import { HeaderNavLink } from './header-nav-link';
+
 const links = [
   { href: APP_ROUTES.games, label: 'games' },
   { href: APP_ROUTES.ranking, label: 'ranking' },
@@ -16,25 +16,9 @@ export type HeaderLinksProps = {
 export function HeaderLinks({ isSideMenu }: HeaderLinksProps) {
   const t = useTranslations('Header');
 
-  return links.map(({ href, label }) => {
-    const button = (
-      <Button
-        key={href}
-        asChild
-        variant='ghost'
-        size='sm'
-        className={isSideMenu ? 'justify-start' : undefined}
-      >
-        <Link href={href}>{t(label)}</Link>
-      </Button>
-    );
-
-    return isSideMenu ? (
-      <SideMenuClose key={href} asChild>
-        {button}
-      </SideMenuClose>
-    ) : (
-      button
-    );
-  });
+  return links.map(({ href, label }) => (
+    <HeaderNavLink key={href} href={href} isSideMenu={isSideMenu}>
+      {t(label)}
+    </HeaderNavLink>
+  ));
 }

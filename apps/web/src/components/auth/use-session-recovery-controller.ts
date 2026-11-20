@@ -3,79 +3,57 @@
 import { useRouter } from 'next/navigation';
 import {
   useCallback,
-  useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useTransition,
 } from 'react';
 
-type PendingRecovery = {
-  promise: Promise<void>;
-  resolve: () => void;
-  observedPending: boolean;
-};
+import { ACTION_ERROR_CODES, OPERATION_STATUS } from '@/lib/actions';
+import { refreshSession } from '@/lib/session/actions';
+import { type RefreshSessionResult, SESSION_REFRESH_OUTCOME } from '@/lib/session/refresh-result';
+import { withSessionLock } from '@/lib/session/session-lock';
 
 export function useSessionRecoveryController() {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const pendingRecovery = useRef<PendingRecovery | null>(null);
-
-  const finishRecovery = useCallback(() => {
-    const recovery = pendingRecovery.current;
-
-    pendingRecovery.current = null;
-    recovery?.resolve();
-  }, []);
-
-  useEffect(() => {
-    const recovery = pendingRecovery.current;
-
-    if (!recovery) return;
-
-    if (isPending) {
-      recovery.observedPending = true;
-      return;
-    }
-
-    if (recovery.observedPending) {
-      finishRecovery();
-    }
-  }, [isPending, finishRecovery]);
-
-  useLayoutEffect(() => finishRecovery, [finishRecovery]);
+  const [isRecoveringSession, startTransition] = useTransition();
+  const pendingRecovery = useRef<Promise<RefreshSessionResult> | null>(null);
 
   const recoverSession = useCallback(() => {
     if (pendingRecovery.current) {
-      return pendingRecovery.current.promise;
+      return pendingRecovery.current;
     }
 
-    let finish!: () => void;
+    const recovery = new Promise<RefreshSessionResult>((resolve) => {
+      startTransition(async () => {
+        try {
+          const result = await withSessionLock(refreshSession);
 
-    const promise = new Promise<void>((resolve) => {
-      finish = resolve;
+          if (
+            result.status === OPERATION_STATUS.success
+            && result.data !== SESSION_REFRESH_OUTCOME.renewed
+          ) {
+            router.refresh();
+          }
+
+          resolve(result);
+        } catch {
+          resolve({
+            status: OPERATION_STATUS.error,
+            error: { errorCode: ACTION_ERROR_CODES.unexpected },
+          });
+        }
+      });
+    }).finally(() => {
+      pendingRecovery.current = null;
     });
 
-    pendingRecovery.current = {
-      promise,
-      resolve: finish,
-      observedPending: false,
-    };
+    pendingRecovery.current = recovery;
 
-    startTransition(() => {
-      router.refresh();
-    });
-
-    return promise;
+    return recovery;
   }, [router, startTransition]);
 
-  const value = useMemo(
-    () => ({
-      recoverSession,
-      isRecoveringSession: isPending,
-    }),
-    [recoverSession, isPending],
+  return useMemo(
+    () => ({ recoverSession, isRecoveringSession }),
+    [recoverSession, isRecoveringSession],
   );
-
-  return value;
 }

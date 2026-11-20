@@ -6,7 +6,12 @@ import { AUTH_NEXT_STEP } from './constants';
 
 export const authResponseSchema = z.object({
     accessToken: z.string().min(1),
+    refreshToken: z.base64url().min(1),
+    idleExpiresAt: z.iso.datetime(),
+    absoluteExpiresAt: z.iso.datetime(),
 });
+
+export type SessionCredentials = z.infer<typeof authResponseSchema>;
 
 const emailVerificationDetailsSchema = z.object({
     id: z.uuid(),

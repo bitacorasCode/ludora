@@ -144,9 +144,7 @@ export async function verifyEmail(
         };
     }
 
-    const { accessToken } = responseValidation.data;
-
-    await createSession(accessToken);
+    await createSession(responseValidation.data);
 
     return {
         status: OPERATION_STATUS.success,

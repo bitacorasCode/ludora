@@ -3,6 +3,8 @@ import { getTranslations } from 'next-intl/server';
 
 import { PreferencesPageContent } from '@/features/preferences';
 
+import { AccountAccess } from '../_components/account-access';
+
 export async function generateMetadata({
   params,
 }: PageProps<'/[locale]/account/preferences'>): Promise<Metadata> {
@@ -15,6 +17,14 @@ export async function generateMetadata({
   };
 }
 
-export default function AccountPreferencesPage() {
-  return <PreferencesPageContent />;
+export default async function AccountPreferencesPage({
+  params,
+}: PageProps<'/[locale]/account/preferences'>) {
+  const { locale } = await params;
+
+  return (
+    <AccountAccess locale={locale}>
+      {() => <PreferencesPageContent />}
+    </AccountAccess>
+  );
 }

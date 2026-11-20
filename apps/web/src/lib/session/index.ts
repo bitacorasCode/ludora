@@ -1,3 +1,9 @@
 import 'server-only';
 
-export { createSession, deleteSession, getSessionToken } from './session';
+export {
+    createSession,
+    deleteSession,
+    getRefreshToken,
+    getSessionRevision,
+    getSessionToken,
+} from './session';

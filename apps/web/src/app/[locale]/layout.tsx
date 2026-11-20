@@ -4,15 +4,24 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
+import { Suspense } from 'react';
 
 import { NavigationGuardProvider } from '@/components/navigation';
 import { Toaster } from '@/components/ui/sonner';
 import { geistMono, geistSans, notoSans } from '@/config/fonts';
 import { routing } from '@/i18n/routing';
+import { getSessionRevision } from '@/lib/session';
 import { cn } from '@/lib/utils';
 
 import { ThemeProvider } from '../_providers/theme-provider';
+import { SessionSync } from './_components/auth/session-sync';
 import { Header } from './_components/header';
+
+async function SessionSyncBoundary() {
+  const revision = await getSessionRevision();
+
+  return <SessionSync revision={revision} />;
+}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -73,6 +82,9 @@ export default async function RootLayout({
               {t('skipToContent')}
             </a>
             <NavigationGuardProvider>
+              <Suspense fallback={null}>
+                <SessionSyncBoundary />
+              </Suspense>
               <Header />
 
               <main id='content' className='flex-1'>

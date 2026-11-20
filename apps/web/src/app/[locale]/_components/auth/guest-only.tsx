@@ -8,6 +8,9 @@ import { Spinner } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
 import { redirect } from '@/i18n/navigation';
 import { getCurrentUser } from '@/lib/auth';
+import { getRefreshToken } from '@/lib/session';
+
+import { SessionRecovery } from './session-recovery';
 
 type GuestOnlyProps = {
   children: ReactNode;
@@ -23,7 +26,11 @@ async function GuestOnlyContent({
   const user = await getCurrentUser();
 
   if (user) {
-    redirect({ href: redirectTo, locale });
+    return redirect({ href: redirectTo, locale });
+  }
+
+  if (await getRefreshToken()) {
+    return <SessionRecovery />;
   }
 
   return children;

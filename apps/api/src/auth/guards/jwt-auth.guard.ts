@@ -78,7 +78,7 @@ export class JwtAuthGuard implements CanActivate {
             throw new UnauthorizedException(message, { errorCode });
         }
 
-        request.auth = { userId, authVersion };
+        request.auth = { userId, authVersion, sessionId };
 
         return true;
     }

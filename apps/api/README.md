@@ -150,6 +150,7 @@ There is no global URL prefix. Bodies are JSON. Protected routes require
 | `POST` | `/auth/resend-verification` | Accepts `verificationId`; renews the code when allowed and returns delivery and retry information (`200`).              |
 | `POST` | `/auth/login`               | Accepts `email` and `password`; returns an authenticated session or the pending-verification next step (`200`).         |
 | `POST` | `/auth/refresh`             | Internal requests only. Accepts `refreshToken` and returns rotated credentials and session deadlines (`200`).          |
+| `POST` | `/auth/activity`            | Internal request with a verified JWT. Records activity for the current session when eligible (`200`).                  |
 | `POST` | `/auth/logout`              | Internal requests only. Accepts `refreshToken` and revokes its session (`200`).                                            |
 | `POST` | `/auth/google/start`        | Internal requests only; returns the Google authorization URL and expiring signed flow context (`200`).                |
 | `POST` | `/auth/google/callback`     | Internal requests only; accepts `flowToken` and `responseParameters`; resolves sign-in or pending registration (`200`). |
@@ -175,11 +176,11 @@ Password registration alone does not issue a JWT. Successful email confirmation 
 user in. Login with correct credentials and an unverified email returns enough
 information to resume verification without automatically sending another email.
 
-The API issues JWT access tokens with the shared `ACCESS_TOKEN_TTL_SECONDS`
-lifetime. Next stores the token in its HttpOnly
-session cookie and attaches the bearer header on server-to-server requests. Nest
-does not read that cookie directly. The internal-request secret is separate from
-user authentication and does not grant access to protected routes.
+The API issues 30-minute JWT access tokens using the shared
+`ACCESS_TOKEN_TTL_SECONDS` value. Next stores the access and refresh tokens in
+HttpOnly cookies and attaches the bearer header on server-to-server requests.
+Nest receives tokens from the Next server. The internal-request secret is
+separate from user authentication and does not grant access to protected routes.
 
 New JWTs include the ID of a persisted session. Each protected request verifies
 the JWT and checks the session's ownership, expiration, revocation status, and
@@ -193,15 +194,20 @@ not verify the email or issue a session.
 token. The response includes `accessToken`, `refreshToken`, `idleExpiresAt`, and
 `absoluteExpiresAt`, with `Cache-Control: no-store`. The API returns `409` with
 `AUTH_REFRESH_TOKEN_ALREADY_ROTATED` for overlapping rotations and `401` for an
-invalid or expired session. The web integration will manage cookie replacement
-and coordinate overlapping refresh requests.
+invalid or expired session. Next replaces both cookies when recovering from an
+authentication failure during an account interaction.
+
+`POST /auth/activity` uses the session ID from the verified JWT and accepts no
+body. It extends the idle deadline to seven days after recorded activity, capped
+at 30 days from session creation. The API records activity at most once every
+five minutes per session. Refresh token rotation leaves both deadlines as they
+were.
 
 `POST /auth/logout` requires the internal request secret and accepts the refresh
 token even after its access token expires. An already-rotated token can identify
 the same session if logout overlaps with refresh. The endpoint returns
 `{ "loggedOut": true }` for revocation, an already-revoked session, or an unknown
-well-formed token. The existing web logout clears its cookie. The endpoint will
-be used by the web logout when Next stores the refresh cookie.
+well-formed token. Next calls this endpoint before clearing its session cookies.
 
 ### Google account resolution
 

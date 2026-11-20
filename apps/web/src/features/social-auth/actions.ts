@@ -135,7 +135,7 @@ export async function completeSocialRegistration(
     await deleteOAuthRegistrationCookie();
 
     if (response.data.nextStep === AUTH_NEXT_STEP.authenticated) {
-        await createSession(response.data.accessToken);
+        await createSession(response.data);
 
         return {
             status: OPERATION_STATUS.success,

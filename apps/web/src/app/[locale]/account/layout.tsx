@@ -4,32 +4,17 @@ import { type ReactNode, Suspense } from 'react';
 
 import { SessionBoundary } from '@/components/auth';
 import { PageContainer, PageSection } from '@/components/layout';
-import { APP_ROUTES } from '@/config/routes';
 import { AccountContentSkeleton, AccountShell } from '@/features/account';
-import { redirect } from '@/i18n/navigation';
 import { getCurrentUser } from '@/lib/auth';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-type AuthenticatedAccountProps = {
-  children: ReactNode;
-  locale: string;
-};
-
-async function AuthenticatedAccount({
-  children,
-  locale,
-}: AuthenticatedAccountProps) {
+async function AccountFrame({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
 
-  if (!user) {
-    return redirect({
-      href: APP_ROUTES.login,
-      locale,
-    });
-  }
+  if (!user) return children;
 
   return (
     <SessionBoundary key={user.id}>
@@ -58,7 +43,7 @@ export default async function AccountLayout({
         </PageContainer>
       }
     >
-      <AuthenticatedAccount locale={locale}>{children}</AuthenticatedAccount>
+      <AccountFrame>{children}</AccountFrame>
     </Suspense>
   );
 }

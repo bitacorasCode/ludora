@@ -66,9 +66,7 @@ export async function loginUser(
         };
     }
 
-    const { accessToken } = response;
-
-    await createSession(accessToken);
+    await createSession(response);
 
     return {
         status: OPERATION_STATUS.success,
