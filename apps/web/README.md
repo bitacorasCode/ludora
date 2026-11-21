@@ -366,8 +366,8 @@ are covered by Playwright rather than jsdom alone.
 
 ### Browser tests
 
-Deferred: update the browser assertions to expect the shared English 404 for
-unknown localized routes and missing root-level files.
+Browser navigation coverage includes the shared English 404 for unknown
+localized routes and missing root-level files.
 
 Authentication and profile scenarios use the real Nest API, local PostgreSQL,
 and Mailpit. Complete the root setup and apply the existing migrations first.

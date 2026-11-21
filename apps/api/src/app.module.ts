@@ -6,8 +6,8 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 import { RATE_LIMIT_CONFIG } from './config/rate-limit.js';
+import { PrismaModule } from './prisma/prisma.module.js';
 import { ProfileModule } from './profile/profile.module.js';
-import { UsersModule } from './users/users.module.js';
 
 @Module({
     imports: [
@@ -15,7 +15,7 @@ import { UsersModule } from './users/users.module.js';
             isGlobal: true
         }),
         ThrottlerModule.forRoot([RATE_LIMIT_CONFIG]),
-        UsersModule,
+        PrismaModule,
         AuthModule,
         ProfileModule],
     controllers: [AppController],

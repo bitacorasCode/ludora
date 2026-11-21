@@ -151,8 +151,4 @@ export class UsersRepository {
 
         return count === SINGLE_RECORD_COUNT;
     }
-
-    count(transaction: Prisma.TransactionClient = this.prisma) {
-        return transaction.user.count();
-    }
 }

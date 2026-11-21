@@ -30,7 +30,9 @@ export class AuthSessionService {
     ) { }
 
     async create(
-        { id: userId, authVersion }: Pick<User, 'id' | 'authVersion'>,
+        { id: userId, authVersion, nickname, email, createdAt: userCreatedAt }: Pick<
+            User, 'id' | 'authVersion' | 'nickname' | 'email' | 'createdAt'
+        >,
         transaction?: Prisma.TransactionClient,
     ) {
         const { absoluteTimeoutSeconds } = SESSION_CONFIG;
@@ -52,10 +54,15 @@ export class AuthSessionService {
             },
             transaction,
         );
-        return this.issueCredentials(
+        const credentials = await this.issueCredentials(
             { id: sessionId, userId, authVersion, idleExpiresAt, absoluteExpiresAt },
             refreshToken,
         );
+
+        return {
+            ...credentials,
+            user: { id: userId, nickname, email, createdAt: userCreatedAt },
+        };
     }
 
     async isActive(sessionId: string, userId: string, authVersion: number): Promise<boolean> {

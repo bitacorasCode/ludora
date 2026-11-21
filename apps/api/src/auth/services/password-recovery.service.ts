@@ -1,16 +1,15 @@
-import { setImmediate } from 'node:timers';
-
 import { PASSWORD_FORM_MODE } from '@ludora/security';
 import { parseHttpUrl } from '@ludora/security/server';
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { MILLISECONDS_PER_SECOND } from '../../common/constants/index.js';
+import type { PasswordRecoveryJob } from '../../generated/prisma/client.js';
 import { MailService } from '../../mail/index.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS, PASSWORD_RESET_CONFIG } from '../constants/index.js';
-import { PasswordResetRepository } from '../repositories/index.js';
+import { PasswordRecoveryJobRepository, PasswordResetRepository } from '../repositories/index.js';
 import { createPasswordResetMail } from '../templates/password-reset-mail.js';
 import { PasswordService } from './password.service.js';
 import { PasswordNotificationService } from './password-notification.service.js';
@@ -18,7 +17,6 @@ import { PasswordResetTokenService } from './password-reset-token.service.js';
 
 @Injectable()
 export class PasswordRecoveryService {
-    private readonly logger = new Logger(PasswordRecoveryService.name);
     private readonly resetUrl: URL;
 
     constructor(
@@ -27,6 +25,7 @@ export class PasswordRecoveryService {
         private readonly usersService: UsersService,
         private readonly tokenService: PasswordResetTokenService,
         private readonly resetRepository: PasswordResetRepository,
+        private readonly jobs: PasswordRecoveryJobRepository,
         private readonly mailService: MailService,
         private readonly passwordService: PasswordService,
         private readonly passwordNotificationService: PasswordNotificationService,
@@ -45,13 +44,8 @@ export class PasswordRecoveryService {
         this.resetUrl = resetUrl;
     }
 
-    request(email: string): void {
-        // The caller does not wait for account lookup, reservation or SMTP.
-        setImmediate(() => {
-            void this.processRequest(email).catch(() => {
-                this.logger.error('Could not process password recovery request.');
-            });
-        });
+    request(email: string): Promise<void> {
+        return this.jobs.enqueue(email);
     }
 
     async reset(token: string, password: string): Promise<void> {
@@ -83,33 +77,19 @@ export class PasswordRecoveryService {
         this.passwordNotificationService.passwordChanged(recipient, isFirstPassword);
     }
 
-    private async processRequest(email: string): Promise<void> {
-        const user = await this.usersService.findByEmail(email);
+    async processRequest(job: PasswordRecoveryJob): Promise<void> {
+        const user = await this.usersService.findByEmail(job.email);
 
         if (!user) return;
 
         const { id: userId, email: recipient } = user;
-        const { requestCooldownSeconds, expiresInSeconds } = PASSWORD_RESET_CONFIG;
-        const { token, tokenHash, expiresAt } = this.tokenService.create();
+        const { token, tokenHash } = this.tokenService.createForJob(job.id);
 
-        const reserved = await this.prisma.$transaction((transaction) => {
-            const lastSentAt = new Date();
+        if (!job.prepared && !(await this.prepareRequest(job, userId, tokenHash))) return;
 
-            return this.resetRepository.reserveRequest(
-                {
-                    userId,
-                    tokenHash,
-                    expiresAt,
-                    lastSentAt,
-                    requestBefore: new Date(
-                        lastSentAt.getTime() - requestCooldownSeconds * MILLISECONDS_PER_SECOND,
-                    ),
-                },
-                transaction,
-            );
-        });
+        const reset = await this.resetRepository.findByTokenHash(tokenHash);
 
-        if (!reserved) return;
+        if (reset?.userId !== userId || reset.expiresAt.getTime() <= Date.now()) return;
 
         const hasPassword = user.passwordHash !== null;
         const mode = hasPassword ? PASSWORD_FORM_MODE.reset : PASSWORD_FORM_MODE.create;
@@ -117,11 +97,34 @@ export class PasswordRecoveryService {
         resetUrl.search = new URLSearchParams({ token, mode }).toString();
         const message = createPasswordResetMail({
             resetUrl: resetUrl.href,
-            expiresInSeconds,
+            expiresInSeconds: PASSWORD_RESET_CONFIG.expiresInSeconds,
             hasPassword,
         });
 
         // Sending mail happens only after the reservation has committed.
         await this.mailService.send({ to: recipient, ...message });
+    }
+
+    private prepareRequest(job: PasswordRecoveryJob, userId: string, tokenHash: string): Promise<boolean> {
+        const { requestCooldownSeconds, expiresInSeconds } = PASSWORD_RESET_CONFIG;
+
+        return this.prisma.$transaction(async (transaction) => {
+            // Commit the prepared marker with the reservation so a consumed token cannot be recreated.
+            if (!(await this.jobs.markPrepared(job, transaction))) return false;
+
+            const lastSentAt = new Date();
+            const nowMs = lastSentAt.getTime();
+
+            return this.resetRepository.reserveRequest(
+                {
+                    userId,
+                    tokenHash,
+                    expiresAt: new Date(nowMs + expiresInSeconds * MILLISECONDS_PER_SECOND),
+                    lastSentAt,
+                    requestBefore: new Date(nowMs - requestCooldownSeconds * MILLISECONDS_PER_SECOND),
+                },
+                transaction,
+            );
+        });
     }
 }

@@ -24,6 +24,13 @@ describe('AppController (e2e)', () => {
       .expect('Hello World!');
   });
 
+  it('/health (GET) checks connectivity without returning user data', () => {
+    return request(app.getHttpServer())
+      .get('/health')
+      .expect(200)
+      .expect({ status: 'ok', database: 'connected' });
+  });
+
   afterEach(async () => {
     await app.close();
   });

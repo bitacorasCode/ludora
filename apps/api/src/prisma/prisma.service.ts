@@ -15,6 +15,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         super({ adapter })
     }
 
+    async checkConnection(): Promise<void> {
+        await this.$queryRaw`SELECT 1`;
+    }
+
     async onModuleInit() {
         await this.$connect();
     }

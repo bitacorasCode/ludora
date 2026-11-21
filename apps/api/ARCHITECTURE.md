@@ -60,6 +60,8 @@ The service coordinating a use case opens its transaction with
 the same `Prisma.TransactionClient` through the `transaction` argument.
 
 - `AuthService` coordinates creation of the user and their verification.
+- `OAuthAccountService` coordinates creation of the user, external identity,
+  and email verification state in a single transaction.
 - `EmailVerificationService` coordinates code consumption and account activation.
 - Account activation goes through `UsersService` and `UsersRepository`.
 - Reserving an attempt and consuming a code require an explicit transaction.
@@ -140,7 +142,9 @@ the client can repeat login without bypassing verification.
 `POST /auth/google/callback` accepts the signed authorization context and the
 original callback query parameters through a strict DTO. It requires a trusted
 internal request and the login rate limit. `GoogleAuthService` validates the
-provider response before `AuthService` resolves the Ludora account.
+provider response before `OAuthAccountService` resolves the Ludora account.
+`OAuthAccountService` uses the same sign-in and registration responses as
+password-based authentication through `AuthService`.
 
 Identity lookup uses `(provider, providerUserId)`. A linked identity loads its
 existing user and shares the usual login response: verified users receive a JWT,
@@ -174,11 +178,11 @@ match it. When the provider supplied no email, the caller must provide one and
 verify it through Ludora. The client cannot supply an `emailVerified` flag or a
 password. Social accounts are created with a null password hash.
 
-`AuthService` rechecks identity and email conflicts inside the transaction, then
-creates the user and provider identity together. A verified provider email marks
-the new user as verified; other addresses receive a pending email-verification
-record in that same transaction. Existing unique constraints protect concurrent
-requests. A provider-identity constraint violation returns
+`OAuthAccountService` rechecks identity and email conflicts inside the
+transaction, then creates the user and provider identity together. A verified
+provider email marks the new user as verified. Other addresses receive a pending
+email verification record in the same transaction. Unique constraints protect
+concurrent requests. A provider-identity constraint violation returns
 `AUTH_OAUTH_IDENTITY_ALREADY_LINKED` and rolls back the competing user creation.
 An already-linked identity cannot reuse a registration grant to issue sessions.
 
@@ -223,11 +227,10 @@ expiration/audience checks, and database concurrency remain outside that coverag
 
 `User.authVersion` is an internal counter stored in `users.auth_version` with an
 initial value of zero. JWTs include this version alongside the user identifier.
-New JWTs also carry the session ID in `sid`. After verifying the signature and
+JWTs also require the session ID in `sid`. After verifying the signature and
 payload, `JwtAuthGuard` checks that the session belongs to the subject, has not
 expired or been revoked, and matches the current version of a verified user.
-This check reads PostgreSQL on each protected request. JWTs issued before session
-binding continue to use the user version check until they expire.
+This check reads PostgreSQL on each protected request.
 
 `UsersRepository.updatePassword()` requires a transaction and changes the
 password hash and increments `authVersion` in one update. Once that transaction
@@ -248,9 +251,9 @@ guard rejection after revocation.
 
 `POST /auth/change-password` accepts only `currentPassword` and `password` and
 requires `JwtAuthGuard` plus the dedicated rate limit. The guard preserves the
-verified `authVersion` in the internal request context. The service loads password
-credentials through `UsersService`, verifies the current password, rejects an
-unchanged password, and computes the new hash before opening a transaction.
+verified `authVersion` in the internal request context. `PasswordChangeService`
+loads password credentials through `UsersService`, verifies the current password,
+rejects an unchanged password, and computes the new hash before the transaction.
 
 Inside the transaction, pending reset rows are removed first, matching recovery's
 reset-row-before-user-row lock order. `UsersRepository.changePasswordIfCurrent()`
@@ -303,11 +306,11 @@ only `email`. `forgotPasswordSchema` reuses the shared email schema to trim,
 lowercase, and validate the address. The global `StandardSchemaValidationPipe`
 rejects missing or invalid emails and unexpected fields with `400 Bad Request`.
 
-Requests that pass validation and rate limiting receive `202 Accepted` with
-`{ "accepted": true }`. This acknowledges the request, not account existence or
-email delivery. The response stays the same for unknown accounts, accounts
-within their waiting period, and mail provider failures. It never includes a
-token or link.
+Requests that pass validation and rate limiting are saved to
+`password_recovery_jobs`. Once PostgreSQL confirms the write, the API responds
+with `202 Accepted` and `{ "accepted": true }`. The response stays the same for
+unknown accounts, accounts within their waiting period, and mail provider
+failures. It never includes a token or link.
 
 The controller delegates directly to `PasswordRecoveryService`. Its
 `AUTH_RATE_LIMIT_CONFIG.forgotPassword` policy allows five requests per client IP
@@ -316,16 +319,20 @@ within 15 minutes, followed by a 15-minute block when exceeded. The existing
 `retryAfterSeconds`. This is separate from the reservation waiting period per
 account.
 
-`PasswordRecoveryService.request(email)` schedules processing and returns without
-waiting for account lookup, reservation, or email submission. It does not return
-user data or email-delivery status. Processing those operations after scheduling keeps
-their results out of the HTTP response.
+Nest polls the queue every two seconds between batches. A conditional update
+claims a job for one minute so multiple instances can process the same queue.
+Once a claim expires, another worker can resume it. Workers try delivery up to
+three times with a 30-second retry delay and discard jobs older than 30 minutes.
+Completing or discarding a job removes its queued email address.
 
-Processing looks up the user through `UsersService`, generates the credential,
-and reserves the request in a transaction. The initial waiting period per account
-is 60 seconds. Email is sent after commit. A mail provider failure keeps the
-reservation and produces only a generic log, without email addresses, links, or tokens.
-Requesting recovery does not change the password or verify the email.
+The worker looks up the user and reserves the recovery request with the existing
+60-second per-account waiting period. The reservation and the job's prepared
+marker commit together. A token derived from the job ID and a dedicated key
+derived from `JWT_SECRET` lets retries reuse the same token while the database
+stores only its hash. Retries check that the reservation is still valid before
+sending. They cannot recreate a consumed or replaced token. A restart after the
+provider accepts a submission can cause the same link to be sent twice. Worker
+logs omit email addresses, links, and tokens.
 
 The same flow can establish the first password for an account created through an
 external provider. The mail subject and request description distinguish creation
@@ -344,8 +351,8 @@ rejects an initial query or fragment. The token is added with `URLSearchParams`.
 Production requires HTTPS. HTTP is allowed only for loopback hosts during
 development and tests.
 
-Current processing runs in API memory. A restart or deployment can lose pending
-requests. A persistent queue will be needed for durable work and retries.
+Pending jobs survive a restart or deployment. The worker resumes them when Nest
+starts and PostgreSQL becomes available.
 
 ## Resetting a password
 
@@ -398,9 +405,8 @@ notification is scheduled; existing tests also cover mail failures after commit.
 
 Email submission is not awaited by the HTTP request. A delivery failure produces
 a generic log without recipient details or credentials. It does not undo the change or
-turn a committed reset into an HTTP error. As with recovery requests, this task
-runs in memory; a process restart can lose it. Durable delivery and retries
-require a persistent queue.
+turn a committed reset into an HTTP error. This notification runs in memory and
+can be lost if the API restarts before submitting it.
 
 ## Mail transport
 

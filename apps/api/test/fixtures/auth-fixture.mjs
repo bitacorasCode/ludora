@@ -40,6 +40,8 @@ if (process.argv[2] === 'delete') {
   const database = getLocalDatabaseUrl();
   const pool = new pg.Pool({ connectionString: database.href });
   try {
+    await pool.query('DELETE FROM password_recovery_jobs WHERE email = $1', [account.email]);
+
     if (account.id) {
       await pool.query('DELETE FROM users WHERE id = $1::uuid AND email = $2', [account.id, account.email]);
     } else {
@@ -72,16 +74,22 @@ if (process.argv[2] === 'delete') {
   const pool = new pg.Pool({ connectionString: database.href });
 
   try {
-    const { rows: [user] } = await pool.query(
-      'SELECT auth_version AS "authVersion" FROM users WHERE id = $1::uuid AND email = $2',
+    const { rows: [session] } = await pool.query(
+      `SELECT sessions.id AS sid, users.auth_version AS "authVersion"
+       FROM auth_sessions AS sessions JOIN users ON users.id = sessions.user_id
+       WHERE users.id = $1::uuid AND users.email = $2
+         AND users.email_verified_at IS NOT NULL AND sessions.auth_version = users.auth_version
+         AND sessions.revoked_at IS NULL AND sessions.idle_expires_at > NOW()
+         AND sessions.absolute_expires_at > NOW()
+       ORDER BY sessions.created_at DESC LIMIT 1`,
       [account.id, account.email],
     );
 
-    if (!user) throw new Error('The temporary E2E account does not exist.');
+    if (!session) throw new Error('The temporary E2E account has no active session.');
 
-    const { authVersion } = user;
+    const { sid, authVersion } = session;
     const jwt = new JwtService({ secret: process.env.JWT_SECRET });
-    const token = await jwt.signAsync({ sub: account.id, authVersion }, {
+    const token = await jwt.signAsync({ sub: account.id, sid, authVersion }, {
       algorithm: 'HS256', expiresIn: -60, issuer: 'ludora-api', audience: 'ludora-web',
     });
     process.stdout.write(token);

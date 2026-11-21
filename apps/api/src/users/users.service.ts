@@ -78,8 +78,4 @@ export class UsersService {
             transaction,
         );
     }
-
-    count() {
-        return this.usersRepository.count();
-    }
 }

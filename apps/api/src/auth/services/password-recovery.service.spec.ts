@@ -7,12 +7,13 @@ import { Test } from '@nestjs/testing';
 import { vi } from 'vitest';
 
 import { MILLISECONDS_PER_SECOND } from '../../common/constants/time.js';
-import type { Prisma, User } from '../../generated/prisma/client.js';
+import type { PasswordRecoveryJob, Prisma, User } from '../../generated/prisma/client.js';
 import { MailService } from '../../mail/index.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
 import { PASSWORD_RESET_CONFIG } from '../constants/password-reset.js';
+import { PasswordRecoveryJobRepository } from '../repositories/password-recovery-job.repository.js';
 import { PasswordResetRepository } from '../repositories/password-reset.repository.js';
 import { createPasswordChangedMail } from '../templates/password-changed-mail.js';
 import { PasswordService } from './password.service.js';
@@ -49,6 +50,14 @@ describe('PasswordRecoveryService', () => {
         createdAt: now,
         updatedAt: now,
     };
+    const job: PasswordRecoveryJob = {
+        id: 'd56aa89f-ac5f-4d65-a49d-3653442080bf',
+        email: user.email,
+        prepared: false,
+        attempts: 1,
+        createdAt: now,
+        availableAt: now,
+    };
     const storedReset = { userId: user.id, expiresAt, user: { passwordHash: user.passwordHash } };
     // The callback token models transaction propagation, not database rollback.
     const transaction = {} as Prisma.TransactionClient;
@@ -70,13 +79,17 @@ describe('PasswordRecoveryService', () => {
         updatePassword: vi.fn<UsersService['updatePassword']>(),
     };
     const tokenService = {
-        create: vi.fn<PasswordResetTokenService['create']>(),
+        createForJob: vi.fn<PasswordResetTokenService['createForJob']>(),
         hash: vi.fn<PasswordResetTokenService['hash']>(),
     };
     const repository = {
         reserveRequest: vi.fn<PasswordResetRepository['reserveRequest']>(),
         findByTokenHash: vi.fn<PasswordResetRepository['findByTokenHash']>(),
         consume: vi.fn<PasswordResetRepository['consume']>(),
+    };
+    const jobs = {
+        enqueue: vi.fn<PasswordRecoveryJobRepository['enqueue']>(),
+        markPrepared: vi.fn<PasswordRecoveryJobRepository['markPrepared']>(),
     };
     const mailService = { send: vi.fn<MailService['send']>() };
     const passwordService = { hash: vi.fn<PasswordService['hash']>() };
@@ -98,14 +111,16 @@ describe('PasswordRecoveryService', () => {
         scheduled.tasks = [];
         events = [];
         prisma.$transaction.mockClear();
-        for (const dependency of [usersService, tokenService, repository, mailService, passwordService]) {
+        for (const dependency of [usersService, tokenService, repository, jobs, mailService, passwordService]) {
             for (const method of Object.values(dependency)) method.mockReset();
         }
         vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
         usersService.findByEmail.mockResolvedValue(user);
         usersService.updatePassword.mockResolvedValue({ id: user.id, email: user.email });
-        tokenService.create.mockReturnValue({ token, tokenHash, expiresAt });
+        tokenService.createForJob.mockReturnValue({ token, tokenHash });
+        jobs.enqueue.mockResolvedValue(undefined);
+        jobs.markPrepared.mockResolvedValue(true);
         tokenService.hash.mockReturnValue(tokenHash);
         repository.reserveRequest.mockResolvedValue(true);
         repository.findByTokenHash.mockResolvedValue(storedReset);
@@ -125,25 +140,9 @@ describe('PasswordRecoveryService', () => {
                 { provide: PasswordResetRepository, useValue: repository },
                 { provide: MailService, useValue: mailService },
                 { provide: PasswordService, useValue: passwordService },
-                {
-                    provide: PasswordNotificationService,
-                    inject: [MailService],
-                    useFactory: (mail: MailService) => new PasswordNotificationService(mail),
-                },
-                {
-                    provide: PasswordRecoveryService,
-                    inject: [ConfigService, PrismaService, UsersService, PasswordResetTokenService, PasswordResetRepository, MailService, PasswordService, PasswordNotificationService],
-                    useFactory: (
-                        config: ConfigService,
-                        database: PrismaService,
-                        users: UsersService,
-                        tokens: PasswordResetTokenService,
-                        resets: PasswordResetRepository,
-                        mail: MailService,
-                        passwords: PasswordService,
-                        notifications: PasswordNotificationService,
-                    ) => new PasswordRecoveryService(config, database, users, tokens, resets, mail, passwords, notifications),
-                },
+                { provide: PasswordRecoveryJobRepository, useValue: jobs },
+                PasswordNotificationService,
+                PasswordRecoveryService,
             ],
         }).compile();
         service = module.get(PasswordRecoveryService);
@@ -156,24 +155,40 @@ describe('PasswordRecoveryService', () => {
     });
 
     describe('request', () => {
-        it('should return before looking up the account or contacting SMTP', async () => {
-            expect(service.request(user.email)).toBeUndefined();
-            expect(usersService.findByEmail).not.toHaveBeenCalled();
-            expect(mailService.send).not.toHaveBeenCalled();
-            expect(scheduled.tasks).toHaveLength(1);
+        it('waits for the durable enqueue without looking up the account or sending mail', async () => {
+            const stored = createDeferredCompletion();
+            jobs.enqueue.mockReturnValue(stored.promise);
+            const complete = vi.fn();
+            const requested = service.request(user.email).then(complete);
 
-            await runBackgroundTasks();
-
-            expect(usersService.findByEmail).toHaveBeenCalledExactlyOnceWith(user.email);
+            try {
+                await settleBackgroundTasks();
+                expect(jobs.enqueue).toHaveBeenCalledExactlyOnceWith(user.email);
+                expect(complete).not.toHaveBeenCalled();
+                expect(usersService.findByEmail).not.toHaveBeenCalled();
+                expect(mailService.send).not.toHaveBeenCalled();
+            } finally {
+                stored.resolve();
+                await requested;
+            }
+            expect(complete).toHaveBeenCalledOnce();
         });
 
+        it('propagates an enqueue failure instead of acknowledging the request', async () => {
+            const error = new Error('Database unavailable');
+            jobs.enqueue.mockRejectedValue(error);
+
+            await expect(service.request(user.email)).rejects.toBe(error);
+        });
+    });
+
+    describe('processRequest', () => {
         it('should ignore unknown accounts without creating a request or sending mail', async () => {
             usersService.findByEmail.mockResolvedValue(null);
 
-            expect(service.request(user.email)).toBeUndefined();
-            await runBackgroundTasks();
+            await service.processRequest(job);
 
-            expect(tokenService.create).not.toHaveBeenCalled();
+            expect(tokenService.createForJob).not.toHaveBeenCalled();
             expect(prisma.$transaction).not.toHaveBeenCalled();
             expect(repository.reserveRequest).not.toHaveBeenCalled();
             expect(mailService.send).not.toHaveBeenCalled();
@@ -184,9 +199,11 @@ describe('PasswordRecoveryService', () => {
             { passwordHash: null, mode: PASSWORD_FORM_MODE.create, subject: 'Create your Ludora password' },
         ])('should reserve the token before sending an English $mode link', async ({ passwordHash, mode, subject }) => {
             usersService.findByEmail.mockResolvedValue({ ...user, passwordHash });
-            service.request(user.email);
-            await runBackgroundTasks();
+            await service.processRequest(job);
 
+            expect(tokenService.createForJob).toHaveBeenCalledExactlyOnceWith(job.id);
+            expect(jobs.markPrepared).toHaveBeenCalledExactlyOnceWith(job, transaction);
+            expect(jobs.markPrepared).toHaveBeenCalledBefore(repository.reserveRequest);
             expect(repository.reserveRequest).toHaveBeenCalledExactlyOnceWith({
                 userId: user.id,
                 tokenHash,
@@ -209,33 +226,39 @@ describe('PasswordRecoveryService', () => {
         it('should preserve the account cooldown without sending another link', async () => {
             repository.reserveRequest.mockResolvedValue(false);
 
-            service.request(user.email);
-            await runBackgroundTasks();
+            await service.processRequest(job);
 
             expect(repository.reserveRequest).toHaveBeenCalledOnce();
             expect(mailService.send).not.toHaveBeenCalled();
             expect(events).toEqual(['transaction:start', 'transaction:resolved']);
         });
 
-        it('should not send a link when request reservation fails', async () => {
-            repository.reserveRequest.mockRejectedValue(new Error('Database failure'));
+        it('propagates a reservation failure to the worker and skips delivery', async () => {
+            const error = new Error('Database failure');
+            repository.reserveRequest.mockRejectedValue(error);
 
-            service.request(user.email);
-            await runBackgroundTasks();
+            await expect(service.processRequest(job)).rejects.toBe(error);
 
             expect(mailService.send).not.toHaveBeenCalled();
-            expect(Logger.prototype.error).toHaveBeenCalledExactlyOnceWith('Could not process password recovery request.');
         });
 
-        it('should log SMTP failure without exposing the email, token, or password', async () => {
-            mailService.send.mockRejectedValue(new Error(`SMTP failure for ${user.email}: ${token}`));
+        it('reuses a prepared reservation without reserving the token again', async () => {
+            await service.processRequest({ ...job, prepared: true, attempts: 2 });
 
-            expect(service.request(user.email)).toBeUndefined();
-            await runBackgroundTasks();
+            expect(tokenService.createForJob).toHaveBeenCalledExactlyOnceWith(job.id);
+            expect(repository.findByTokenHash).toHaveBeenCalledExactlyOnceWith(tokenHash);
+            expect(jobs.markPrepared).not.toHaveBeenCalled();
+            expect(repository.reserveRequest).not.toHaveBeenCalled();
+            expect(mailService.send).toHaveBeenCalledOnce();
+        });
 
-            expect(Logger.prototype.error).toHaveBeenCalledExactlyOnceWith('Could not process password recovery request.');
-            expect(repository.reserveRequest).toHaveBeenCalledOnce();
-            expect(prisma.$transaction).toHaveBeenCalledOnce();
+        it('does not recreate a consumed or replaced token while retrying delivery', async () => {
+            repository.findByTokenHash.mockResolvedValue(null);
+
+            await service.processRequest({ ...job, prepared: true, attempts: 2 });
+
+            expect(repository.reserveRequest).not.toHaveBeenCalled();
+            expect(mailService.send).not.toHaveBeenCalled();
         });
     });
 

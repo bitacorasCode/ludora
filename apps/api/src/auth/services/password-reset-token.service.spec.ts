@@ -1,32 +1,16 @@
 import { HEX_64_PATTERN } from '@ludora/security';
-import { Test } from '@nestjs/testing';
-import { vi } from 'vitest';
+import { ConfigService } from '@nestjs/config';
 
-import { MILLISECONDS_PER_SECOND } from '../../common/constants/time.js';
-import { PASSWORD_RESET_CONFIG } from '../constants/password-reset.js';
 import { OPAQUE_TOKEN_ENCODED_LENGTH } from '../utils/opaque-token.js';
 import { PasswordResetTokenService } from './password-reset-token.service.js';
 
 describe('PasswordResetTokenService', () => {
-    let service: PasswordResetTokenService;
-    const now = new Date('2026-11-04T12:00:00.000Z');
+    const jobId = 'd56aa89f-ac5f-4d65-a49d-3653442080bf';
+    const service = new PasswordResetTokenService(new ConfigService({ JWT_SECRET: 'fixture-signing-key' }));
 
-    beforeEach(async () => {
-        vi.useFakeTimers({ toFake: ['Date'] });
-        vi.setSystemTime(now);
-        const module = await Test.createTestingModule({
-            providers: [PasswordResetTokenService],
-        }).compile();
-        service = module.get(PasswordResetTokenService);
-    });
-
-    afterEach(() => {
-        vi.useRealTimers();
-    });
-
-    describe('create', () => {
+    describe('createForJob', () => {
         it('should return an unpadded URL-safe token of the configured length', () => {
-            const { token } = service.create();
+            const { token } = service.createForJob(jobId);
 
             expect(token).toMatch(/^[A-Za-z0-9_-]+$/u);
             expect(token).not.toContain('=');
@@ -34,24 +18,24 @@ describe('PasswordResetTokenService', () => {
         });
 
         it('should return the token hash rather than repeating its plaintext credential', () => {
-            const { token, tokenHash } = service.create();
+            const { token, tokenHash } = service.createForJob(jobId);
 
             expect(tokenHash).toMatch(HEX_64_PATTERN);
             expect(tokenHash).toBe(service.hash(token));
             expect(tokenHash).not.toBe(token);
         });
 
-        it('should calculate expiration from the configured lifetime in seconds', () => {
-            const { expiresAt } = service.create();
+        it('recreates the same credential when a new worker retries the same job', () => {
+            const afterRestart = new PasswordResetTokenService(
+                new ConfigService({ JWT_SECRET: 'fixture-signing-key' }),
+            );
 
-            expect(expiresAt).toEqual(new Date(
-                now.getTime() + PASSWORD_RESET_CONFIG.expiresInSeconds * MILLISECONDS_PER_SECOND,
-            ));
+            expect(afterRestart.createForJob(jobId)).toEqual(service.createForJob(jobId));
         });
 
         it('should create independent credentials for separate requests', () => {
-            const first = service.create();
-            const second = service.create();
+            const first = service.createForJob(jobId);
+            const second = service.createForJob('7bfb13db-5c4f-4687-bf0f-1ca932d86152');
 
             expect(second.token).not.toBe(first.token);
             expect(second.tokenHash).not.toBe(first.tokenHash);

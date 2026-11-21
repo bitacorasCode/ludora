@@ -55,21 +55,22 @@ test.describe('Platform navigation', () => {
     ).not.toHaveAttribute('aria-current');
   });
 
-  test('preserves the locale and layout on localized missing routes', async ({
+  test('shows the English global fallback at a localized missing URL', async ({
     page,
   }) => {
     const response = await page.goto('/es/pagina-inexistente');
     expect(response?.status()).toBe(404);
+    await expect(page).toHaveURL('/es/pagina-inexistente');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-      esMessages.NotFound.title,
+      enMessages.NotFound.title,
     );
-    await expect(page.locator('html')).toHaveAttribute('lang', 'es');
-    await expect(page.locator('header')).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await expect(page.locator('header')).toHaveCount(0);
     await expect(page.locator('main')).toHaveCount(1);
     await page
-      .getByRole('link', { name: esMessages.NotFound.exploreGames })
+      .getByRole('link', { name: enMessages.NotFound.exploreGames })
       .click();
-    await expect(page).toHaveURL('/es/games');
+    await expect(page).toHaveURL('/en/games');
   });
 
   test('shows the standalone global fallback for a missing file', async ({
@@ -77,6 +78,7 @@ test.describe('Platform navigation', () => {
   }) => {
     const response = await page.goto('/unknown.txt');
     expect(response?.status()).toBe(404);
+    await expect(page).toHaveURL('/unknown.txt');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
       enMessages.NotFound.title,
     );

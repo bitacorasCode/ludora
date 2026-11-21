@@ -42,6 +42,8 @@ import {
     AuthService,
     AuthSessionService,
     GoogleAuthService,
+    OAuthAccountService,
+    PasswordChangeService,
     PasswordRecoveryService,
 } from './services/index.js';
 import type { AuthenticatedRequest } from './types/authenticated-request.js';
@@ -54,6 +56,8 @@ export class AuthController {
         private readonly passwordRecoveryService: PasswordRecoveryService,
         private readonly googleAuthService: GoogleAuthService,
         private readonly authSessionService: AuthSessionService,
+        private readonly oauthAccountService: OAuthAccountService,
+        private readonly passwordChangeService: PasswordChangeService,
     ) { }
 
     @Post('register')
@@ -109,9 +113,7 @@ export class AuthController {
     @UseGuards(InternalRequestGuard, JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
     async recordActivity(@Req() { auth: { sessionId, userId, authVersion } }: AuthenticatedRequest) {
-        if (sessionId) {
-            await this.authSessionService.recordActivity(sessionId, userId, authVersion);
-        }
+        await this.authSessionService.recordActivity(sessionId, userId, authVersion);
 
         return { accepted: true };
     }
@@ -119,10 +121,10 @@ export class AuthController {
     @Post('forgot-password')
     @Throttle({ default: AUTH_RATE_LIMIT_CONFIG.forgotPassword })
     @HttpCode(HttpStatus.ACCEPTED)
-    forgotPassword(
+    async forgotPassword(
         @Body({ schema: forgotPasswordSchema }) { email }: ForgotPasswordDto,
     ) {
-        this.passwordRecoveryService.request(email);
+        await this.passwordRecoveryService.request(email);
 
         return { accepted: true };
     }
@@ -153,7 +155,7 @@ export class AuthController {
         @Req() { auth: { userId, authVersion } }: AuthenticatedRequest,
         @Body({ schema: changePasswordSchema }) data: ChangePasswordDto,
     ) {
-        return this.authService.changePassword(userId, authVersion, data);
+        return this.passwordChangeService.changePassword(userId, authVersion, data);
     }
 
     @Post('google/start')
@@ -170,10 +172,15 @@ export class AuthController {
     @Throttle({ default: AUTH_RATE_LIMIT_CONFIG.login })
     @HttpCode(HttpStatus.OK)
     @Header('Cache-Control', 'no-store')
-    loginWithGoogle(
-        @Body({ schema: googleCallbackSchema }) data: GoogleCallbackDto,
+    async loginWithGoogle(
+        @Body({ schema: googleCallbackSchema }) { flowToken, responseParameters }: GoogleCallbackDto,
     ) {
-        return this.authService.loginWithGoogle(data);
+        const identity = await this.googleAuthService.verifyAuthorization(
+            flowToken,
+            responseParameters,
+        );
+
+        return this.oauthAccountService.resolveExternalIdentity(identity);
     }
 
     @Post('oauth/register')
@@ -184,7 +191,7 @@ export class AuthController {
     completeOAuthRegistration(
         @Body({ schema: completeOAuthRegistrationSchema }) data: CompleteOAuthRegistrationDto,
     ) {
-        return this.authService.completeOAuthRegistration(data);
+        return this.oauthAccountService.completeOAuthRegistration(data);
     }
 
     @Post('oauth/registration-context')
@@ -195,6 +202,6 @@ export class AuthController {
     getOAuthRegistrationContext(
         @Body({ schema: oauthRegistrationContextSchema }) data: OAuthRegistrationContextDto,
     ) {
-        return this.authService.getOAuthRegistrationContext(data);
+        return this.oauthAccountService.getOAuthRegistrationContext(data);
     }
 }

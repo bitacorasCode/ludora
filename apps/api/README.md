@@ -90,8 +90,8 @@ The API normally listens at `http://localhost:3001`. Check database connectivity
 curl http://localhost:3001/health
 ```
 
-The health response includes `status`, `database`, and `usersCount`. It queries the
-database, so PostgreSQL must be running and migrations must be applied.
+The health response includes `status` and `database`. The API runs `SELECT 1` so
+the check depends only on PostgreSQL connectivity.
 
 For a compiled run:
 
@@ -144,7 +144,7 @@ There is no global URL prefix. Bodies are JSON. Protected routes require
 | Method | Path                        | Behavior                                                                                                                |
 | ------ | --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `GET`  | `/`                         | Starter response: `Hello World!`.                                                                                       |
-| `GET`  | `/health`                   | Checks database access and returns the user count.                                                                      |
+| `GET`  | `/health`                   | Checks PostgreSQL connectivity.                                                                                        |
 | `POST` | `/auth/register`            | Accepts `nickname`, `email`, and `password`; creates an unverified account and returns verification metadata (`201`).   |
 | `POST` | `/auth/verify-email`        | Accepts `verificationId` and `code`; confirms the email and returns an access token and user (`200`).                   |
 | `POST` | `/auth/resend-verification` | Accepts `verificationId`; renews the code when allowed and returns delivery and retry information (`200`).              |
@@ -337,10 +337,10 @@ resends contact the selected provider after their database transaction commits.
 An account can therefore exist even if sending its verification email fails;
 use resend instead of registering it again.
 
-Recovery requests return the same accepted response after validation and rate
-limiting. Recovery processing and password-change notifications currently run in
-memory; a process restart can lose pending work. Durable delivery and retries
-will require a persistent job queue.
+Recovery requests return `202` after the request has been saved in PostgreSQL.
+Nest processes the queue while it is running, including after a restart. Delivery
+can be attempted up to three times. Password-change notifications still run in
+memory after the password change commits.
 
 SMTP username/password authentication is not implemented. The SMTP configuration
 targets local Mailpit; real delivery uses Resend's HTTPS API.
@@ -349,6 +349,8 @@ targets local Mailpit; real delivery uses Resend's HTTPS API.
 
 Generate the Prisma client before checking a fresh checkout. Unit tests mock
 persistence and external services; they do not require PostgreSQL or SMTP.
+They cover OAuth account resolution, session-bound JWTs, password changes, and
+recovery delivery retries across worker restarts.
 
 ```bash
 pnpm --filter api test
@@ -371,8 +373,8 @@ and requires valid API environment configuration:
 pnpm --filter api test:e2e
 ```
 
-It currently checks the starter `/` endpoint; it is not full authentication
-integration coverage. Browser flows using the real API, PostgreSQL, and Mailpit
+It checks the starter `/` endpoint and database connectivity through `/health`.
+Browser flows using the real API, PostgreSQL, and Mailpit
 are exercised by [the web Playwright suite](../web/README.md).
 
 `test/fixtures/auth-fixture.mjs` is local-only support for that suite. It only
@@ -393,6 +395,11 @@ committed migrations with `migrate deploy`, and run
 host, use the deployment database connection, and set `PASSWORD_RESET_URL` to the
 public HTTPS web reset route. Both hosts need the same `INTERNAL_API_SECRET`;
 JWT and verification secrets stay with Nest.
+
+Apply the password recovery queue migration before starting this release. Before
+deploying the required `sid` claim, verify that the previous API release issues
+session-bound JWTs and that two hours have elapsed since the last release that
+could issue JWTs without `sid` stopped serving traffic.
 
 ### Scheduled session cleanup
 
@@ -416,7 +423,7 @@ connection, and exits. See [Render Cron Jobs](https://render.com/docs/cronjobs).
 ### Deployment checks
 
 Verify client-IP handling, email delivery, and database access in the deployed
-environment. Add shared rate-limit storage before scaling replicas and a
-persistent mail queue when delivery must survive deployments. Database backup and
-restoration procedures belong to deployment setup; local Compose volumes are not
-a backup strategy.
+environment. Configure Render's health check path as `/health`. The recovery
+worker starts with Nest and requires no separate service. Add shared rate-limit
+storage before scaling replicas. Document how to back up and restore the
+deployment database.

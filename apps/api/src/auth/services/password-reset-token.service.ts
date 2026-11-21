@@ -1,22 +1,30 @@
-import { Injectable } from '@nestjs/common';
+import { createHmac } from 'node:crypto';
 
-import { MILLISECONDS_PER_SECOND } from '../../common/constants/index.js';
-import { PASSWORD_RESET_CONFIG } from '../constants/index.js';
-import { createOpaqueToken, hashOpaqueToken } from '../utils/opaque-token.js';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
+import { CRYPTO_ENCODING, HASH_ALGORITHM } from '../../common/constants/index.js';
+import { hashOpaqueToken } from '../utils/opaque-token.js';
+
+const RECOVERY_TOKEN_KEY_CONTEXT = 'ludora/password-recovery-token/v1';
 
 @Injectable()
 export class PasswordResetTokenService {
-    create() {
-        const { expiresInSeconds } = PASSWORD_RESET_CONFIG;
-        const credentials = createOpaqueToken();
-        const expiresAt = new Date(
-            Date.now() + expiresInSeconds * MILLISECONDS_PER_SECOND,
-        );
+    private readonly recoveryKey: Buffer;
 
-        return {
-            ...credentials,
-            expiresAt,
-        };
+    constructor(config: ConfigService) {
+        this.recoveryKey = createHmac(HASH_ALGORITHM.sha256, config.getOrThrow<string>('JWT_SECRET'))
+            .update(RECOVERY_TOKEN_KEY_CONTEXT)
+            .digest();
+    }
+
+    createForJob(jobId: string) {
+        // The same job can retry delivery without storing the raw credential.
+        const token = createHmac(HASH_ALGORITHM.sha256, this.recoveryKey)
+            .update(jobId)
+            .digest(CRYPTO_ENCODING.base64url);
+
+        return { token, tokenHash: this.hash(token) };
     }
 
     hash(token: string): string {
