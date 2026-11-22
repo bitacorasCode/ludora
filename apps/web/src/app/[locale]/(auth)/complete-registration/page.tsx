@@ -7,7 +7,10 @@ import { getOAuthRegistrationContext } from '@/features/social-auth/server';
 import { redirect } from '@/i18n/navigation';
 import { OPERATION_STATUS } from '@/lib/actions';
 
+import { AuthFormSkeleton } from '../../_components/auth/auth-form-skeleton';
 import { GuestOnly } from '../../_components/auth/guest-only';
+
+const REGISTRATION_PLACEHOLDER_FIELDS = 2;
 
 export async function generateMetadata({
     params,
@@ -41,7 +44,7 @@ export default async function CompleteRegistrationPage({
     const { locale } = await params;
 
     return (
-        <GuestOnly locale={locale}>
+        <GuestOnly locale={locale} fallback={<AuthFormSkeleton fields={REGISTRATION_PLACEHOLDER_FIELDS} />}>
             <RegistrationContent locale={locale} />
         </GuestOnly>
     );

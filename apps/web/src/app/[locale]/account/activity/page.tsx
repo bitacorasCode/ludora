@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { ActivityPageContent } from '@/features/activity';
 
 import { AccountAccess } from '../_components/account-access';
+import ActivityLoading from './loading';
 
 export async function generateMetadata({
   params,
@@ -23,7 +24,7 @@ export default async function AccountActivityPage({
   const { locale } = await params;
 
   return (
-    <AccountAccess locale={locale}>
+    <AccountAccess locale={locale} fallback={<ActivityLoading />}>
       {() => <ActivityPageContent />}
     </AccountAccess>
   );

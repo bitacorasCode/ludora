@@ -1,7 +1,6 @@
 {
     "Account": {
         "activity": "Actividad",
-        "loading": "Cargando cuenta",
         "navigationLabel": "Secciones de mi cuenta",
         "preferences": "Preferencias",
         "profile": "Perfil",
@@ -61,7 +60,7 @@
             "unknown": "No pudimos completar la operación. Inténtalo de nuevo."
         },
         "status": {
-            "checkingSession": "Comprobando sesión",
+            "loadingForm": "Cargando formulario",
             "retryAfter": "{seconds, plural, one {Podrás volver a intentarlo en # segundo.} other {Podrás volver a intentarlo en # segundos.}}",
             "saving": "Guardando..."
         },
@@ -134,7 +133,7 @@
         "ranking": "Ranking",
         "register": "Registro",
         "session": {
-            "loading": "Comprobando sesión",
+            "loading": "Cargando menú de cuenta",
             "unavailable": "No pudimos comprobar tu sesión."
         }
     },

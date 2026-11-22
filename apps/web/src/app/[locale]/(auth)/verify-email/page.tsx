@@ -8,7 +8,10 @@ import { EMAIL_VERIFICATION_DELIVERY } from '@/features/email-verification/confi
 import { getVerificationWaitSeconds } from '@/features/email-verification/server/get-verification-wait-seconds';
 import { redirect } from '@/i18n/navigation';
 
+import { AuthFormSkeleton } from '../../_components/auth/auth-form-skeleton';
 import { GuestOnly } from '../../_components/auth/guest-only';
+
+const VERIFICATION_PLACEHOLDER_FIELDS = 1;
 
 export async function generateMetadata({
   params,
@@ -59,7 +62,11 @@ export default async function VerifyEmailPage({
   const { locale } = await params;
 
   return (
-    <GuestOnly locale={locale} redirectTo={APP_ROUTES.accountProfile}>
+    <GuestOnly
+      locale={locale}
+      redirectTo={APP_ROUTES.accountProfile}
+      fallback={<AuthFormSkeleton fields={VERIFICATION_PLACEHOLDER_FIELDS} />}
+    >
       <VerificationContent searchParams={searchParams} locale={locale} />
     </GuestOnly>
   );

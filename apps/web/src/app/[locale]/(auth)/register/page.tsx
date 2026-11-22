@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
 import { RegisterPageContent } from '@/features/register';
+import { userFields } from '@/features/register/config';
 
+import { AuthFormSkeleton } from '../../_components/auth/auth-form-skeleton';
 import { GuestOnly } from '../../_components/auth/guest-only';
 
 export async function generateMetadata({
@@ -23,7 +25,7 @@ export default async function RegisterPage({
   const { locale } = await params;
 
   return (
-    <GuestOnly locale={locale}>
+    <GuestOnly locale={locale} fallback={<AuthFormSkeleton fields={userFields.length} />}>
       <RegisterPageContent />
     </GuestOnly>
   );

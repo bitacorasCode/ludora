@@ -1,10 +1,7 @@
 import 'server-only';
 
-import { useTranslations } from 'next-intl';
 import { type ReactNode, Suspense } from 'react';
 
-import { PageContainer, PageSection } from '@/components/layout';
-import { Spinner } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
 import { redirect } from '@/i18n/navigation';
 import { getCurrentUser } from '@/lib/auth';
@@ -14,12 +11,14 @@ import { SessionRecovery } from './session-recovery';
 
 type GuestOnlyProps = {
   children: ReactNode;
+  fallback?: ReactNode;
   locale: string;
   redirectTo?: string;
 };
 
 async function GuestOnlyContent({
   children,
+  fallback = null,
   locale,
   redirectTo = APP_ROUTES.home,
 }: GuestOnlyProps) {
@@ -30,28 +29,15 @@ async function GuestOnlyContent({
   }
 
   if (await getRefreshToken()) {
-    return <SessionRecovery />;
+    return <SessionRecovery fallback={fallback} />;
   }
 
   return children;
 }
 
 export function GuestOnly(props: GuestOnlyProps) {
-  const t = useTranslations('Common.status');
-
   return (
-    <Suspense
-      fallback={
-        <PageContainer>
-          <PageSection>
-            <Spinner
-              className='size-6 self-center'
-              aria-label={t('checkingSession')}
-            />
-          </PageSection>
-        </PageContainer>
-      }
-    >
+    <Suspense fallback={props.fallback}>
       <GuestOnlyContent {...props} />
     </Suspense>
   );

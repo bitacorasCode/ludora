@@ -4,7 +4,10 @@ import { getTranslations } from 'next-intl/server';
 import { LoginPageContent } from '@/features/login';
 import { getSocialAuthCallbackError } from '@/features/social-auth/locations';
 
+import { AuthFormSkeleton } from '../../_components/auth/auth-form-skeleton';
 import { GuestOnly } from '../../_components/auth/guest-only';
+
+const LOGIN_PLACEHOLDER_FIELDS = 2;
 
 export async function generateMetadata({
   params,
@@ -22,7 +25,7 @@ export default async function LoginPage({
   const { locale } = await params;
 
   return (
-    <GuestOnly locale={locale}>
+    <GuestOnly locale={locale} fallback={<AuthFormSkeleton fields={LOGIN_PLACEHOLDER_FIELDS} />}>
       <LoginContent searchParams={searchParams} />
     </GuestOnly>
   );

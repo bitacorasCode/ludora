@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
 import { type ReactNode, Suspense } from 'react';
 
 import { SessionBoundary } from '@/components/auth';
-import { PageContainer, PageSection } from '@/components/layout';
-import { AccountContentSkeleton, AccountShell } from '@/features/account';
+import { AccountShell } from '@/features/account';
 import { getCurrentUser } from '@/lib/auth';
+
+import { AccountFrameFallback } from './_components/account-frame-fallback';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -23,26 +23,9 @@ async function AccountFrame({ children }: { children: ReactNode }) {
   );
 }
 
-export default async function AccountLayout({
-  children,
-  params,
-}: LayoutProps<'/[locale]/account'>) {
-  const { locale } = await params;
-  const t = await getTranslations({
-    locale,
-    namespace: 'Account',
-  });
-
+export default function AccountLayout({ children }: LayoutProps<'/[locale]/account'>) {
   return (
-    <Suspense
-      fallback={
-        <PageContainer>
-          <PageSection>
-            <AccountContentSkeleton label={t('loading')} />
-          </PageSection>
-        </PageContainer>
-      }
-    >
+    <Suspense fallback={<AccountFrameFallback />}>
       <AccountFrame>{children}</AccountFrame>
     </Suspense>
   );

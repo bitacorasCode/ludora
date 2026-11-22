@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { UserSettingsPageContent } from '@/features/user-settings';
 
 import { AccountAccess } from '../_components/account-access';
+import SettingsLoading from './loading';
 
 export async function generateMetadata({
   params,
@@ -23,7 +24,7 @@ export default async function AccountSettingsPage({
   const { locale } = await params;
 
   return (
-    <AccountAccess locale={locale}>
+    <AccountAccess locale={locale} fallback={<SettingsLoading />}>
       {(user) => (
         <UserSettingsPageContent
           key={user.id}

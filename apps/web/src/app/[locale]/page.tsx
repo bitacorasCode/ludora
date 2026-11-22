@@ -17,7 +17,7 @@ async function HomeSessionRecovery() {
     return null;
   }
 
-  return <SessionRecovery showStatus={false} />;
+  return <SessionRecovery />;
 }
 
 export default function Home() {

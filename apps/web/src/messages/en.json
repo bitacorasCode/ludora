@@ -1,7 +1,6 @@
 {
     "Account": {
         "activity": "Activity",
-        "loading": "Loading account",
         "navigationLabel": "Account sections",
         "preferences": "Preferences",
         "profile": "Profile",
@@ -61,7 +60,7 @@
             "unknown": "We couldn't complete the operation. Please try again."
         },
         "status": {
-            "checkingSession": "Checking your session",
+            "loadingForm": "Loading form",
             "retryAfter": "{seconds, plural, one {You can try again in # second.} other {You can try again in # seconds.}}",
             "saving": "Saving..."
         },
@@ -134,7 +133,7 @@
         "ranking": "Ranking",
         "register": "Register",
         "session": {
-            "loading": "Checking your session",
+            "loading": "Loading account menu",
             "unavailable": "We couldn't check your session."
         }
     },

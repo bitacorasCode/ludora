@@ -2,6 +2,7 @@ import { APP_ROUTES } from '@/config/routes';
 import { redirect } from '@/i18n/navigation';
 
 import { AccountAccess } from './_components/account-access';
+import AccountLoading from './loading';
 
 export default async function AccountPage({
   params,
@@ -9,7 +10,7 @@ export default async function AccountPage({
   const { locale } = await params;
 
   return (
-    <AccountAccess locale={locale}>
+    <AccountAccess locale={locale} fallback={<AccountLoading />}>
       {() => redirect({ href: APP_ROUTES.accountProfile, locale })}
     </AccountAccess>
   );

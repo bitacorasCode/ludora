@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { ProfilePageContent } from '@/features/profile';
 
 import { AccountAccess } from '../_components/account-access';
+import ProfileLoading from './loading';
 
 export async function generateMetadata({
   params,
@@ -23,7 +24,7 @@ export default async function AccountProfilePage({
   const { locale } = await params;
 
   return (
-    <AccountAccess locale={locale}>
+    <AccountAccess locale={locale} fallback={<ProfileLoading />}>
       {(user) => (
         <ProfilePageContent
           key={user.id}
