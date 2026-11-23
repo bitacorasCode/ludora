@@ -182,7 +182,7 @@ export class AuthSessionRepository {
     revokeById(
         sessionId: string,
         revokedAt: Date,
-        transaction: Prisma.TransactionClient,
+        transaction: Prisma.TransactionClient = this.prisma,
     ): Promise<void> {
         return this.revoke({ id: sessionId }, revokedAt, transaction);
     }

@@ -14,6 +14,7 @@ import {
 } from '@/lib/actions';
 import { FORM_VALIDATION_OPTIONS } from '@/lib/forms';
 import { createLoginSchema, type LoginFormData } from '@/lib/schemas';
+import { withSessionLock } from '@/lib/session/session-lock';
 
 import { type LoginResult, loginUser } from '../actions';
 import { LOGIN_ERROR_CODES } from '../config';
@@ -64,10 +65,12 @@ export default function useLoginForm() {
         dismissError();
 
         startTransition(async () => {
-            let result: LoginResult;
+            let result: LoginResult | null;
 
             try {
-                result = await loginUser(locale, data);
+                result = await withSessionLock(async () =>
+                    isActive.current ? loginUser(locale, data) : null,
+                );
             } catch {
                 if (!isActive.current) return;
 
@@ -80,7 +83,7 @@ export default function useLoginForm() {
                 requestInFlight.current = false;
             }
 
-            if (!isActive.current) return;
+            if (!result || !isActive.current) return;
 
             if (result.status === OPERATION_STATUS.error) {
                 if (result.error.errorCode === LOGIN_ERROR_CODES.invalidCredentials) {

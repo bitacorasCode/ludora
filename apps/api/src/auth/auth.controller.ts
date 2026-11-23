@@ -109,6 +109,16 @@ export class AuthController {
         return { loggedOut: true };
     }
 
+    @Post('logout/current')
+    @UseGuards(InternalRequestGuard, JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    @Header('Cache-Control', 'no-store')
+    async logoutCurrentSession(@Req() { auth: { sessionId } }: AuthenticatedRequest) {
+        await this.authSessionService.revokeBySessionId(sessionId);
+
+        return { loggedOut: true };
+    }
+
     @Post('activity')
     @UseGuards(InternalRequestGuard, JwtAuthGuard)
     @HttpCode(HttpStatus.OK)

@@ -166,10 +166,14 @@ authorization on protected operations.
   other uncertain outcomes leave the original result in place.
   An explicitly invalid refresh token clears the cookies. Rotation conflicts
   and service failures preserve the cookies and return actionable feedback.
-- Refresh and logout share a browser lock across tabs on the same origin.
-  A waiting tab checks the current access cookie and reuses it when Nest
-  confirms it is valid. Browsers without Web Locks fall back to the API's
-  rotation conflict handling.
+- Browser calls that write session cookies share a Web Lock across tabs on the
+  same origin. This covers refresh, activity, logout, password login, email
+  confirmation, completion of social registration, password reset, and password
+  change. A protected mutation releases the lock before attempting recovery and
+  reacquires it for the retry. A waiting refresh checks the current access cookie
+  and reuses it when Nest confirms it is valid. The Google OAuth callback is a
+  server-handled navigation outside this lock. Browsers without Web Locks fall
+  back to the API's rotation conflict handling.
 - Creating or ending a session also updates a separate revision cookie that
   contains a random value. Open tabs use a local storage notification to
   recheck this revision and refresh the current route, including both menus.
@@ -179,16 +183,16 @@ authorization on protected operations.
 - Pointer and keyboard interactions in a visible account tab report session
   activity at most once every five minutes while the account stays mounted.
   A successful report can rotate credentials when the access token has at most
-  ten minutes left. It uses the same browser lock as refresh and logout. If
-  early renewal fails, the browser keeps its current cookies. If the access
-  token has already expired, the report can use shared session recovery and
-  retry once. Opening a tab or rotating credentials alone leaves the idle
-  deadline unchanged.
-- Logout passes the refresh token to Nest to revoke the session, then expires
-  both cookies. A failed revocation shows an error and allows retrying with the
-  existing cookies. Sessions issued before refresh cookies were introduced can
-  still sign out locally. Password reset and authenticated password changes
-  invalidate previous credentials through the API.
+  ten minutes left. If early renewal fails, the browser keeps its current
+  cookies. If the access token has already expired, the report can use shared
+  session recovery and retry once. Opening a tab or rotating credentials alone
+  leaves the idle deadline unchanged.
+- Logout asks Nest to revoke the session before expiring both cookies. It uses
+  the refresh token when present and the access JWT when the refresh cookie is
+  missing. If the access JWT is absent or rejected, the browser clears its
+  cookies locally. Service failures preserve the cookies and allow retrying.
+  Password reset and authenticated password changes invalidate previous
+  credentials through the API.
 
 Server-side handlers around request APIs and `fetch` use Next's `unstable_rethrow`
 before logging or mapping application errors. This preserves framework control
@@ -199,8 +203,9 @@ Tests cover replacement and removal of both cookies, a single retry after
 confirmed authentication rejection, and header updates on login and logout
 across tabs. Deferred coverage includes matching skeletons during route loading
 and session renewal, session reads during partial prefetching, early renewal on
-activity, logout during refresh, and failed renewals that preserve the current
-cookies.
+activity, concurrent cookie writes during refresh or password change, logout
+during refresh or without a refresh cookie, and failed renewals that preserve
+the current cookies.
 
 The recovery request returns a generic confirmation without exposing whether an
 account exists. Reset links are validated on submission, are single-use, and

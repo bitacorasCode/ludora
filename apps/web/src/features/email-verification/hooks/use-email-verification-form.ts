@@ -19,6 +19,7 @@ import {
     createEmailVerificationSchema,
     type EmailVerificationFormData,
 } from '@/lib/schemas';
+import { withSessionLock } from '@/lib/session/session-lock';
 
 import { resendVerification, verifyEmail } from '../actions';
 import { EMAIL_VERIFICATION_ERROR_CODES } from '../config';
@@ -99,12 +100,13 @@ export default function useEmailVerificationForm({
 
         startTransition(async () => {
             try {
-                const result = await verifyEmail(locale, {
-                    ...data,
-                    verificationId,
+                const result = await withSessionLock(async () => {
+                    if (!isActive.current) return null;
+
+                    return verifyEmail(locale, { ...data, verificationId });
                 });
 
-                if (!isActive.current) return;
+                if (!result || !isActive.current) return;
 
                 if (result.status === OPERATION_STATUS.error) {
                     const { errorCode } = result.error;

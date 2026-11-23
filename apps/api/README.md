@@ -152,6 +152,7 @@ There is no global URL prefix. Bodies are JSON. Protected routes require
 | `POST` | `/auth/refresh`             | Internal requests only. Accepts `refreshToken` and returns rotated credentials and session deadlines (`200`).          |
 | `POST` | `/auth/activity`            | Internal request with a verified JWT. Records activity for the current session when eligible (`200`).                  |
 | `POST` | `/auth/logout`              | Internal requests only. Accepts `refreshToken` and revokes its session (`200`).                                            |
+| `POST` | `/auth/logout/current`      | Internal request with a valid access JWT. Revokes the session identified by the JWT (`200`).                             |
 | `POST` | `/auth/google/start`        | Internal requests only; returns the Google authorization URL and expiring signed flow context (`200`).                |
 | `POST` | `/auth/google/callback`     | Internal requests only; accepts `flowToken` and `responseParameters`; resolves sign-in or pending registration (`200`). |
 | `POST` | `/auth/oauth/registration-context` | Internal requests only; validates `registrationToken` and returns its email context and expiration (`200`). |
@@ -207,7 +208,14 @@ were.
 token even after its access token expires. An already-rotated token can identify
 the same session if logout overlaps with refresh. The endpoint returns
 `{ "loggedOut": true }` for revocation, an already-revoked session, or an unknown
-well-formed token. Next calls this endpoint before clearing its session cookies.
+well-formed token.
+
+When the refresh cookie is missing, Next calls `POST /auth/logout/current` with
+the access JWT. The same JWT guard used by other protected routes validates the
+token and the active session. The endpoint uses the verified `sid` claim and
+returns `{ "loggedOut": true }` after revocation. It requires the internal request
+secret and takes no body. Deploy this API endpoint before deploying the web
+version that calls it.
 
 ### Google account resolution
 

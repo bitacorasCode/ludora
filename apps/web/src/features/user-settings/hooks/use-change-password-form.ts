@@ -57,7 +57,10 @@ export function useChangePasswordForm(userId: string, onSuccess: () => void) {
         dismissError();
 
         try {
-            const result = await execute(() => changePassword(locale, userId, values));
+            const result = await execute(
+                () => changePassword(locale, userId, values),
+                { lockSession: true },
+            );
 
             if (!result || !isActive.current) return;
 

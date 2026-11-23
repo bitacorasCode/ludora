@@ -11,11 +11,13 @@ import {
 } from '@/lib/actions';
 import { HTTP_STATUS } from '@/lib/api/constants';
 import { SESSION_REFRESH_OUTCOME } from '@/lib/session/refresh-result';
+import { withSessionLock } from '@/lib/session/session-lock';
 
 import { useRequestScope } from './use-request-scope';
 
 type ProtectedRequestOptions = {
     signal?: AbortSignal;
+    lockSession?: boolean;
 };
 
 const SESSION_REJECTION_CODES: ReadonlySet<string> = new Set([
@@ -33,7 +35,7 @@ export function useProtectedRequest() {
     const execute = useCallback(
         async <TData>(
             operation: () => Promise<ActionResult<TData>>,
-            { signal }: ProtectedRequestOptions = {},
+            { signal, lockSession = false }: ProtectedRequestOptions = {},
         ): Promise<ActionResult<TData> | null> => {
             const isCurrent = capture();
 
@@ -58,7 +60,9 @@ export function useProtectedRequest() {
                 }
             }
 
-            const result = await runOperation();
+            // Recovery acquires its own lock after the protected attempt releases it.
+            const runAttempt = lockSession ? () => withSessionLock(runOperation) : runOperation;
+            const result = await runAttempt();
 
             if (
                 result?.status !== OPERATION_STATUS.error
@@ -82,7 +86,7 @@ export function useProtectedRequest() {
             const canRetry = (statusCode === undefined || statusCode === HTTP_STATUS.unauthorized)
                 && SESSION_REJECTION_CODES.has(errorCode);
 
-            return canRetry ? runOperation() : result;
+            return canRetry ? runAttempt() : result;
         },
         [capture, recoverSession],
     );

@@ -108,6 +108,10 @@ export class AuthSessionService {
         return this.authSessionRepository.revokeByRefreshTokenHash(tokenHash, new Date());
     }
 
+    revokeBySessionId(sessionId: string): Promise<void> {
+        return this.authSessionRepository.revokeById(sessionId, new Date());
+    }
+
     async rotateRefreshToken(refreshToken: string) {
         const attemptedAtMs = Date.now();
         const tokenHash = hashOpaqueToken(refreshToken);

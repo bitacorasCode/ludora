@@ -81,10 +81,11 @@ the same `Prisma.TransactionClient` through the `transaction` argument.
   receive a conflict. Later reuse revokes the session before the service reports
   an authentication error. Database-backed tests for concurrent consumption,
   rollback, and revocation are deferred until requested.
-- Logout revokes the session in one conditional update using the presented refresh
-  token's hash. Consumed refresh tokens can still identify their session so a
-  concurrent rotation cannot prevent logout. Idempotent logout coverage is
-  deferred until requested.
+- Logout uses a conditional update to revoke the session. The refresh-token path
+  looks up the session by the token's hash and accepts consumed tokens so a
+  concurrent rotation cannot prevent logout. The access-token path uses the
+  session ID provided by the JWT guard. Coverage of repeated logout and
+  access-token-only revocation is deferred until requested.
 - Session activity conditionally updates `lastActiveAt` and `idleExpiresAt`
   together. The update rechecks session validity and the activity cutoff so
   simultaneous requests from different tabs share the same write limit. Coverage

@@ -13,6 +13,7 @@ import { useRouter } from '@/i18n/navigation';
 import { ACTION_ERROR_CODES, OPERATION_STATUS } from '@/lib/actions';
 import { FORM_VALIDATION_OPTIONS } from '@/lib/forms';
 import { createPasswordResetSchema, type PasswordResetFormData } from '@/lib/schemas';
+import { withSessionLock } from '@/lib/session/session-lock';
 
 import { resetPassword } from '../actions';
 
@@ -56,9 +57,11 @@ export default function usePasswordResetForm(token: string | null, mode: Passwor
 
         startTransition(async () => {
             try {
-                const result = await resetPassword(locale, token, data);
+                const result = await withSessionLock(async () =>
+                    requestVersion.current === version ? resetPassword(locale, token, data) : null,
+                );
 
-                if (requestVersion.current !== version) return;
+                if (!result || requestVersion.current !== version) return;
 
                 if (result.status === OPERATION_STATUS.error) {
                     if (result.error.errorCode === AUTH_ERROR_CODES.passwordResetInvalid) {

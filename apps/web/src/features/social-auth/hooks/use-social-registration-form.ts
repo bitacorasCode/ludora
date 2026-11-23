@@ -15,6 +15,7 @@ import { useActionErrorToast, useRequestScope } from '@/hooks';
 import { useRouter } from '@/i18n/navigation';
 import { ACTION_ERROR_CODES, type ActionError, OPERATION_STATUS } from '@/lib/actions';
 import { FORM_ERROR_TYPES, FORM_VALIDATION_OPTIONS } from '@/lib/forms';
+import { withSessionLock } from '@/lib/session/session-lock';
 
 import {
     completeSocialRegistration,
@@ -103,10 +104,12 @@ export function useSocialRegistrationForm(requiresEmail: boolean) {
         const isCurrent = capture();
 
         startTransition(async () => {
-            let result: CompleteSocialRegistrationResult;
+            let result: CompleteSocialRegistrationResult | null;
 
             try {
-                result = await completeSocialRegistration(locale, data);
+                result = await withSessionLock(async () =>
+                    isCurrent() ? completeSocialRegistration(locale, data) : null,
+                );
             } catch {
                 if (isCurrent()) showError({ errorCode: ACTION_ERROR_CODES.unexpected });
                 return;
@@ -114,7 +117,7 @@ export function useSocialRegistrationForm(requiresEmail: boolean) {
                 requestInFlight.current = false;
             }
 
-            if (!isCurrent()) return;
+            if (!result || !isCurrent()) return;
 
             if (result.status === OPERATION_STATUS.error) {
                 handleError(result.error);
