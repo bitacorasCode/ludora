@@ -52,7 +52,7 @@ export function ProfileEditor({
     <Button
       type='button'
       variant='outline'
-      className='self-start sm:self-center'
+      className='h-auto min-h-9 w-full py-1 wrap-anywhere whitespace-normal'
     >
       {t('edit')}
     </Button>

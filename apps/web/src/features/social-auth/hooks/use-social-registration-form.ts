@@ -5,6 +5,7 @@ import { AUTH_ERROR_CODES, AUTH_NEXT_STEP } from '@ludora/security';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 import { APP_ROUTES } from '@/config/routes';
 import {
@@ -13,7 +14,7 @@ import {
 } from '@/features/email-verification/config';
 import { useActionErrorToast, useRequestScope } from '@/hooks';
 import { useRouter } from '@/i18n/navigation';
-import { ACTION_ERROR_CODES, type ActionError, OPERATION_STATUS } from '@/lib/actions';
+import { type ActionError, isUnconfirmedApiOutcome, OPERATION_STATUS } from '@/lib/actions';
 import { FORM_ERROR_TYPES, FORM_VALIDATION_OPTIONS } from '@/lib/forms';
 import { withSessionLock } from '@/lib/session/session-lock';
 
@@ -63,7 +64,18 @@ export function useSocialRegistrationForm(requiresEmail: boolean) {
         if (field) setFocus(field);
     }, [getFieldState, isPending, setFocus]);
 
+    function showUnconfirmedRegistration() {
+        toast.warning(feedback('outcomeUnconfirmed.title'), {
+            description: feedback('outcomeUnconfirmed.message'),
+        });
+    }
+
     function handleError(error: ActionError) {
+        if (isUnconfirmedApiOutcome(error)) {
+            showUnconfirmedRegistration();
+            return;
+        }
+
         const { errorCode } = error;
 
         if (
@@ -111,7 +123,7 @@ export function useSocialRegistrationForm(requiresEmail: boolean) {
                     isCurrent() ? completeSocialRegistration(locale, data) : null,
                 );
             } catch {
-                if (isCurrent()) showError({ errorCode: ACTION_ERROR_CODES.unexpected });
+                if (isCurrent()) showUnconfirmedRegistration();
                 return;
             } finally {
                 requestInFlight.current = false;
@@ -132,14 +144,14 @@ export function useSocialRegistrationForm(requiresEmail: boolean) {
                 return;
             }
 
-            const { verificationId, emailSent, resendAvailableAt } = result.data;
+            const { verificationId, emailQueued, emailSent, resendAvailableAt } = result.data;
 
             router.replace({
                 pathname: APP_ROUTES.verifyEmail,
                 query: {
                     verificationId,
                     resendAvailableAt,
-                    ...(!emailSent && {
+                    ...(!emailSent && !emailQueued && {
                         [EMAIL_VERIFICATION_QUERY_PARAMS.delivery]: EMAIL_VERIFICATION_DELIVERY.unconfirmed,
                     }),
                 },

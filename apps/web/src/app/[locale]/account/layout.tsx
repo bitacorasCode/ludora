@@ -26,8 +26,8 @@ async function AccountActions() {
 
 export default function AccountLayout({ children }: LayoutProps<'/[locale]/account'>) {
   const actions = (
-    <div className='min-h-8'>
-      <Suspense fallback={<Skeleton className='h-8 w-full' />}>
+    <div className='min-h-9'>
+      <Suspense fallback={<Skeleton className='h-9 w-full' />}>
         <AccountActions />
       </Suspense>
     </div>

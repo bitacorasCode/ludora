@@ -97,10 +97,15 @@
             "errorTitle": "No pudimos reenviar el código",
             "hint": "¿No recibiste el correo? Puedes solicitar otro código.",
             "pending": "Reenviando...",
+            "queued": {
+                "message": "Usa el código nuevo cuando llegue. El envío puede tardar un momento.",
+                "title": "Código solicitado"
+            },
             "success": {
                 "message": "Revisa tu correo e introduce el código más reciente.",
                 "title": "Código enviado"
-            }
+            },
+            "unconfirmedMessage": "Revisa tu bandeja de entrada y el correo no deseado. Si recibes un código, usa el más reciente. Espera un momento antes de pedir otro."
         },
         "skipToForm": "Saltar al formulario de confirmación",
         "submit": "Confirmar correo",
@@ -137,10 +142,10 @@
         }
     },
     "Home": {
-        "description": "Descubre juegos, reúne a tus amigos y comparte nuevas partidas desde un solo lugar.",
-        "exploreLudora": "Explorar Ludora",
-        "eyebrow": "La plataforma para tus juegos",
-        "title": "Una mesa para todos tus mundos."
+        "description": "Ya puedes crear tu cuenta y personalizar tu perfil. Las salas y partidas están en desarrollo. El catálogo aún está vacío.",
+        "eyebrow": "Plataforma de juegos de mesa",
+        "title": "Una mesa para todos tus mundos.",
+        "viewGameCatalog": "Ver catálogo de juegos"
     },
     "Layout": {
         "skipToContent": "Saltar al contenido"
@@ -320,7 +325,11 @@
             "AUTH_NICKNAME_ALREADY_EXISTS": "El nombre de usuario ya está en uso."
         },
         "feedback": {
-            "errorTitle": "No pudimos completar el registro"
+            "errorTitle": "No pudimos completar el registro",
+            "outcomeUnconfirmed": {
+                "message": "Es posible que tu cuenta se haya creado. Espera un momento e intenta iniciar sesión con el mismo método para continuar.",
+                "title": "No pudimos confirmar el registro"
+            }
         },
         "fields": {
             "confirmPassword": {

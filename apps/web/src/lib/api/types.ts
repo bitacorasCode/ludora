@@ -1,6 +1,8 @@
 import type { ActionResult } from '@/lib/actions';
 
-export type ApiOptions = Pick<RequestInit, 'headers' | 'signal'>;
+export type ApiOptions = Pick<RequestInit, 'headers' | 'signal'> & {
+    timeoutMs?: number;
+};
 
 export type PublicApiOptions = ApiOptions & Pick<RequestInit, 'cache'>;
 

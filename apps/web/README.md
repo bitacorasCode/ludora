@@ -133,6 +133,13 @@ authorization on protected operations.
 - Registration creates an unverified account. Successful verification creates
   the session; logging in with valid credentials for an unverified account
   returns the user to the verification flow.
+- Registration and code resend display the verification details after Nest
+  commits the delivery job. `emailQueued` lets the web acknowledge the request
+  while the worker sends the email. The 15-second request deadline also supports
+  older API deployments that wait for provider submission. If the API outcome
+  is uncertain, registration directs users to sign in and resend keeps the
+  current code and waiting period. Coverage of queued and uncertain responses
+  is deferred until requested.
 - `getCurrentUser()` validates `/auth/me` and memoizes the result within the
   server render. It awaits `io()` before session access so validation runs on an
   actual request, outside build-time and runtime prerenders. With partial
@@ -271,10 +278,11 @@ available, and subsequent account visits offer **Change password**.
 
 Changing a password requires the current password, a different new password, and
 confirmation. Client and Server Action validation use the shared password minimum.
-The action binds the operation to the displayed user, sends only `currentPassword`
-and `password` to `POST /auth/change-password`, validates the returned user ID,
-and stores the new JWT in the HttpOnly cookie. The token is never returned in the
-action result.
+The action sends `currentPassword`, `password`, and `expectedUserId` to
+`POST /auth/change-password`. Nest compares the expected user with the verified
+JWT in that request, so the action can skip a separate account lookup. After
+validating the returned user ID, Next replaces its HttpOnly session cookies. Deploy
+the matching API before this web version.
 
 An incorrect current password is a field error and keeps the form and session
 available. Authentication failures use the shared session boundary; other failures
@@ -287,6 +295,8 @@ Focused tests cover both password actions, binding creation requests to the sess
 user and email, existing session/error handling, and creation/reset labels and
 success feedback. Current-user fixtures include `hasPassword`; legacy and unknown
 link modes retain reset wording. No real email is sent by these unit/component tests.
+Coverage of the updated change-password request and rejection after an account
+switch is deferred until requested.
 
 ## Profile persistence
 

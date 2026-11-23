@@ -11,11 +11,13 @@ import { UsersModule } from '../users/users.module.js';
 import { AuthController } from './auth.controller.js';
 import { googleAuthConfig } from './config/google-auth.config.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+import { EmailVerificationWorker } from './jobs/email-verification.worker.js';
 import { PasswordRecoveryWorker } from './jobs/password-recovery.worker.js';
 import {
     AuthIdentityRepository,
     AuthSessionRepository,
     EmailVerificationRepository,
+    PasswordNotificationJobRepository,
     PasswordRecoveryJobRepository,
     PasswordResetRepository,
 } from './repositories/index.js';
@@ -74,6 +76,7 @@ const { algorithm, issuer, audience } = JWT_CONFIG;
         AuthSessionRepository,
         InternalRequestGuard,
         EmailVerificationRepository,
+        PasswordNotificationJobRepository,
         PasswordRecoveryJobRepository,
         PasswordResetRepository,
         AuthService,
@@ -90,6 +93,7 @@ const { algorithm, issuer, audience } = JWT_CONFIG;
         OAuthAccountService,
         OAuthFlowTokenService,
         EmailVerificationCodeService,
+        EmailVerificationWorker,
         EmailVerificationService
     ],
     exports: [AuthSessionService, JwtModule],

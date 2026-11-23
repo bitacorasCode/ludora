@@ -103,12 +103,15 @@ function createApiClient<TOptions extends PublicApiOptions>(
         const cache = usesVisitorContext
             ? API_REQUEST_DEFAULTS.cache
             : options.cache ?? API_REQUEST_DEFAULTS.cache;
+        const { timeoutMs } = options;
+
         return apiRequest(path, {
             method,
             headers,
             body: serializedBody,
             cache,
             signal: options.signal,
+            ...(timeoutMs !== undefined && { timeoutMs }),
         });
     }
 

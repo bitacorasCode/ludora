@@ -4,6 +4,7 @@ import { AUTH_ERROR_CODES, AUTH_NEXT_STEP } from '@ludora/security';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 
+import { EMAIL_VERIFICATION_API_TIMEOUT_MS } from '@/features/email-verification/config';
 import { resolveLocale } from '@/i18n/resolve-locale';
 import {
     type ActionResult,
@@ -81,6 +82,7 @@ export type CompleteSocialRegistrationResult = ActionResult<
     | {
         nextStep: typeof AUTH_NEXT_STEP.verifyEmail;
         verificationId: string;
+        emailQueued?: boolean;
         emailSent: boolean;
         resendAvailableAt: string;
     }
@@ -110,7 +112,7 @@ export async function completeSocialRegistration(
         registrationToken: registration.registrationToken,
         nickname,
         ...(email && { email }),
-    });
+    }, { timeoutMs: EMAIL_VERIFICATION_API_TIMEOUT_MS });
 
     if (result.status === OPERATION_STATUS.error) {
         if (
@@ -143,10 +145,16 @@ export async function completeSocialRegistration(
         };
     }
 
-    const { id: verificationId, emailSent, resendAvailableAt } = response.data.verification;
+    const { id: verificationId, emailQueued, emailSent, resendAvailableAt } = response.data.verification;
 
     return {
         status: OPERATION_STATUS.success,
-        data: { nextStep: AUTH_NEXT_STEP.verifyEmail, verificationId, emailSent, resendAvailableAt },
+        data: {
+            nextStep: AUTH_NEXT_STEP.verifyEmail,
+            verificationId,
+            ...(emailQueued && { emailQueued }),
+            emailSent,
+            resendAvailableAt,
+        },
     };
 }

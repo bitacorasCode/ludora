@@ -1,17 +1,15 @@
 import { randomUUID } from 'node:crypto';
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { MILLISECONDS_PER_SECOND } from '../../common/constants/index.js';
 import { TooManyRequestsException } from '../../common/exceptions/too-many-requests.exception.js';
 import type { ApiErrorDefinition } from '../../common/types/api-error-definition.js';
 import type { Prisma } from '../../generated/prisma/client.js';
-import { MailService } from '../../mail/index.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS, EMAIL_VERIFICATION_CONFIG } from '../constants/index.js';
 import { EmailVerificationRepository } from '../repositories/index.js';
-import { createEmailVerificationMail } from '../templates/email-verification-mail.js';
 import { EmailVerificationCodeService } from './email-verification-code.service.js';
 
 type ConfirmEmailResult =
@@ -20,12 +18,9 @@ type ConfirmEmailResult =
 
 @Injectable()
 export class EmailVerificationService {
-    private readonly logger = new Logger(EmailVerificationService.name);
-
     constructor(
         private readonly prisma: PrismaService,
         private readonly codeService: EmailVerificationCodeService,
-        private readonly mailService: MailService,
         private readonly verificationRepository: EmailVerificationRepository,
         private readonly usersService: UsersService,
     ) { }
@@ -53,20 +48,10 @@ export class EmailVerificationService {
         userId: string,
         transaction?: Prisma.TransactionClient,
     ) {
-        const { expiresInSeconds, resendCooldownSeconds } = EMAIL_VERIFICATION_CONFIG;
-
+        const { resendCooldownSeconds } = EMAIL_VERIFICATION_CONFIG;
         const verificationId = randomUUID();
-        const code = this.codeService.generate();
-
-        const codeHash = this.codeService.hash(
-            verificationId,
-            code,
-        );
-
         const lastSentAt = new Date();
-        const expiresAt = new Date(
-            lastSentAt.getTime() + expiresInSeconds * MILLISECONDS_PER_SECOND,
-        );
+        const delivery = this.createDelivery(verificationId, lastSentAt);
         const resendAvailableAt = new Date(
             lastSentAt.getTime() + resendCooldownSeconds * MILLISECONDS_PER_SECOND,
         );
@@ -75,24 +60,21 @@ export class EmailVerificationService {
             {
                 id: verificationId,
                 userId,
-                codeHash,
-                expiresAt,
                 lastSentAt,
+                ...delivery,
             },
             transaction,
         );
 
         return {
             verificationId,
-            code,
-            expiresAt,
+            expiresAt: delivery.expiresAt,
             resendAvailableAt,
         };
     }
 
     async resend(verificationId: string) {
         const {
-            expiresInSeconds,
             resendCooldownSeconds,
             minRetryAfterSeconds,
         } = EMAIL_VERIFICATION_CONFIG;
@@ -120,7 +102,7 @@ export class EmailVerificationService {
                 throw new BadRequestException(message, { errorCode });
             }
 
-            const { userId, lastSentAt } = verification;
+            const { lastSentAt } = verification;
             const resendAvailableAt = new Date(lastSentAt.getTime() + cooldownMs);
 
             if (!resendReserved) {
@@ -138,63 +120,38 @@ export class EmailVerificationService {
                 });
             }
 
-            const code = this.codeService.generate();
-            const expiresAt = new Date(
-                now.getTime() + expiresInSeconds * MILLISECONDS_PER_SECOND,
-            );
-            const codeHash = this.codeService.hash(verificationId, code);
+            const delivery = this.createDelivery(verificationId, now);
 
             await this.verificationRepository.renewCode(
-                { id: verificationId, codeHash, expiresAt },
+                { id: verificationId, ...delivery },
                 transaction,
             );
 
-            return { userId, code, expiresAt, resendAvailableAt };
+            return { expiresAt: delivery.expiresAt, resendAvailableAt };
         });
-
-        const { userId, code, expiresAt, resendAvailableAt } = renewed;
-        const user = await this.usersService.findById(userId);
-
-        if (!user) {
-            const { message, errorCode } = AUTH_ERRORS.emailVerificationInvalid;
-
-            throw new BadRequestException(message, { errorCode });
-        }
-
-        const emailSent = await this.send(user.email, code);
 
         return {
             verification: {
                 id: verificationId,
-                expiresAt,
-                emailSent,
-                resendAvailableAt,
+                ...renewed,
+                emailSent: false,
+                emailQueued: true,
             },
         };
     }
 
-    async send(to: string, code: string): Promise<boolean> {
+    private createDelivery(verificationId: string, now: Date) {
         const { expiresInSeconds } = EMAIL_VERIFICATION_CONFIG;
+        const deliveryId = randomUUID();
+        const code = this.codeService.generateForDelivery(verificationId, deliveryId);
 
-        const message = createEmailVerificationMail({
-            code,
-            expiresInSeconds,
-        });
-
-        try {
-            await this.mailService.send({
-                to,
-                ...message,
-            });
-
-            return true;
-        } catch {
-            this.logger.error(
-                'Could not confirm verification email submission.',
-            );
-
-            return false;
-        }
+        return {
+            codeHash: this.codeService.hash(verificationId, code),
+            expiresAt: new Date(now.getTime() + expiresInSeconds * MILLISECONDS_PER_SECOND),
+            deliveryId,
+            deliveryAvailableAt: now,
+            deliveryAttempts: 0,
+        };
     }
 
     async confirm(

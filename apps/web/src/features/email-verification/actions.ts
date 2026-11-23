@@ -14,11 +14,14 @@ import { createEmailVerificationSchema } from '@/lib/schemas';
 import { createSession } from '@/lib/session';
 import { MILLISECONDS_PER_SECOND } from '@/lib/time';
 
+import { EMAIL_VERIFICATION_API_TIMEOUT_MS } from './config';
+
 const VERIFY_EMAIL_ENDPOINT = '/auth/verify-email';
 const RESEND_VERIFICATION_ENDPOINT = '/auth/resend-verification';
 
 export type ResendVerificationResult = ActionResult<{
     verificationId: string;
+    emailQueued?: boolean;
     emailSent: boolean;
     resendAvailableAt: string;
     retryAfterSeconds: number;
@@ -45,6 +48,7 @@ export async function resendVerification(
     const result = await publicApi.post(
         RESEND_VERIFICATION_ENDPOINT,
         validation.data,
+        { timeoutMs: EMAIL_VERIFICATION_API_TIMEOUT_MS },
     );
 
     if (result.status === OPERATION_STATUS.error) {
@@ -87,7 +91,7 @@ export async function resendVerification(
     }
 
     const {
-        verification: { id: verificationId, emailSent, resendAvailableAt },
+        verification: { id: verificationId, emailQueued, emailSent, resendAvailableAt },
     } = responseValidation.data;
 
     const retryAfterSeconds = Math.max(
@@ -99,6 +103,7 @@ export async function resendVerification(
         status: OPERATION_STATUS.success,
         data: {
             verificationId,
+            ...(emailQueued && { emailQueued }),
             emailSent,
             resendAvailableAt,
             retryAfterSeconds,

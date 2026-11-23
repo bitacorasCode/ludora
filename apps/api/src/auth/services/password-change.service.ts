@@ -20,7 +20,17 @@ export class PasswordChangeService {
         private readonly passwordNotificationService: PasswordNotificationService,
     ) { }
 
-    async changePassword(userId: string, expectedAuthVersion: number, data: ChangePasswordDto) {
+    async changePassword(
+        userId: string,
+        expectedAuthVersion: number,
+        { currentPassword, password, expectedUserId }: ChangePasswordDto,
+    ) {
+        if (expectedUserId !== undefined && expectedUserId !== userId) {
+            const { message, errorCode } = AUTH_ERRORS.authenticationRequired;
+
+            throw new UnauthorizedException(message, { errorCode });
+        }
+
         const user = await this.usersService.findPasswordById(userId);
 
         if (!user?.emailVerifiedAt || user.authVersion !== expectedAuthVersion) {
@@ -34,7 +44,7 @@ export class PasswordChangeService {
             currentPasswordHash === null
             || !(await this.passwordService.verify(
                 currentPasswordHash,
-                data.currentPassword,
+                currentPassword,
             ))
         ) {
             const { message, errorCode } = AUTH_ERRORS.currentPasswordInvalid;
@@ -42,14 +52,14 @@ export class PasswordChangeService {
             throw new BadRequestException(message, { errorCode });
         }
 
-        if (data.password === data.currentPassword) {
+        if (password === currentPassword) {
             const { message, errorCode } = AUTH_ERRORS.passwordUnchanged;
             throw new BadRequestException(message, { errorCode });
         }
 
-        const passwordHash = await this.passwordService.hash(data.password);
+        const passwordHash = await this.passwordService.hash(password);
 
-        const response = await this.prisma.$transaction(async (transaction) => {
+        return this.prisma.$transaction(async (transaction) => {
             // Match recovery's lock order: reset rows first, then the user row.
             await this.resetRepository.deleteForUser(userId, transaction);
             const changed = await this.usersService.changePasswordIfCurrent({
@@ -71,11 +81,8 @@ export class PasswordChangeService {
                 throw new UnauthorizedException(message, { errorCode });
             }
 
+            await this.passwordNotificationService.enqueuePasswordChanged(userId, false, transaction);
             return this.authSessionService.create(updated, transaction);
         });
-
-        this.passwordNotificationService.passwordChanged(response.user.email);
-
-        return response;
     }
 }

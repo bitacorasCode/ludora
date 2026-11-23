@@ -169,7 +169,7 @@ export class OAuthAccountService {
         if (verification) {
             return {
                 nextStep: AUTH_NEXT_STEP.verifyEmail,
-                ...await this.authService.createRegistrationResponse(user, verification),
+                ...this.authService.createRegistrationResponse(user, verification),
             };
         }
 

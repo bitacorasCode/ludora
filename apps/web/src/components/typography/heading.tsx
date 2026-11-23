@@ -12,12 +12,17 @@ type BaseProps = {
   description: string;
 };
 
-export function PageHeading({ eyebrow, title, description }: BaseProps) {
+export function PageHeading({
+  eyebrow,
+  title,
+  description,
+  descriptionClassName,
+}: BaseProps & { descriptionClassName?: string }) {
   return (
     <div className='max-w-3xl space-y-4'>
       <Eyebrow>{eyebrow}</Eyebrow>
       <PageTitle>{title}</PageTitle>
-      <LeadText>{description}</LeadText>
+      <LeadText className={descriptionClassName}>{description}</LeadText>
     </div>
   );
 }

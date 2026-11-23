@@ -14,6 +14,8 @@ import {
     smtpConfigSchema,
 } from './config.js';
 
+const IDEMPOTENCY_KEY_HEADER = 'Idempotency-Key';
+
 export type SendMailInput = {
     to: string;
     subject: string;
@@ -77,19 +79,20 @@ export class MailService {
         };
     }
 
-    async send(message: SendMailInput): Promise<void> {
+    async send(message: SendMailInput, { idempotencyKey }: { idempotencyKey?: string } = {}): Promise<void> {
         if (this.transport.provider === MAIL_PROVIDER.smtp) {
             await this.transport.transporter.sendMail(message);
 
             return;
         }
 
-        await this.sendWithResend(message, this.transport.settings);
+        await this.sendWithResend(message, this.transport.settings, idempotencyKey);
     }
 
     private async sendWithResend(
         { to, subject, text, html }: SendMailInput,
         { apiKey, from }: ResendConfig,
+        idempotencyKey?: string,
     ): Promise<void> {
         const response = await fetch(RESEND_API_URL, {
             method: 'POST',
@@ -97,6 +100,7 @@ export class MailService {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${apiKey}`,
+                ...(idempotencyKey && { [IDEMPOTENCY_KEY_HEADER]: idempotencyKey }),
             },
             body: JSON.stringify({
                 from,

@@ -4,9 +4,14 @@ import { SINGLE_RECORD_COUNT } from '../../common/constants/index.js';
 import type { EmailVerification, Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
-type CreateEmailVerificationData = Pick<
+type VerificationDeliveryData = Pick<
     EmailVerification,
-    'id' | 'userId' | 'codeHash' | 'expiresAt' | 'lastSentAt'
+    'codeHash' | 'expiresAt' | 'deliveryId' | 'deliveryAvailableAt' | 'deliveryAttempts'
+>;
+
+type CreateEmailVerificationData = VerificationDeliveryData & Pick<
+    EmailVerification,
+    'id' | 'userId' | 'lastSentAt'
 >;
 
 type ReserveAttemptData = {
@@ -21,10 +26,12 @@ type ReserveResendData = {
     resendBefore: Date;
 };
 
-type RenewVerificationCodeData = Pick<
+type RenewVerificationCodeData = VerificationDeliveryData & Pick<EmailVerification, 'id'>;
+
+type DeliveryClaim = Pick<
     EmailVerification,
-    'id' | 'codeHash' | 'expiresAt'
->;
+    'id' | 'deliveryAttempts'
+> & { deliveryId: string };
 
 @Injectable()
 export class EmailVerificationRepository {
@@ -58,6 +65,7 @@ export class EmailVerificationRepository {
                 id,
                 user: { emailVerifiedAt: null },
             },
+            select: { lastSentAt: true },
         });
     }
 
@@ -96,17 +104,58 @@ export class EmailVerificationRepository {
     }
 
     renewCode(
-        { id, codeHash, expiresAt }: RenewVerificationCodeData,
+        { id, ...delivery }: RenewVerificationCodeData,
         transaction: Prisma.TransactionClient,
     ) {
         return transaction.emailVerification.update({
             where: { id },
             data: {
-                codeHash,
-                expiresAt,
+                ...delivery,
                 failedAttempts: 0,
             },
             select: { id: true },
+        });
+    }
+
+    async claimNextDelivery(now: Date, leaseExpiresAt: Date) {
+        const candidate = await this.prisma.emailVerification.findFirst({
+            where: { deliveryAvailableAt: { lte: now } },
+            orderBy: [{ deliveryAvailableAt: 'asc' }, { id: 'asc' }],
+            select: { id: true, deliveryId: true, deliveryAttempts: true, expiresAt: true },
+        });
+
+        if (!candidate?.deliveryId) return null;
+
+        const { id, deliveryId, deliveryAttempts, expiresAt } = candidate;
+        const { count } = await this.prisma.emailVerification.updateMany({
+            where: { id, deliveryId, deliveryAttempts, deliveryAvailableAt: { lte: now } },
+            data: { deliveryAttempts: { increment: 1 }, deliveryAvailableAt: leaseExpiresAt },
+        });
+
+        return count === SINGLE_RECORD_COUNT
+            ? { id, deliveryId, deliveryAttempts: deliveryAttempts + 1, expiresAt }
+            : null;
+    }
+
+    findClaimedDelivery({ id, deliveryId, deliveryAttempts }: DeliveryClaim, now: Date) {
+        return this.prisma.emailVerification.findUnique({
+            where: {
+                id,
+                deliveryId,
+                deliveryAttempts,
+                deliveryAvailableAt: { gt: now },
+                expiresAt: { gt: now },
+                user: { emailVerifiedAt: null },
+            },
+            select: { codeHash: true, user: { select: { email: true } } },
+        });
+    }
+
+    async setDeliveryAvailability(claim: DeliveryClaim, availableAt: Date | null): Promise<void> {
+        const { id, deliveryId, deliveryAttempts } = claim;
+        await this.prisma.emailVerification.updateMany({
+            where: { id, deliveryId, deliveryAttempts },
+            data: { deliveryAvailableAt: availableAt },
         });
     }
 

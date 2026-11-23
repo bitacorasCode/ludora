@@ -97,10 +97,15 @@
             "errorTitle": "We couldn't resend the code",
             "hint": "Didn't receive the email? You can request another code.",
             "pending": "Resending...",
+            "queued": {
+                "message": "Use the new code when it arrives. Delivery may take a moment.",
+                "title": "Code requested"
+            },
             "success": {
                 "message": "Check your email and enter the latest code.",
                 "title": "Code sent"
-            }
+            },
+            "unconfirmedMessage": "Check your inbox and spam folder for the latest code. If it doesn't arrive, wait a moment before requesting another."
         },
         "skipToForm": "Skip to confirmation form",
         "submit": "Confirm email",
@@ -137,10 +142,10 @@
         }
     },
     "Home": {
-        "description": "Discover games, meet up with friends, and share new games in one place.",
-        "exploreLudora": "Explore Ludora",
-        "eyebrow": "The platform for your games",
-        "title": "A table for all your worlds."
+        "description": "You can create an account and customize your profile. Rooms and matches are in development. The catalog is still empty.",
+        "eyebrow": "Online board game platform",
+        "title": "A table for all your worlds.",
+        "viewGameCatalog": "View game catalog"
     },
     "Layout": {
         "skipToContent": "Skip to content"
@@ -320,7 +325,11 @@
             "AUTH_NICKNAME_ALREADY_EXISTS": "The username is already in use."
         },
         "feedback": {
-            "errorTitle": "We couldn't complete your registration"
+            "errorTitle": "We couldn't complete your registration",
+            "outcomeUnconfirmed": {
+                "message": "Your account may have been created. Wait a moment, then sign in with the same method to continue.",
+                "title": "We couldn't confirm your registration"
+            }
         },
         "fields": {
             "confirmPassword": {

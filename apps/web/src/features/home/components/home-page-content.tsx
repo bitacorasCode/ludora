@@ -17,11 +17,12 @@ export function HomePageContent() {
             eyebrow={t('eyebrow')}
             title={t('title')}
             description={t('description')}
+            descriptionClassName='text-foreground dark:text-muted-foreground'
           />
         </CardHeader>
         <CardFooter>
           <Button asChild size='lg'>
-            <Link href={APP_ROUTES.games}>{t('exploreLudora')}</Link>
+            <Link href={APP_ROUTES.games}>{t('viewGameCatalog')}</Link>
           </Button>
         </CardFooter>
       </Card>

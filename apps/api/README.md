@@ -59,7 +59,7 @@ is not automatically the API configuration.
 | `DATABASE_URL`              | PostgreSQL connection string matching the local Compose database or deployed database.                          |
 | `JWT_SECRET`                | Secret used by Nest to sign and verify access tokens.                                                           |
 | `INTERNAL_API_SECRET`       | Exactly 64 hexadecimal characters, matching the web server's value. Authenticates forwarded client-IP metadata. |
-| `EMAIL_VERIFICATION_SECRET` | Independent 64-character hexadecimal secret used to hash verification codes.                                    |
+| `EMAIL_VERIFICATION_SECRET` | Independent 64-character hexadecimal secret used to derive and hash verification codes.                         |
 | `PASSWORD_RESET_URL`        | Trusted web reset-page URL without a query or fragment. Locally: `http://localhost:3000/reset-password`.        |
 | `MAIL_PROVIDER`             | Required provider selector: `smtp` for Mailpit or `resend` for real delivery. Independent of `NODE_ENV`.          |
 | `SMTP_HOST`                 | SMTP host; local Mailpit uses `127.0.0.1`.                                                                      |
@@ -159,7 +159,7 @@ There is no global URL prefix. Bodies are JSON. Protected routes require
 | `POST` | `/auth/oauth/register`      | Internal requests only; accepts `registrationToken`, `nickname`, and optional `email`; creates the account and returns a session or verification metadata (`201`). |
 | `POST` | `/auth/forgot-password`     | Accepts `email`; acknowledges a valid request without revealing account existence or delivery status (`202`).           |
 | `POST` | `/auth/reset-password`      | Accepts `token` and `password`; consumes the recovery link and updates the password (`200`).                            |
-| `POST` | `/auth/change-password`     | Requires a verified JWT; accepts `currentPassword` and `password`; returns a replacement access token and user (`200`). |
+| `POST` | `/auth/change-password`     | Requires a verified JWT; accepts `currentPassword`, `password`, and optional `expectedUserId`; returns replacement credentials and the user (`200`). |
 | `GET`  | `/auth/me`                  | Returns the authenticated user, nullable `avatarPresetId`, and boolean `hasPassword`; never returns a password hash.      |
 | `GET`  | `/profile`                  | Returns the authenticated user's avatar preset and biography.                                                           |
 | `PUT`  | `/profile`                  | Saves `avatarPresetId` and `bio` for the authenticated user. If supplied, `expectedUserId` must match the JWT user ID.     |
@@ -230,9 +230,8 @@ at this stage.
 
 `POST /auth/oauth/register` validates that token and creates the user and provider
 identity atomically. It returns `authenticated` and an access token when the
-provider verified the email. Otherwise it returns `verifyEmail` and sends a
-confirmation code using the existing mail flow. Email delivery occurs after
-commit. An address supplied by the caller is accepted only when the provider
+provider verified the email. Otherwise it returns `verifyEmail` and queues a
+confirmation code. An address supplied by the caller is accepted only when the provider
 supplied none; a supplied copy of the provider address must match it.
 
 Next handles Google's browser redirect at `/api/auth/google/callback`. Temporary
@@ -250,16 +249,19 @@ Explicit account linking and Discord sign-in are later steps.
 ### Changing a password while signed in
 
 `POST /auth/change-password` checks the current password and requires a different
-new password. The guard supplies the verified authentication version. A conditional
-update checks that version and the password hash again, increments `authVersion`,
-and invalidates pending reset links within the same transaction. Competing changes
-cannot silently overwrite a newer credential.
+new password. The guard supplies the verified user ID and authentication version.
+If supplied, `expectedUserId` must match that user ID before any password lookup.
+The web app sends it to bind the change to the account displayed by the editor.
+A conditional update checks that version and the password hash again, increments
+`authVersion`, and invalidates pending reset links within the same transaction.
+Competing changes cannot silently overwrite a newer credential.
 
-The successful response contains a new access token for the same user. Next replaces
-its HttpOnly cookie to keep this browser signed in; previous tokens are rejected.
+The successful response contains replacement credentials for the same user. Next
+replaces its HttpOnly session cookies to keep this browser signed in. Nest rejects
+the previous credentials.
 An incorrect current password returns `400` with `AUTH_CURRENT_PASSWORD_INVALID`.
 Reusing it returns `400` with `AUTH_PASSWORD_UNCHANGED`. These are form errors, not
-expired-session responses. A stale authentication version returns `401`.
+expired-session responses. A stale authentication version or account mismatch returns `401`.
 
 A password-change notice is scheduled after commit through
 `PasswordNotificationService`, also used by password recovery. Email delivery does not delay
@@ -341,14 +343,17 @@ rejection. Receiving email in an application inbox is a separate service from
 sending email and from Cloudflare's DMARC report collection.
 
 Verification and recovery credentials are stored as hashes. Registration and
-resends contact the selected provider after their database transaction commits.
-An account can therefore exist even if sending its verification email fails;
-use resend instead of registering it again.
+resend queue the verification email in the same transaction as the code hash.
+The response contains `verification.emailQueued: true` once the database has
+committed. The worker sends eligible emails while Nest is running and retries
+after failures or restarts. A user with an unverified account can sign in to
+resume verification and request another code after the cooldown.
 
 Recovery requests return `202` after the request has been saved in PostgreSQL.
 Nest processes the queue while it is running, including after a restart. Delivery
-can be attempted up to three times. Password-change notifications still run in
-memory after the password change commits.
+can be attempted up to three times. Password creation and change notifications
+are queued in the same database transaction as the password update and delivered
+asynchronously.
 
 SMTP username/password authentication is not implemented. The SMTP configuration
 targets local Mailpit; real delivery uses Resend's HTTPS API.
@@ -393,21 +398,34 @@ rather than using fixture operations against ordinary accounts.
 
 ## Deployment notes
 
-The intended API/database host is Render, while Next runs separately on Vercel.
-The deployment still needs its service configuration, production Resend
-credentials, and delivery validation from the deployed API.
+Ludora runs the API and PostgreSQL on Render and Next on Vercel. Set
+`DATABASE_URL` on the Render API service to the database's internal URL when
+both services share a region and account. Keep production credentials on their
+respective hosts. Set `PASSWORD_RESET_URL` to the public HTTPS reset route.
+Both hosts need the same `INTERNAL_API_SECRET`. JWT and verification secrets
+stay with Nest. [Render Postgres connection options](https://render.com/docs/postgresql-creating-connecting#connect-to-your-database)
 
-Install workspace dependencies, generate Prisma Client, build the API, apply
-committed migrations with `migrate deploy`, and run
-`pnpm --filter api start:prod`. Provide production environment variables on the
-host, use the deployment database connection, and set `PASSWORD_RESET_URL` to the
-public HTTPS web reset route. Both hosts need the same `INTERNAL_API_SECRET`;
-JWT and verification secrets stay with Nest.
+Set the API service root to the workspace root and configure its commands under
+**Settings → Build & Deploy**. Include the migration directories in the branch
+Render deploys.
 
-Apply the password recovery queue migration before starting this release. Before
-deploying the required `sid` claim, verify that the previous API release issues
-session-bound JWTs and that two hours have elapsed since the last release that
-could issue JWTs without `sid` stopped serving traffic.
+| Setting | Value |
+| ------- | ----- |
+| Build Command | `pnpm install --frozen-lockfile --prod=false && pnpm --filter api exec prisma generate --config prisma7.config.ts && pnpm --filter api build` |
+| Pre-Deploy Command | `pnpm --filter api exec prisma migrate deploy --config prisma7.config.ts` |
+| Start Command | `pnpm --filter api start:prod` |
+
+On a Free web service, configure the **Start Command** as shown below. Prisma
+checks for pending migrations at each start, and the API starts after that
+command succeeds. The paid pre-deploy step runs once per deployment.
+[Render deploy commands](https://render.com/docs/deploys#deploy-steps)
+
+```bash
+pnpm --filter api exec prisma migrate deploy --config prisma7.config.ts && pnpm --filter api start:prod
+```
+
+Review the deploy logs to confirm that Prisma applied all pending migrations or
+reported none to apply. [Prisma migrate deploy](https://docs.prisma.io/docs/cli/migrate/deploy)
 
 ### Scheduled session cleanup
 
@@ -431,7 +449,7 @@ connection, and exits. See [Render Cron Jobs](https://render.com/docs/cronjobs).
 ### Deployment checks
 
 Verify client-IP handling, email delivery, and database access in the deployed
-environment. Configure Render's health check path as `/health`. The recovery
-worker starts with Nest and requires no separate service. Add shared rate-limit
-storage before scaling replicas. Document how to back up and restore the
-deployment database.
+environment. Configure Render's health check path as `/health`. The mail workers
+start with Nest and require no separate service. Add shared rate-limit storage
+before scaling replicas. Document how to back up and restore the deployment
+database.

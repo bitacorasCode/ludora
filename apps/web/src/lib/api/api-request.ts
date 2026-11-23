@@ -14,6 +14,7 @@ import {
     API_REQUEST_DEFAULTS,
     API_TIMEOUT_MS,
 } from './constants';
+import type { ApiOptions } from './types';
 
 const apiErrorSchema = z.object({
     errorCode: z.string().min(1),
@@ -37,7 +38,7 @@ function resolveApiUrl(path: string): URL | null {
 
 export async function apiRequest(
     path: string,
-    options: RequestInit = {},
+    { timeoutMs = API_TIMEOUT_MS, ...options }: RequestInit & Pick<ApiOptions, 'timeoutMs'> = {},
 ): Promise<ActionResult<unknown>> {
     const url = resolveApiUrl(path);
 
@@ -48,7 +49,7 @@ export async function apiRequest(
         };
     }
 
-    const timeoutSignal = AbortSignal.timeout(API_TIMEOUT_MS);
+    const timeoutSignal = AbortSignal.timeout(timeoutMs);
     const signal = options.signal
         ? AbortSignal.any([options.signal, timeoutSignal])
         : timeoutSignal;

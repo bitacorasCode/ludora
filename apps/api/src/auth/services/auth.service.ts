@@ -140,20 +140,20 @@ export class AuthService {
         };
     }
 
-    async createRegistrationResponse(
+    createRegistrationResponse(
         user: Pick<User, 'id' | 'nickname' | 'email' | 'createdAt'>,
         verification: PendingEmailVerification,
     ) {
         const { id, nickname, email, createdAt } = user;
-        const { verificationId, code, expiresAt, resendAvailableAt } = verification;
-        const emailSent = await this.emailVerificationService.send(email, code);
+        const { verificationId, expiresAt, resendAvailableAt } = verification;
 
         return {
             user: { id, nickname, email, createdAt },
             verification: {
                 id: verificationId,
                 expiresAt,
-                emailSent,
+                emailSent: false,
+                emailQueued: true,
                 resendAvailableAt,
             },
         };

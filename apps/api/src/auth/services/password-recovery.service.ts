@@ -61,7 +61,7 @@ export class PasswordRecoveryService {
         const isFirstPassword = user.passwordHash === null;
         const passwordHash = await this.passwordService.hash(password);
 
-        const { email: recipient } = await this.prisma.$transaction(async (transaction) => {
+        await this.prisma.$transaction(async (transaction) => {
             const consumed = await this.resetRepository.consume(
                 { tokenHash, now: new Date() },
                 transaction,
@@ -71,10 +71,9 @@ export class PasswordRecoveryService {
                 throw new BadRequestException(message, { errorCode });
             }
 
-            return this.usersService.updatePassword(userId, passwordHash, transaction);
+            await this.usersService.updatePassword(userId, passwordHash, transaction);
+            await this.passwordNotificationService.enqueuePasswordChanged(userId, isFirstPassword, transaction);
         });
-
-        this.passwordNotificationService.passwordChanged(recipient, isFirstPassword);
     }
 
     async processRequest(job: PasswordRecoveryJob): Promise<void> {

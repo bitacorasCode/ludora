@@ -28,17 +28,17 @@ export function SectionNavigation({
           {title}
         </p>
       )}
-      <ul className='flex gap-2 overflow-x-auto pb-1 lg:flex-col'>
+      <ul className='flex flex-wrap gap-2 lg:flex-col'>
         {items.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (
-            <li key={item.href} className='shrink-0'>
+            <li key={item.href} className='max-w-full'>
               <Button
                 asChild
                 variant={isActive ? 'secondary' : 'ghost'}
-                className='w-full justify-start'
+                className='h-auto min-h-9 w-full justify-start py-1 text-left wrap-anywhere whitespace-normal aria-[current=page]:underline aria-[current=page]:decoration-2 aria-[current=page]:underline-offset-4'
               >
                 <Link
                   href={item.href}

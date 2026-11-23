@@ -21,6 +21,7 @@ const emailVerificationDetailsSchema = z.object({
 
 export const emailVerificationResponseSchema = z.object({
     verification: emailVerificationDetailsSchema.extend({
+        emailQueued: z.boolean().optional(),
         emailSent: z.boolean(),
     }),
 });

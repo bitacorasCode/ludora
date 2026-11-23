@@ -11,6 +11,7 @@ import { useActionErrorToast, useCountdown } from '@/hooks';
 import { useRouter } from '@/i18n/navigation';
 import {
     ACTION_ERROR_CODES,
+    isUnconfirmedApiOutcome,
     OPERATION_STATUS,
 } from '@/lib/actions';
 import { HTTP_STATUS } from '@/lib/api/constants';
@@ -136,6 +137,12 @@ export default function useEmailVerificationForm({
         });
     }
 
+    function showUnconfirmedResend() {
+        toast.warning(feedback('deliveryUnconfirmed.title'), {
+            description: resend('unconfirmedMessage'),
+        });
+    }
+
     function onResend() {
         if (secondsRemaining > 0 || !beginRequest()) return;
 
@@ -146,6 +153,11 @@ export default function useEmailVerificationForm({
                 if (!isActive.current) return;
 
                 if (result.status === OPERATION_STATUS.error) {
+                    if (isUnconfirmedApiOutcome(result.error)) {
+                        showUnconfirmedResend();
+                        return;
+                    }
+
                     const { errorCode, statusCode, retryAfterSeconds, retryAt } = result.error;
                     const isRateLimited = statusCode === HTTP_STATUS.tooManyRequests
                         || errorCode === EMAIL_VERIFICATION_ERROR_CODES.resendTooSoon;
@@ -165,21 +177,22 @@ export default function useEmailVerificationForm({
                     return;
                 }
 
-                const { emailSent, resendAvailableAt, retryAfterSeconds } = result.data;
+                const { emailQueued, emailSent, resendAvailableAt, retryAfterSeconds } = result.data;
+                const isDeliveryUnconfirmed = !emailSent && !emailQueued;
 
                 restart(retryAfterSeconds);
-                setDeliveryUnconfirmed(!emailSent);
+                setDeliveryUnconfirmed(isDeliveryUnconfirmed);
                 form.resetField('code');
                 focusCodeAfterResend.current = true;
                 updateVerificationLocation({
                     verificationId,
                     resendAvailableAt,
-                    deliveryUnconfirmed: !emailSent,
+                    deliveryUnconfirmed: isDeliveryUnconfirmed,
                 });
 
-                if (emailSent) {
-                    toast.success(resend('success.title'), {
-                        description: resend('success.message'),
+                if (emailQueued || emailSent) {
+                    toast.success(resend(emailQueued ? 'queued.title' : 'success.title'), {
+                        description: resend(emailQueued ? 'queued.message' : 'success.message'),
                     });
                 } else {
                     toast.warning(feedback('deliveryUnconfirmed.title'), {
@@ -187,9 +200,7 @@ export default function useEmailVerificationForm({
                     });
                 }
             } catch {
-                resendFeedback.showError({
-                    errorCode: ACTION_ERROR_CODES.unexpected,
-                });
+                if (isActive.current) showUnconfirmedResend();
             } finally {
                 requestInFlight.current = false;
             }

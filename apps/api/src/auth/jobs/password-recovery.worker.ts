@@ -4,13 +4,15 @@ import type { PasswordRecoveryJob } from '../../generated/prisma/client.js';
 import { PASSWORD_RECOVERY_QUEUE } from '../constants/password-reset.js';
 import { PasswordRecoveryJobRepository } from '../repositories/password-recovery-job.repository.js';
 import { PasswordRecoveryService } from '../services/password-recovery.service.js';
+import { MailJobPoller } from './mail-job-poller.js';
 
 @Injectable()
 export class PasswordRecoveryWorker implements OnApplicationBootstrap, OnModuleDestroy {
     private readonly logger = new Logger(PasswordRecoveryWorker.name);
-    private timer?: ReturnType<typeof setTimeout>;
-    private activePoll?: Promise<void>;
-    private stopping = false;
+    private readonly poller = new MailJobPoller(
+        () => this.processNext(),
+        () => this.logger.error('Could not process the password recovery queue.'),
+    );
 
     constructor(
         private readonly jobs: PasswordRecoveryJobRepository,
@@ -18,37 +20,23 @@ export class PasswordRecoveryWorker implements OnApplicationBootstrap, OnModuleD
     ) {}
 
     onApplicationBootstrap(): void {
-        this.schedulePoll();
+        this.poller.start();
     }
 
-    async onModuleDestroy(): Promise<void> {
-        this.stopping = true;
-        clearTimeout(this.timer);
-        await this.activePoll;
+    onModuleDestroy(): Promise<void> {
+        return this.poller.stop();
     }
 
-    private schedulePoll(): void {
-        this.timer = setTimeout(() => {
-            this.activePoll = this.processBatch()
-                .catch(() => this.logger.error('Could not process the password recovery queue.'))
-                .finally(() => {
-                    if (!this.stopping) this.schedulePoll();
-                });
-        }, PASSWORD_RECOVERY_QUEUE.pollIntervalMs);
-        this.timer.unref();
-    }
+    private async processNext(): Promise<boolean> {
+        const now = new Date();
+        const leaseExpiresAt = new Date(now.getTime() + PASSWORD_RECOVERY_QUEUE.leaseDurationMs);
+        const job = await this.jobs.claimNext(now, leaseExpiresAt);
 
-    private async processBatch(): Promise<void> {
-        const { batchSize, leaseDurationMs } = PASSWORD_RECOVERY_QUEUE;
+        if (!job) return false;
 
-        for (let processed = 0; processed < batchSize && !this.stopping; processed += 1) {
-            const now = new Date();
-            const job = await this.jobs.claimNext(now, new Date(now.getTime() + leaseDurationMs));
+        await this.processJob(job);
 
-            if (!job) break;
-
-            await this.processJob(job);
-        }
+        return true;
     }
 
     private async processJob(job: PasswordRecoveryJob): Promise<void> {

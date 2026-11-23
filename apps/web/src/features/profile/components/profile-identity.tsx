@@ -2,11 +2,11 @@ import { useTranslations } from 'next-intl';
 import type { ComponentProps } from 'react';
 
 import { BodyText, SectionTitle } from '@/components/typography';
-import { Card, CardContent } from '@/components/ui';
 
 import type { Profile } from '../config';
 import { ProfileEditor } from './editor/profile-editor';
 import { ProfileAvatar } from './profile-avatar';
+import { ProfileIdentityCard } from './profile-identity-card';
 import { ProfileSkeleton } from './profile-skeleton';
 
 type ProfileIdentityProps = {
@@ -25,23 +25,21 @@ export function ProfileIdentity({
   }
 
   return (
-    <Card>
-      <CardContent className='flex flex-col items-start gap-5 sm:flex-row sm:items-center'>
+    <ProfileIdentityCard
+      avatar={
         <ProfileAvatar
           nickname={profile.nickname}
           avatarPresetId={profile.avatarPresetId}
           size='lg'
         />
-        <div className='min-w-0 flex-1 space-y-2'>
-          <SectionTitle className='break-words'>
-            {profile.nickname}
-          </SectionTitle>
-          <BodyText className='whitespace-pre-wrap break-words'>
-            {profile.bio?.trim() || t('bio.empty')}
-          </BodyText>
-        </div>
-        <ProfileEditor profile={profile} canEdit={canEdit} onSave={onSave} />
-      </CardContent>
-    </Card>
+      }
+      name={<SectionTitle className='wrap-anywhere'>{profile.nickname}</SectionTitle>}
+      action={<ProfileEditor profile={profile} canEdit={canEdit} onSave={onSave} />}
+      bio={
+        <BodyText className='wrap-anywhere whitespace-pre-wrap'>
+          {profile.bio?.trim() || t('bio.empty')}
+        </BodyText>
+      }
+    />
   );
 }

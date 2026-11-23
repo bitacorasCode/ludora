@@ -2,6 +2,7 @@
 
 import { getTranslations } from 'next-intl/server';
 
+import { EMAIL_VERIFICATION_API_TIMEOUT_MS } from '@/features/email-verification/config';
 import { resolveLocale } from '@/i18n/resolve-locale';
 import {
     type ActionResult,
@@ -16,6 +17,7 @@ const REGISTER_ENDPOINT = '/auth/register';
 
 export type RegisterResult = ActionResult<{
     verificationId: string;
+    emailQueued?: boolean;
     emailSent: boolean;
     resendAvailableAt: string;
 }>;
@@ -44,7 +46,7 @@ export async function registerUser(
         nickname,
         email,
         password,
-    });
+    }, { timeoutMs: EMAIL_VERIFICATION_API_TIMEOUT_MS });
 
     if (result.status === OPERATION_STATUS.error) {
         return result;
@@ -62,13 +64,14 @@ export async function registerUser(
     }
 
     const {
-        verification: { id: verificationId, emailSent, resendAvailableAt },
+        verification: { id: verificationId, emailQueued, emailSent, resendAvailableAt },
     } = responseValidation.data;
 
     return {
         status: OPERATION_STATUS.success,
         data: {
             verificationId,
+            ...(emailQueued && { emailQueued }),
             emailSent,
             resendAvailableAt,
         },

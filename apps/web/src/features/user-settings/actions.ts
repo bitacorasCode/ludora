@@ -13,8 +13,9 @@ import { createSession } from '@/lib/session';
 import { createChangePasswordSchema } from './schema';
 
 const CHANGE_PASSWORD_ENDPOINT = '/auth/change-password';
+const userIdSchema = z.uuid();
 const changePasswordResponseSchema = authResponseSchema.extend({
-  user: z.object({ id: z.uuid() }),
+  user: z.object({ id: userIdSchema }),
 });
 const AUTHENTICATION_REQUIRED_RESULT = {
   status: OPERATION_STATUS.error,
@@ -53,9 +54,7 @@ export async function changePassword(
     return createValidationFailure(validation.error.issues);
   }
 
-  const user = await getCurrentUser();
-
-  if (!user || user.id !== expectedUserId) {
+  if (!userIdSchema.safeParse(expectedUserId).success) {
     return AUTHENTICATION_REQUIRED_RESULT;
   }
 
@@ -63,6 +62,7 @@ export async function changePassword(
   const result = await authenticatedApi.post(CHANGE_PASSWORD_ENDPOINT, {
     currentPassword,
     password,
+    expectedUserId,
   });
 
   if (result.status === OPERATION_STATUS.error) return result;

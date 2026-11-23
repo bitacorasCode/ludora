@@ -4,16 +4,17 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 import { APP_ROUTES } from '@/config/routes';
 import {
     EMAIL_VERIFICATION_DELIVERY,
     EMAIL_VERIFICATION_QUERY_PARAMS,
 } from '@/features/email-verification/config';
-import { useActionErrorToast } from '@/hooks';
+import { useActionErrorToast, useRequestScope } from '@/hooks';
 import { useRouter } from '@/i18n/navigation';
 import {
-    ACTION_ERROR_CODES,
+    isUnconfirmedApiOutcome,
     OPERATION_STATUS,
 } from '@/lib/actions';
 import { FORM_ERROR_TYPES, FORM_VALIDATION_OPTIONS } from '@/lib/forms';
@@ -36,6 +37,7 @@ export default function useRegisterForm() {
         featureErrors: errors,
     });
     const [isPending, startTransition] = useTransition();
+    const { capture } = useRequestScope();
 
     const form = useForm<RegisterFormData>({
         ...FORM_VALIDATION_OPTIONS,
@@ -58,12 +60,19 @@ export default function useRegisterForm() {
         }
     }, [getFieldState, isPending, setFocus]);
 
+    function showUnconfirmedRegistration() {
+        toast.warning(feedback('outcomeUnconfirmed.title'), {
+            description: feedback('outcomeUnconfirmed.message'),
+        });
+    }
+
     function onSubmit(data: RegisterFormData) {
         if (isPending) {
             return;
         }
 
         dismissError();
+        const isCurrent = capture();
 
         startTransition(async () => {
             let result: RegisterResult;
@@ -71,13 +80,18 @@ export default function useRegisterForm() {
             try {
                 result = await registerUser(locale, data);
             } catch {
-                showError({
-                    errorCode: ACTION_ERROR_CODES.unexpected,
-                });
+                if (isCurrent()) showUnconfirmedRegistration();
                 return;
             }
 
+            if (!isCurrent()) return;
+
             if (result.status === OPERATION_STATUS.error) {
+                if (isUnconfirmedApiOutcome(result.error)) {
+                    showUnconfirmedRegistration();
+                    return;
+                }
+
                 const { errorCode } = result.error;
                 const fieldName = REGISTER_FIELD_ERRORS.get(errorCode);
 
@@ -93,7 +107,7 @@ export default function useRegisterForm() {
                 return;
             }
 
-            const { verificationId, emailSent, resendAvailableAt } = result.data;
+            const { verificationId, emailQueued, emailSent, resendAvailableAt } = result.data;
 
             form.reset();
 
@@ -102,7 +116,7 @@ export default function useRegisterForm() {
                 query: {
                     verificationId,
                     resendAvailableAt,
-                    ...(!emailSent && {
+                    ...(!emailSent && !emailQueued && {
                         [EMAIL_VERIFICATION_QUERY_PARAMS.delivery]: EMAIL_VERIFICATION_DELIVERY.unconfirmed,
                     }),
                 },

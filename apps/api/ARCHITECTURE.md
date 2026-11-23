@@ -68,13 +68,14 @@ the same `Prisma.TransactionClient` through the `transaction` argument.
 - Resending reserves `lastSentAt` with a conditional update and renews the code
   within the same transaction. That lock also coordinates concurrent resends
   and email confirmation.
-- `lastSentAt` represents the delivery reservation, even if email submission is
-  not confirmed. Each resend generates a random code, renews its expiration,
-  and resets its attempts without changing the verification identifier.
+- `lastSentAt` records when delivery was queued. Each resend uses a new delivery
+  ID to derive a code, renews its expiration, and resets its verification attempts
+  while keeping the same verification identifier.
 - During confirmation, validation errors are thrown after the transaction
   finishes so failed attempts remain recorded.
-- Email submission happens after the registration transaction commits.
-- Resends also contact the selected mail provider after their transaction commits.
+- Registration and resend persist their delivery job in the same row and
+  transaction as the verification code hash. The worker contacts the mail
+  provider after those transactions commit.
 - Refresh token rotation conditionally consumes the previous token and stores its
   replacement in the same transaction as signing the new access token. Requests
   that lose a concurrent rotation or arrive within five seconds of consumption
@@ -190,8 +191,8 @@ concurrent requests. A provider-identity constraint violation returns
 An already-linked identity cannot reuse a registration grant to issue sessions.
 
 After commit, verified accounts receive the usual authenticated response. Other
-accounts return `verifyEmail` and delivery metadata. Email is sent after commit;
-delivery failure leaves the account available for the existing resend flow.
+accounts return `verifyEmail` and queued delivery metadata. Delivery failure
+leaves the account available for the existing resend flow.
 Local and OAuth registration share public-user projection and email-delivery
 response formatting, excluding password hashes and authentication versions.
 
@@ -252,11 +253,12 @@ guard rejection after revocation.
 
 ## Authenticated password changes
 
-`POST /auth/change-password` accepts only `currentPassword` and `password` and
-requires `JwtAuthGuard` plus the dedicated rate limit. The guard preserves the
-verified `authVersion` in the internal request context. `PasswordChangeService`
-loads password credentials through `UsersService`, verifies the current password,
-rejects an unchanged password, and computes the new hash before the transaction.
+`POST /auth/change-password` accepts `currentPassword`, `password`, and optional
+`expectedUserId`. It requires `JwtAuthGuard` plus the dedicated rate limit. The
+guard provides the verified user ID and `authVersion`. `PasswordChangeService`
+rejects an account mismatch before loading password credentials, then verifies the
+current password, rejects an unchanged password, and computes the new hash before
+the transaction.
 
 Inside the transaction, pending reset rows are removed first, matching recovery's
 reset-row-before-user-row lock order. `UsersRepository.changePasswordIfCurrent()`
@@ -268,7 +270,7 @@ is rejected as stale authentication. Password reset rows remain intact on rollba
 The transaction also creates a replacement session and signs its JWT using the
 updated version. After commit, the API schedules the shared password-change
 notification. Next validates the response's user identifier before replacing its
-HttpOnly cookie. The current browser remains
+HttpOnly session cookies. The current browser remains
 signed in; previously issued tokens are rejected. An incorrect current password
 uses `400`, so the frontend does not mistake it for an expired session. Email
 changes are not part of this use case and are not exposed by an endpoint.
@@ -385,31 +387,47 @@ JWT. The user must sign in through the usual login flow afterward.
 
 ### Password change notification
 
-`UsersRepository.updatePassword()` returns the identifier and email of the
-updated user. The reset transaction returns that result so the service can use
-the recipient captured by the update, without another database query. These
-fields remain internal; the endpoint still returns only `{ "reset": true }`.
-
-Only after the transaction commits does `PasswordNotificationService` schedule a
-notification using `setImmediate` and the existing `MailService`. Password recovery
-and authenticated password changes use the same notification service. The token
-lookup includes the user's previous password hash internally so recovery can
-distinguish first-time creation from replacement. The service passes only that
-boolean to the notification after commit; URL presentation modes do not determine
-the notification wording. The hash is never included in a response or email.
+`PasswordNotificationService` queues the email in PostgreSQL in the same
+transaction as the password update. Password recovery and authenticated password
+changes use the same queue. A rollback also rolls back the queued job. The job
+stores the user ID and whether this was the first password. Recovery determines
+that flag from the previous password hash, and the worker retrieves the recipient
+from the user record. The reset endpoint still returns only `{ "reset": true }`.
 
 The English template tells the user that the password was created or changed,
 that previous sessions are invalid, and what to do if they did not make the change.
 It includes no password, hash, token, or recovery link.
 
-Reset lookup fixtures include the previous credential. Service tests cover creation
-versus replacement notification wording and require the update to commit before
-notification is scheduled; existing tests also cover mail failures after commit.
+The HTTP request waits for the database commit. The worker submits the email
+separately, including after a restart. It leases each job for one minute and
+can retry delivery after 30 seconds, up to three attempts and within 24 hours of
+queuing the job. Resend receives the same idempotency key across attempts.
+Delivery failures are logged without recipient details or credentials. The worker
+removes completed and expired jobs and jobs that have reached the retry limit.
 
-Email submission is not awaited by the HTTP request. A delivery failure produces
-a generic log without recipient details or credentials. It does not undo the change or
-turn a committed reset into an HTTP error. This notification runs in memory and
-can be lost if the API restarts before submitting it.
+Updating the password-service mocks and covering atomic enqueueing, worker restart,
+and delivery retries are deferred until requested.
+
+## Verification mail queue
+
+An email verification row holds at most one queued or leased delivery. Resending
+replaces the delivery ID and availability time atomically with the new code hash.
+The response acknowledges the queue through `emailQueued: true`.
+
+`EmailVerificationWorker` and the recovery worker share the polling loop. A worker
+conditionally reserves the delivery for one minute, using the delivery ID and
+attempt counter to guard subsequent updates. Before sending, it rechecks that the
+reservation is current, the account is still unverified, and the code has time
+remaining. It derives the same code using the delivery ID and verification secret
+and checks it against the stored hash. This keeps raw codes out of PostgreSQL.
+
+Failures can be retried after 30 seconds, up to three total attempts before the
+code expires. The worker clears availability after completion, expiry, or retry
+exhaustion. Resend uses the delivery ID as its idempotency key across attempts.
+An email already submitted to a provider may arrive after a subsequent resend.
+The verification row always validates the latest code generation. Coverage of
+worker restart, concurrent claims, and resend during delivery is deferred until
+requested.
 
 ## Mail transport
 
@@ -424,6 +442,6 @@ successful HTTP response and a nonempty submission ID; this confirms acceptance
 by the provider, not inbox placement. Network errors, rejected requests, timeouts,
 and invalid responses propagate to the calling service's existing error handling.
 
-Provider selection does not change credential storage, transaction boundaries,
-or the public authentication responses. SMTP authentication, persistent delivery
-jobs, automatic retries, and delivery webhooks are not implemented.
+The authentication mail workers own their persistent retries. The Resend
+transport forwards an optional idempotency key from the caller. SMTP can deliver
+duplicates when an earlier attempt has an uncertain result.
