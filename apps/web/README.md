@@ -140,20 +140,21 @@ authorization on protected operations.
   does not defer later clock-dependent work. Authentication failures return `null`;
   connection failures and invalid API responses remain errors rather than being
   treated as guest access.
-- Each account page checks access before rendering its content. The account
-  navigation stays in place from the skeleton through to verified content.
-  When a request has a refresh cookie and lacks a valid access
-  token, the browser attempts renewal on the requested page. Private content
-  renders after Nest authenticates the request. The account frame and renewal
-  reuse the requested section's `loading.tsx` skeleton. Temporary failures show
-  a retry control. Requests without recoverable credentials redirect to login.
+- Account navigation and section headings render while access is verified.
+  Public content such as preferences and the activity empty states can render
+  immediately. Place private data behind `AccountAccess` and a local `Suspense`
+  boundary. Use the same fallback for that region during renewal. If the browser
+  has a refresh cookie but lacks a valid access token, it attempts renewal on the
+  requested page. Temporary failures show a retry control. Requests without
+  recoverable credentials redirect to login.
   If the shared header still shows an authenticated user on login, it requests
   a fresh server render once to update both desktop and mobile links.
 - Home renders immediately and attempts session recovery in the background
   when the access token is invalid and a refresh cookie remains. The header
   reflects the recovered user after renewal. Guest-only pages wait for the
-  same recovery before displaying their content. Pass the page's skeleton as
-  `fallback` to `GuestOnly` so the initial wait and renewal share the same UI.
+  same recovery before displaying content that requires guest access. Pass the
+  visible region or its skeleton as `fallback` to `GuestOnly` so the initial wait
+  and renewal share the same UI.
   A valid session follows the page's redirect, and an expired session can
   proceed as a guest.
 - During client interactions,
