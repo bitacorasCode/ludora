@@ -8,6 +8,7 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
 import { SESSION_CONFIG } from '../constants/session.js';
 import { AuthSessionRepository } from '../repositories/index.js';
+import type { AuthenticatedSession } from '../types/authenticated-request.js';
 import { createOpaqueToken, hashOpaqueToken } from '../utils/opaque-token.js';
 
 type SessionForCredentials = Pick<
@@ -65,27 +66,21 @@ export class AuthSessionService {
         };
     }
 
-    async isActive(sessionId: string, userId: string, authVersion: number): Promise<boolean> {
-        const session = await this.authSessionRepository.findActiveById(
+    findActiveSession(sessionId: string, userId: string, authVersion: number) {
+        return this.authSessionRepository.findActiveById(
             sessionId,
             userId,
             authVersion,
             new Date(),
         );
-
-        return session !== null;
     }
 
-    async recordActivity(sessionId: string, userId: string, authVersion: number): Promise<void> {
-        const session = await this.authSessionRepository.findActiveById(
-            sessionId,
-            userId,
-            authVersion,
-            new Date(),
-        );
-
-        if (!session) return;
-
+    async recordActivity({
+        sessionId,
+        userId,
+        authVersion,
+        absoluteExpiresAt,
+    }: AuthenticatedSession): Promise<void> {
         const now = new Date();
         const nowMs = now.getTime();
         const activityBefore = new Date(
@@ -98,7 +93,7 @@ export class AuthSessionService {
             authVersion,
             now,
             activityBefore,
-            idleExpiresAt: getIdleExpiration(nowMs, session.absoluteExpiresAt),
+            idleExpiresAt: getIdleExpiration(nowMs, absoluteExpiresAt),
         });
     }
 

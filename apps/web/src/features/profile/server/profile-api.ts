@@ -50,7 +50,7 @@ export const profileApi = {
     },
 
     async save(
-        data: ProfilePreferences,
+        data: ProfilePreferences & { expectedUserId?: string },
     ): Promise<ActionResult<ProfileResponse>> {
         const result = await authenticatedApi.put(PROFILE_ENDPOINT, data);
 

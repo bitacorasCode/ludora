@@ -122,8 +122,8 @@ export class AuthController {
     @Post('activity')
     @UseGuards(InternalRequestGuard, JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
-    async recordActivity(@Req() { auth: { sessionId, userId, authVersion } }: AuthenticatedRequest) {
-        await this.authSessionService.recordActivity(sessionId, userId, authVersion);
+    async recordActivity(@Req() { auth }: AuthenticatedRequest) {
+        await this.authSessionService.recordActivity(auth);
 
         return { accepted: true };
     }

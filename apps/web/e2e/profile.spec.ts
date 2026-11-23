@@ -26,6 +26,13 @@ test.describe('Profile persistence', () => {
     context,
   }) => {
     const hydrationErrors: string[] = [];
+    const browserProfileReads: string[] = [];
+    page.on('request', (request) => {
+      const url = new URL(request.url());
+      if (request.method() === 'GET' && url.pathname === '/api/profile') {
+        browserProfileReads.push(url.pathname);
+      }
+    });
     page.on('console', (message) => {
       if (
         message.type() === 'error' &&
@@ -73,6 +80,7 @@ test.describe('Profile persistence', () => {
       page.getByText('Mi perfil persistido', { exact: true }),
     ).toBeVisible();
     await expect(page.locator('main img[src="/avatars/fox.svg"]')).toBeVisible();
+    expect(browserProfileReads).toEqual([]);
     expect(hydrationErrors).toEqual([]);
   });
 

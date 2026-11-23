@@ -66,15 +66,24 @@ export class JwtAuthGuard implements CanActivate {
         }
 
         const { sub: userId, sid: sessionId, authVersion } = result.data;
-        const isActive = await this.authSessionService.isActive(sessionId, userId, authVersion);
+        const session = await this.authSessionService.findActiveSession(
+            sessionId,
+            userId,
+            authVersion,
+        );
 
-        if (!isActive) {
+        if (!session) {
             const { message, errorCode } = AUTH_ERRORS.invalidToken;
 
             throw new UnauthorizedException(message, { errorCode });
         }
 
-        request.auth = { userId, authVersion, sessionId };
+        request.auth = {
+            userId,
+            authVersion,
+            sessionId,
+            absoluteExpiresAt: session.absoluteExpiresAt,
+        };
 
         return true;
     }

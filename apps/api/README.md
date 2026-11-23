@@ -162,7 +162,7 @@ There is no global URL prefix. Bodies are JSON. Protected routes require
 | `POST` | `/auth/change-password`     | Requires a verified JWT; accepts `currentPassword` and `password`; returns a replacement access token and user (`200`). |
 | `GET`  | `/auth/me`                  | Returns the authenticated user, nullable `avatarPresetId`, and boolean `hasPassword`; never returns a password hash.      |
 | `GET`  | `/profile`                  | Returns the authenticated user's avatar preset and biography.                                                           |
-| `PUT`  | `/profile`                  | Saves `avatarPresetId` and `bio` for the authenticated user.                                                            |
+| `PUT`  | `/profile`                  | Saves `avatarPresetId` and `bio` for the authenticated user. If supplied, `expectedUserId` must match the JWT user ID.     |
 
 DTOs reject unexpected fields. Password confirmation belongs to the web form and
 must not be sent in registration or password-reset bodies. Shared validation and

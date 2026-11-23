@@ -1,12 +1,12 @@
 'use server';
 
+import { z } from 'zod';
+
 import {
     ACTION_ERROR_CODES,
     type ActionResult,
     OPERATION_STATUS,
 } from '@/lib/actions';
-import { API_ERROR_CODES, HTTP_STATUS } from '@/lib/api';
-import { getCurrentUser } from '@/lib/auth';
 
 import {
     profilePreferencesSchema,
@@ -14,11 +14,16 @@ import {
 } from './schema';
 import { profileApi } from './server/profile-api';
 
+const saveProfileInputSchema = z.object({
+    expectedUserId: z.uuid(),
+    preferences: profilePreferencesSchema,
+});
+
 export async function saveProfile(
     expectedUserId: string,
     formData: unknown,
 ): Promise<ActionResult<ProfileResponse>> {
-    const validation = profilePreferencesSchema.safeParse(formData);
+    const validation = saveProfileInputSchema.safeParse({ expectedUserId, preferences: formData });
 
     if (!validation.success) {
         return {
@@ -29,17 +34,8 @@ export async function saveProfile(
         };
     }
 
-    const user = await getCurrentUser();
-
-    if (!user || user.id !== expectedUserId) {
-        return {
-            status: OPERATION_STATUS.error,
-            error: {
-                errorCode: API_ERROR_CODES.authenticationRequired,
-                statusCode: HTTP_STATUS.unauthorized,
-            },
-        };
-    }
-
-    return profileApi.save(validation.data);
+    return profileApi.save({
+        ...validation.data.preferences,
+        expectedUserId: validation.data.expectedUserId,
+    });
 }

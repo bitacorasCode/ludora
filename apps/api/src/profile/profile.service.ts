@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 
-import {
-    ProfileRepository,
-    type SaveProfileData,
-} from './repositories/profile.repository.js';
+import { AUTH_ERRORS } from '../auth/constants/auth-errors.js';
+import type { SaveProfileDto } from './dto/save-profile.dto.js';
+import { ProfileRepository } from './repositories/profile.repository.js';
 
 @Injectable()
 export class ProfileService {
@@ -23,8 +22,14 @@ export class ProfileService {
 
     save(
         userId: string,
-        { avatarPresetId, bio }: SaveProfileData,
+        { expectedUserId, avatarPresetId, bio }: SaveProfileDto,
     ) {
+        if (expectedUserId !== undefined && expectedUserId !== userId) {
+            const { message, errorCode } = AUTH_ERRORS.authenticationRequired;
+
+            throw new UnauthorizedException(message, { errorCode });
+        }
+
         return this.profileRepository.save(userId, {
             avatarPresetId,
             bio: bio?.trim() || null,

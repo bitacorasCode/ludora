@@ -8,6 +8,7 @@ import {
     type ActionResult,
     OPERATION_STATUS,
 } from '@/lib/actions';
+import { API_ERROR_CODES } from '@/lib/api/constants';
 
 export { BIO_MAX_LENGTH };
 
@@ -38,3 +39,17 @@ export const profileLoadResultSchema = z.discriminatedUnion('status', [
 export type ProfileResponse = z.infer<typeof profileResponseSchema>;
 
 export type ProfilePreferences = z.infer<typeof profilePreferencesSchema>;
+
+export function validateProfileOwner(
+    result: ActionResult<ProfileResponse>,
+    userId: string,
+): ActionResult<ProfileResponse> {
+    if (result.status === OPERATION_STATUS.error || result.data.userId === userId) {
+        return result;
+    }
+
+    return {
+        status: OPERATION_STATUS.error,
+        error: { errorCode: API_ERROR_CODES.invalidResponse },
+    };
+}

@@ -1,167 +1,95 @@
 'use client';
 
-import {
-    useCallback,
-    useEffect,
-    useMemo,
-    useState,
-    useSyncExternalStore,
-} from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 
 import { useProtectedRequest } from '@/hooks';
-import {
-    type ActionError,
-    type ActionResult,
-    OPERATION_STATUS,
-} from '@/lib/actions';
-import { API_ERROR_CODES } from '@/lib/api/constants';
+import { type ActionResult, OPERATION_STATUS } from '@/lib/actions';
 
 import { saveProfile } from '../actions';
 import { loadProfile } from '../client/load-profile';
 import type { Profile } from '../config';
-import type { ProfilePreferences, ProfileResponse } from '../schema';
+import { type ProfilePreferences, type ProfileResponse, validateProfileOwner } from '../schema';
 import { createProfileStorage, readPreferences } from '../storage';
 
-type RemoteSnapshot = {
-    preferences: ProfilePreferences;
-    storageValue: string | null;
+type ProfileResult = ActionResult<ProfileResponse>;
+
+type ProfileUpdate = {
+    initialResult: ProfileResult;
+    result: ProfileResult;
 };
 
-export function useProfile(userId: string, nickname: string) {
-    const storage = useMemo(
-        () => createProfileStorage(userId),
-        [userId],
-    );
+type PublishedPreferences = {
+    initialResult: ProfileResult;
+    preferences: ProfilePreferences;
+};
 
+export function useProfile(userId: string, nickname: string, initialResult: ProfileResult) {
+    const storage = useMemo(() => createProfileStorage(userId), [userId]);
     const { execute, isRecoveringSession } = useProtectedRequest();
+    const [update, setUpdate] = useState<ProfileUpdate | null>(null);
+    const [published, setPublished] = useState<PublishedPreferences | null>(null);
+    const [isReloading, startReload] = useTransition();
+    const reloadRequest = useRef<AbortController | null>(null);
 
-    const storedValue = useSyncExternalStore<
-        string | null | undefined
-    >(
-        storage.subscribe,
-        storage.getSnapshot,
-        storage.getServerSnapshot,
-    );
+    useEffect(() => () => reloadRequest.current?.abort(), [initialResult]);
 
-    const [remoteSnapshot, setRemoteSnapshot] =
-        useState<RemoteSnapshot | null>(null);
-    const [error, setError] = useState<ActionError | null>(null);
-    const [refreshVersion, setRefreshVersion] = useState(0);
-    const [isRefreshing, setIsRefreshing] = useState(true);
+    useEffect(() => storage.subscribe(() => {
+        const preferences = readPreferences(storage.getSnapshot());
 
-    const updateProfile = useCallback(
-        (data: ProfileResponse): boolean => {
-            if (data.userId !== userId) {
-                return false;
-            }
+        setPublished(preferences ? { initialResult, preferences } : null);
+    }), [initialResult, storage]);
 
-            const { avatarPresetId, bio } = data;
-            const preferences = { avatarPresetId, bio };
+    const result = update?.initialResult === initialResult ? update.result : initialResult;
+    const preferences = published?.initialResult === initialResult ? published.preferences : null;
+    const profile: Profile | null = result.status === OPERATION_STATUS.success
+        ? { nickname, avatarPresetId: result.data.avatarPresetId, bio: result.data.bio, ...preferences }
+        : null;
+    const error = result.status === OPERATION_STATUS.error && !isReloading ? result.error : null;
 
-            try {
-                storage.save(preferences);
-            } catch {
-                // Server data remains usable if local storage is unavailable.
-            }
-
-            setRemoteSnapshot({
-                preferences,
-                storageValue: storage.getSnapshot(),
-            });
-            setError(null);
-
-            return true;
-        },
-        [storage, userId],
-    );
-
-    useEffect(() => {
+    function reload() {
+        reloadRequest.current?.abort();
         const controller = new AbortController();
+        reloadRequest.current = controller;
 
-        async function refreshProfile() {
-            const result = await execute(
+        startReload(async () => {
+            const loaded = await execute(
                 () => loadProfile(controller.signal),
                 { signal: controller.signal },
             );
 
-            if (controller.signal.aborted) return;
-
-            setIsRefreshing(false);
-
-            if (!result) return;
-
-            if (result.status === OPERATION_STATUS.error) {
-                setError(result.error);
-                return;
+            if (loaded) {
+                setPublished(null);
+                setUpdate({ initialResult, result: validateProfileOwner(loaded, userId) });
             }
-
-            if (!updateProfile(result.data)) {
-                setError({
-                    errorCode: API_ERROR_CODES.invalidResponse,
-                });
-            }
-        }
-
-        void refreshProfile();
-
-        return () => controller.abort();
-    }, [execute, updateProfile, refreshVersion]);
-
-    const cachedPreferences = readPreferences(storedValue ?? null);
-
-    const storageChanged =
-        remoteSnapshot !== null
-        && storedValue !== remoteSnapshot.storageValue;
-
-    const preferences =
-        cachedPreferences && (remoteSnapshot === null || storageChanged)
-            ? cachedPreferences
-            : remoteSnapshot?.preferences ?? cachedPreferences;
-
-    const profile: Profile | null = preferences
-        ? { nickname, ...preferences }
-        : null;
-
-    function reload() {
-        setError(null);
-        setIsRefreshing(true);
-        setRefreshVersion((version) => version + 1);
+        });
     }
 
-    async function save(
-        values: ProfilePreferences,
-    ): Promise<ActionResult<ProfileResponse> | null> {
-        const result = await execute(
-            () => saveProfile(userId, values),
-        );
+    async function save(values: ProfilePreferences): Promise<ProfileResult | null> {
+        const saved = await execute(() => saveProfile(userId, values));
 
-        if (!result || result.status === OPERATION_STATUS.error) {
-            return result;
-        }
+        if (!saved) return null;
 
-        if (!updateProfile(result.data)) {
-            return {
-                status: OPERATION_STATUS.error,
-                error: {
-                    errorCode: API_ERROR_CODES.invalidResponse,
-                },
-            };
+        const result = validateProfileOwner(saved, userId);
+
+        if (result.status === OPERATION_STATUS.success) {
+            setPublished(null);
+            setUpdate({ initialResult, result });
+
+            try {
+                storage.save(result.data);
+            } catch {
+                // The saved profile remains available when browser storage is unavailable.
+            }
         }
 
         return result;
     }
 
-    const canEdit =
-        remoteSnapshot !== null
-        && !isRefreshing
-        && !isRecoveringSession
-        && error === null;
-
     return {
         profile,
         error,
         reload,
-        canEdit,
+        canEdit: profile !== null && !isReloading && !isRecoveringSession,
         save,
     };
-};
+}

@@ -54,6 +54,40 @@ const profileResponse: ProfileResponse = {
   bio: null,
 };
 
+function profileResult(data = profileResponse): ActionResult<ProfileResponse> {
+  return { status: OPERATION_STATUS.success, data };
+}
+
+const initialProfile = profileResult();
+const unavailableProfile = {
+  status: OPERATION_STATUS.error,
+  error: { errorCode: API_ERROR_CODES.unavailable },
+} as const satisfies ActionResult<ProfileResponse>;
+
+function ProfileView({
+  initialResult = initialProfile,
+  mode = 'visible',
+}: {
+  initialResult?: ActionResult<ProfileResponse>;
+  mode?: 'visible' | 'hidden';
+}) {
+  return (
+    <NextIntlClientProvider locale='es' messages={esMessages}>
+      <NavigationGuardProvider>
+        <SessionBoundary>
+          <Activity mode={mode}>
+            <ProfilePageContent
+              userId={PROFILE_USER_ID}
+              nickname={PROFILE_NICKNAME}
+              initialResult={initialResult}
+            />
+          </Activity>
+        </SessionBoundary>
+      </NavigationGuardProvider>
+    </NextIntlClientProvider>
+  );
+}
+
 function deferred<T>() {
   let resolve!: (value: T) => void;
   const promise = new Promise<T>((finish) => {
@@ -88,110 +122,31 @@ afterEach(() => {
 });
 
 describe('ProfilePageContent integration', () => {
-  it('loads the authenticated profile when no valid preferences are saved', async () => {
-    profileStorage.set('{broken');
-    const pendingRead = deferred<ActionResult<ProfileResponse>>();
-    vi.mocked(loadProfile).mockReturnValueOnce(pendingRead.promise);
-    render(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <ProfilePageContent
-              userId={PROFILE_USER_ID}
-              nickname={PROFILE_NICKNAME}
-            />
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
-    expect(
-      screen.getByRole('status', { name: esMessages.Profile.loading }),
-    ).toBeTruthy();
-    expect(screen.queryByText(esMessages.Profile.bio.empty)).toBeNull();
-
-    await act(async () => {
-      pendingRead.resolve({
-        status: OPERATION_STATUS.success,
-        data: profileResponse,
-      });
-      await pendingRead.promise;
-    });
-
-    expect(
-      screen.getByRole('heading', { name: PROFILE_NICKNAME }),
-    ).toBeTruthy();
-    expect(screen.getByText(esMessages.Profile.bio.empty)).toBeTruthy();
-    expect(screen.getByText('J')).toBeTruthy();
-    expect(readPreferences(profileStorage.getSnapshot())).toEqual({
-      avatarPresetId: null,
-      bio: null,
-    });
-  });
-
-  it('renders the loading state on the server and shows cached data until Nest responds', async () => {
+  it('hydrates the server profile without fetching again or showing an older local copy', () => {
     profileStorage.save({ avatarPresetId: null, bio: 'Perfil guardado' });
-    const pendingRead = deferred<ActionResult<ProfileResponse>>();
-    vi.mocked(loadProfile).mockReturnValueOnce(pendingRead.promise);
-    const ui = (
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <ProfilePageContent
-              userId={PROFILE_USER_ID}
-              nickname={PROFILE_NICKNAME}
-            />
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>
-    );
+    const result = profileResult({ ...profileResponse, bio: 'Perfil desde Nest' });
+    const ui = <ProfileView initialResult={result} />;
     const markup = renderToString(ui);
-    expect(markup).toContain(esMessages.Profile.loading);
+    expect(markup).toContain('Perfil desde Nest');
     expect(markup).not.toContain('Perfil guardado');
-    expect(markup).not.toContain(esMessages.Profile.bio.empty);
+
     const container = document.createElement('div');
     document.body.appendChild(container);
     container.innerHTML = markup;
     const consoleError = vi.spyOn(console, 'error');
     render(ui, { container, hydrate: true });
 
-    expect(await screen.findByText('Perfil guardado')).toBeTruthy();
-    expect(
-      screen.queryByRole('status', { name: esMessages.Profile.loading }),
-    ).toBeNull();
-    expect(
-      screen.queryByRole('button', { name: esMessages.Profile.edit }),
-    ).toBeNull();
-
-    await act(async () => {
-      pendingRead.resolve({
-        status: OPERATION_STATUS.success,
-        data: { ...profileResponse, bio: 'Perfil desde Nest' },
-      });
-      await pendingRead.promise;
-    });
-
     expect(screen.getByText('Perfil desde Nest')).toBeTruthy();
-    expect(
-      screen.getByRole('button', { name: esMessages.Profile.edit }),
-    ).toBeTruthy();
+    expect(screen.queryByText('Perfil guardado')).toBeNull();
+    expect(screen.getByRole('button', { name: esMessages.Profile.edit })).toBeTruthy();
+    expect(loadProfile).not.toHaveBeenCalled();
     expect(consoleError).not.toHaveBeenCalled();
   });
 
   it('updates the identity and storage only after the server confirms the save', async () => {
     const pendingSave = deferred<ActionResult<ProfileResponse>>();
     vi.mocked(saveProfile).mockReturnValueOnce(pendingSave.promise);
-    render(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <ProfilePageContent
-              userId={PROFILE_USER_ID}
-              nickname={PROFILE_NICKNAME}
-            />
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
+    render(<ProfileView />);
     fireEvent.click(
       await screen.findByRole('button', { name: esMessages.Profile.edit }),
     );
@@ -256,22 +211,8 @@ describe('ProfilePageContent integration', () => {
   });
 
   it('discards cancelled changes and preserves saved data', async () => {
-    vi.mocked(loadProfile).mockResolvedValueOnce({
-      status: OPERATION_STATUS.success,
-      data: { ...profileResponse, bio: 'Biografía original' },
-    });
-    render(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <ProfilePageContent
-              userId={PROFILE_USER_ID}
-              nickname={PROFILE_NICKNAME}
-            />
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
+    const result = profileResult({ ...profileResponse, bio: 'Biografía original' });
+    render(<ProfileView initialResult={result} />);
     fireEvent.click(
       await screen.findByRole('button', { name: esMessages.Profile.edit }),
     );
@@ -299,28 +240,12 @@ describe('ProfilePageContent integration', () => {
   });
 
   it('closes the editor and discards unsaved changes when the preserved page becomes visible again', async () => {
-    vi.mocked(loadProfile).mockResolvedValue({
-      status: OPERATION_STATUS.success,
-      data: {
+    const result = profileResult({
         ...profileResponse,
         avatarPresetId: 'fox',
         bio: 'Biografía guardada',
-      },
-    });
-    const { rerender } = render(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <Activity mode='visible'>
-              <ProfilePageContent
-                userId={PROFILE_USER_ID}
-                nickname={PROFILE_NICKNAME}
-              />
-            </Activity>
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
+      });
+    const { rerender } = render(<ProfileView initialResult={result} mode='visible' />);
     fireEvent.click(
       await screen.findByRole('button', { name: esMessages.Profile.edit }),
     );
@@ -337,39 +262,13 @@ describe('ProfilePageContent integration', () => {
       }),
     );
 
-    rerender(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <Activity mode='hidden'>
-              <ProfilePageContent
-                userId={PROFILE_USER_ID}
-                nickname={PROFILE_NICKNAME}
-              />
-            </Activity>
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
+    rerender(<ProfileView initialResult={result} mode='hidden' />);
     expect(
       screen.queryByRole('form', { name: esMessages.Profile.edit }),
     ).toBeNull();
     expect(profileStorage.getSnapshot()).toBe(original);
 
-    rerender(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <Activity mode='visible'>
-              <ProfilePageContent
-                userId={PROFILE_USER_ID}
-                nickname={PROFILE_NICKNAME}
-              />
-            </Activity>
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
+    rerender(<ProfileView initialResult={result} mode='visible' />);
     const edit = await screen.findByRole('button', {
       name: esMessages.Profile.edit,
     });
@@ -400,18 +299,7 @@ describe('ProfilePageContent integration', () => {
       status: OPERATION_STATUS.error,
       error: { errorCode: API_ERROR_CODES.unavailable },
     });
-    render(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <ProfilePageContent
-              userId={PROFILE_USER_ID}
-              nickname={PROFILE_NICKNAME}
-            />
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
+    render(<ProfileView />);
     fireEvent.click(
       await screen.findByRole('button', { name: esMessages.Profile.edit }),
     );
@@ -445,26 +333,12 @@ describe('ProfilePageContent integration', () => {
   });
 
   it('uses the confirmed server response when writing the cache fails', async () => {
-    vi.mocked(loadProfile).mockResolvedValueOnce({
-      status: OPERATION_STATUS.success,
-      data: { ...profileResponse, bio: 'Biografía original' },
-    });
+    const result = profileResult({ ...profileResponse, bio: 'Biografía original' });
     vi.mocked(saveProfile).mockResolvedValueOnce({
       status: OPERATION_STATUS.success,
       data: { ...profileResponse, bio: 'Cambio confirmado' },
     });
-    render(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <ProfilePageContent
-              userId={PROFILE_USER_ID}
-              nickname={PROFILE_NICKNAME}
-            />
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
+    render(<ProfileView initialResult={result} />);
     fireEvent.click(
       await screen.findByRole('button', { name: esMessages.Profile.edit }),
     );
@@ -488,22 +362,8 @@ describe('ProfilePageContent integration', () => {
   });
 
   it('updates the profile after local and cross-tab changes and retains server data when cache is cleared', async () => {
-    vi.mocked(loadProfile).mockResolvedValueOnce({
-      status: OPERATION_STATUS.success,
-      data: { ...profileResponse, bio: 'Biografía del servidor' },
-    });
-    render(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <ProfilePageContent
-              userId={PROFILE_USER_ID}
-              nickname={PROFILE_NICKNAME}
-            />
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
+    const result = profileResult({ ...profileResponse, bio: 'Biografía del servidor' });
+    render(<ProfileView initialResult={result} />);
     await screen.findByRole('button', { name: esMessages.Profile.edit });
     act(() =>
       profileStorage.save({ avatarPresetId: null, bio: 'Cambio local' }),
@@ -526,31 +386,16 @@ describe('ProfilePageContent integration', () => {
     expect(screen.getByText('Biografía del servidor')).toBeTruthy();
   });
 
-  it('keeps cached data visible after a load failure and allows retrying', async () => {
+  it('shows a server read failure and loads Profile when the user retries', async () => {
     profileStorage.save({ avatarPresetId: null, bio: 'Perfil guardado' });
-    vi.mocked(loadProfile)
-      .mockResolvedValueOnce({
-        status: OPERATION_STATUS.error,
-        error: { errorCode: API_ERROR_CODES.unavailable },
-      })
-      .mockResolvedValueOnce({
-        status: OPERATION_STATUS.success,
-        data: { ...profileResponse, bio: 'Perfil actualizado desde Nest' },
-      });
-    render(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <ProfilePageContent
-              userId={PROFILE_USER_ID}
-              nickname={PROFILE_NICKNAME}
-            />
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
-    expect(await screen.findByText(esMessages.Profile.loadError)).toBeTruthy();
-    expect(screen.getByText('Perfil guardado')).toBeTruthy();
+    vi.mocked(loadProfile).mockResolvedValueOnce({
+      status: OPERATION_STATUS.success,
+      data: { ...profileResponse, bio: 'Perfil actualizado desde Nest' },
+    });
+    render(<ProfileView initialResult={unavailableProfile} />);
+    expect(screen.getByText(esMessages.Profile.loadError)).toBeTruthy();
+    expect(screen.queryByText('Perfil guardado')).toBeNull();
+    expect(loadProfile).not.toHaveBeenCalled();
     expect(
       screen.queryByRole('button', { name: esMessages.Profile.edit }),
     ).toBeNull();
@@ -564,7 +409,7 @@ describe('ProfilePageContent integration', () => {
     expect(
       screen.getByRole('button', { name: esMessages.Profile.edit }),
     ).toBeTruthy();
-    expect(loadProfile).toHaveBeenCalledTimes(2);
+    expect(loadProfile).toHaveBeenCalledOnce();
   });
 
   it('rechecks the session and retries a protected read once without an error toast', async () => {
@@ -585,15 +430,8 @@ describe('ProfilePageContent integration', () => {
           bio: 'Perfil después de comprobar la sesión',
         },
       });
-    render(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <ProfilePageContent userId={PROFILE_USER_ID} nickname={PROFILE_NICKNAME} />
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
+    render(<ProfileView initialResult={unavailableProfile} />);
+    fireEvent.click(screen.getByRole('button', { name: esMessages.Common.actions.retry }));
     await waitFor(() => expect(refreshSession).toHaveBeenCalledOnce());
     expect(loadProfile).toHaveBeenCalledOnce();
     expect(screen.queryByText(esMessages.Profile.loadError)).toBeNull();
@@ -631,15 +469,7 @@ describe('ProfilePageContent integration', () => {
         status: OPERATION_STATUS.success,
         data: { ...profileResponse, ...draft },
       });
-    render(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <ProfilePageContent userId={PROFILE_USER_ID} nickname={PROFILE_NICKNAME} />
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
+    render(<ProfileView />);
     fireEvent.click(
       await screen.findByRole('button', { name: esMessages.Profile.edit }),
     );
@@ -685,21 +515,11 @@ describe('ProfilePageContent integration', () => {
         bio: 'Perfil de otra cuenta',
       },
     });
-    render(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <ProfilePageContent
-              userId={PROFILE_USER_ID}
-              nickname={PROFILE_NICKNAME}
-            />
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
-    expect(await screen.findByText(esMessages.Profile.loadError)).toBeTruthy();
+    render(<ProfileView initialResult={unavailableProfile} />);
+    fireEvent.click(screen.getByRole('button', { name: esMessages.Common.actions.retry }));
+    expect(await screen.findByText(esMessages.Common.errors.API_INVALID_RESPONSE)).toBeTruthy();
     expect(screen.queryByText('Perfil de otra cuenta')).toBeNull();
-    expect(screen.getByText('Perfil guardado')).toBeTruthy();
+    expect(screen.queryByText('Perfil guardado')).toBeNull();
     expect(readPreferences(profileStorage.getSnapshot())?.bio).toBe(
       'Perfil guardado',
     );
@@ -714,18 +534,7 @@ describe('ProfilePageContent integration', () => {
         bio: 'Perfil de otra cuenta',
       },
     });
-    render(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <ProfilePageContent
-              userId={PROFILE_USER_ID}
-              nickname={PROFILE_NICKNAME}
-            />
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
+    render(<ProfileView />);
     fireEvent.click(
       await screen.findByRole('button', { name: esMessages.Profile.edit }),
     );
@@ -759,56 +568,21 @@ describe('ProfilePageContent integration', () => {
     expect(toast.success).not.toHaveBeenCalled();
   });
 
-  it('does not show cached preferences from another user', async () => {
-    createProfileStorage(OTHER_USER_ID).save({
+  it('ignores profile updates from another account', () => {
+    render(<ProfileView />);
+    act(() => createProfileStorage(OTHER_USER_ID).save({
       avatarPresetId: 'fox',
       bio: 'Perfil de otra cuenta',
-    });
-    const pendingRead = deferred<ActionResult<ProfileResponse>>();
-    vi.mocked(loadProfile).mockReturnValueOnce(pendingRead.promise);
-    render(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <ProfilePageContent
-              userId={PROFILE_USER_ID}
-              nickname={PROFILE_NICKNAME}
-            />
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
+    }));
     expect(screen.queryByText('Perfil de otra cuenta')).toBeNull();
-    expect(
-      screen.getByRole('status', { name: esMessages.Profile.loading }),
-    ).toBeTruthy();
-    await act(async () => {
-      pendingRead.resolve({
-        status: OPERATION_STATUS.success,
-        data: profileResponse,
-      });
-      await pendingRead.promise;
-    });
-    expect(
-      screen.getByRole('heading', { name: PROFILE_NICKNAME }),
-    ).toBeTruthy();
+    expect(screen.getByText(esMessages.Profile.bio.empty)).toBeTruthy();
   });
 
   it('aborts a pending read when leaving the page and ignores its late response', async () => {
     const pendingRead = deferred<ActionResult<ProfileResponse>>();
     vi.mocked(loadProfile).mockReturnValueOnce(pendingRead.promise);
-    const { unmount } = render(
-      <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>
-          <SessionBoundary>
-            <ProfilePageContent
-              userId={PROFILE_USER_ID}
-              nickname={PROFILE_NICKNAME}
-            />
-          </SessionBoundary>
-        </NavigationGuardProvider>
-      </NextIntlClientProvider>,
-    );
+    const { unmount } = render(<ProfileView initialResult={unavailableProfile} />);
+    fireEvent.click(screen.getByRole('button', { name: esMessages.Common.actions.retry }));
     const [signal] = vi.mocked(loadProfile).mock.calls[0];
     unmount();
     expect(signal?.aborted).toBe(true);

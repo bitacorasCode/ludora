@@ -290,29 +290,40 @@ link modes retain reset wording. No real email is sent by these unit/component t
 
 ## Profile persistence
 
-The profile displays validated per-user local storage while `GET /api/profile`
-refreshes it. That handler calls Nest's authenticated `GET /profile` through the
-Next server and returns a private, noncached response. The handler is a narrow
-browser adapter; Nest remains the owner of the profile and its database access.
+The profile page reads Nest's authenticated `GET /profile` directly from the
+Next server after account access is verified. The existing `Suspense` boundary
+keeps the heading and account navigation visible during the read. The browser
+uses the server result on mount and calls `GET /api/profile` only for a retry.
+That handler still returns a private, noncached response and uses the usual
+session recovery for expired credentials.
 
 Keep one `useProfile` instance per profile view. The editor receives the shared
 save callback; it does not fetch another copy of the profile. `useRequestScope`
 invalidates obsolete responses when the view is hidden or an editor is reopened.
 
-Editing becomes available after a successful server read. Saving uses a Server
-Action that validates the form and checks that the session still belongs to the
-displayed user before calling Nest's `PUT /profile`.
+Editing becomes available after a successful server read. The save action
+validates the form and sends `expectedUserId` to Nest with `PUT /profile`. Nest
+authorizes the JWT and compares its user ID with the one supplied by the editor
+before writing. This check happens in a single API request. Deploy the matching
+API version before this web version.
 
-Only a successful server response updates the visible profile and browser cache.
-A failed save leaves the entered values in the editor. Cache-write failures do
-not turn a successful server operation into a failed save. Cache entries are
-scoped by user ID and synchronize across tabs. A successful save also refreshes
-the server tree so the header displays the saved avatar.
+Only a successful server response updates the visible profile after a save.
+The saved preferences are published to open profile tabs through a local storage
+entry scoped by user ID. The initial render uses the server snapshot even when an
+older local entry exists. A failed save leaves the entered values in the editor.
+A failed storage write leaves the saved profile visible in the current tab. A
+successful save also refreshes the server tree so the header displays the saved
+avatar.
 
 To check persistence manually, save a profile, delete only its
 `ludora:profile:<user-id>` local storage entry, and reload. After the server read,
 the same avatar and biography must appear. Browser storage is a convenience, not
 the source of truth.
+
+Profile coverage checks server-rendered data during hydration, absence of an
+initial browser read, explicit retry, and synchronization after a save.
+Save-action coverage for the request payload and API coverage for rejection after
+an account switch are deferred until requested.
 
 ## Locales, themes, and navigation
 

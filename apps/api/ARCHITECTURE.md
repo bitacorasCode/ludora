@@ -86,10 +86,12 @@ the same `Prisma.TransactionClient` through the `transaction` argument.
   concurrent rotation cannot prevent logout. The access-token path uses the
   session ID provided by the JWT guard. Coverage of repeated logout and
   access-token-only revocation is deferred until requested.
-- Session activity conditionally updates `lastActiveAt` and `idleExpiresAt`
-  together. The update rechecks session validity and the activity cutoff so
+- Session activity reuses the absolute deadline read by the JWT guard. A valid
+  request makes one Prisma read and one conditional update of `lastActiveAt` and
+  `idleExpiresAt`. The update rechecks session validity and the activity cutoff so
   simultaneous requests from different tabs share the same write limit. Coverage
-  of concurrent activity and the absolute deadline cap is deferred until requested.
+  of the guard's session context, concurrent activity, and the absolute deadline
+  cap is deferred until requested.
 
 Services own process decisions. Repositories receive prepared data, timestamps,
 and limits to build the corresponding queries.
