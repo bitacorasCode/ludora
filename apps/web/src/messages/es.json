@@ -10,7 +10,6 @@
     "Activity": {
         "description": "Consulta tus partidas recientes y tu participación en las clasificaciones.",
         "eyebrow": "Tu recorrido en Ludora",
-        "loading": "Cargando actividad",
         "matches": {
             "description": "Consulta las partidas que has jugado y sus resultados.",
             "empty": {
@@ -274,7 +273,6 @@
             "description": "Elige el idioma de los textos y de la navegación.",
             "title": "Idioma de la plataforma"
         },
-        "loading": "Cargando preferencias",
         "title": "Preferencias"
     },
     "Profile": {

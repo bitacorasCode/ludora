@@ -12,7 +12,7 @@ import {
 export type ItemListEntry = {
   id: string;
   title: string;
-  description?: string;
+  description?: ReactNode;
   descriptionId?: string;
   content: ReactNode;
 };

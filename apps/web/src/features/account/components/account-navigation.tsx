@@ -1,9 +1,8 @@
 import { useTranslations } from 'next-intl';
+import type { ReactNode } from 'react';
 
 import { SectionNavigation } from '@/components/navigation';
-import { Skeleton } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
-import { LogoutButton } from '@/features/logout';
 
 const links = [
   { href: APP_ROUTES.accountProfile, label: 'profile' },
@@ -12,7 +11,7 @@ const links = [
   { href: APP_ROUTES.accountPreferences, label: 'preferences' },
 ] as const;
 
-export function AccountNavigation({ pending }: { pending: boolean }) {
+export function AccountNavigation({ actions }: { actions?: ReactNode }) {
   const t = useTranslations('Account');
 
   return (
@@ -26,7 +25,7 @@ export function AccountNavigation({ pending }: { pending: boolean }) {
         }))}
       />
 
-      {pending ? <Skeleton aria-hidden='true' className='h-8 w-full' /> : <LogoutButton />}
+      {actions}
     </div>
   );
 }

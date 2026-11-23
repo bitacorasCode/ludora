@@ -6,7 +6,6 @@ import { APP_ROUTES } from '@/config/routes';
 import { PreferencesPageContent } from '@/features/preferences';
 
 import { GuestOnly } from '../_components/auth/guest-only';
-import PreferencesLoading from '../account/preferences/loading';
 
 export async function generateMetadata({
   params,
@@ -29,21 +28,17 @@ export default async function PreferencesPage({
     namespace: 'Preferences',
   });
 
-  const fallback = (
+  const content = (
     <PageContainer>
-      <PageSection>
-        <PreferencesLoading />
+      <PageSection aria-label={t('title')}>
+        <PreferencesPageContent />
       </PageSection>
     </PageContainer>
   );
 
   return (
-    <GuestOnly locale={locale} redirectTo={APP_ROUTES.accountPreferences} fallback={fallback}>
-      <PageContainer>
-        <PageSection aria-label={t('title')}>
-          <PreferencesPageContent />
-        </PageSection>
-      </PageContainer>
+    <GuestOnly locale={locale} redirectTo={APP_ROUTES.accountPreferences} fallback={content}>
+      {content}
     </GuestOnly>
   );
 }

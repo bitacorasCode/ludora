@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { Suspense } from 'react';
 
 import { ActivityPageContent } from '@/features/activity';
 
 import { AccountAccess } from '../_components/account-access';
-import ActivityLoading from './loading';
 
 export async function generateMetadata({
   params,
@@ -24,8 +24,11 @@ export default async function AccountActivityPage({
   const { locale } = await params;
 
   return (
-    <AccountAccess locale={locale} fallback={<ActivityLoading />}>
-      {() => <ActivityPageContent />}
-    </AccountAccess>
+    <>
+      <ActivityPageContent />
+      <Suspense fallback={null}>
+        <AccountAccess locale={locale} />
+      </Suspense>
+    </>
   );
 }

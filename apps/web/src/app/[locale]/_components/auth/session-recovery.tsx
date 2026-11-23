@@ -12,7 +12,7 @@ import { useRequestScope } from '@/hooks/use-request-scope';
 import { Link } from '@/i18n/navigation';
 import { type ActionError, OPERATION_STATUS } from '@/lib/actions';
 
-export function SessionRecovery({ fallback }: { fallback?: ReactNode }) {
+export function SessionRecovery({ fallback, inline = false }: { fallback?: ReactNode; inline?: boolean }) {
   const common = useTranslations('Common');
   const routeError = useTranslations('RouteError');
   const { recoverSession } = useSessionRecoveryController();
@@ -45,22 +45,22 @@ export function SessionRecovery({ fallback }: { fallback?: ReactNode }) {
     ? common(descriptionKey)
     : routeError('description');
 
-  return (
-    <PageContainer>
-      <PageSection>
-        <ErrorState
-          title={routeError('title')}
-          description={description}
-          primaryAction={(
-            <Button type='button' onClick={retry}>{common('actions.retry')}</Button>
-          )}
-          secondaryAction={(
-            <Button asChild variant='outline'>
-              <Link href={APP_ROUTES.home}>{common('actions.backHome')}</Link>
-            </Button>
-          )}
-        />
-      </PageSection>
-    </PageContainer>
+  const feedback = (
+    <ErrorState
+      title={routeError('title')}
+      description={description}
+      primaryAction={(
+        <Button type='button' onClick={retry}>{common('actions.retry')}</Button>
+      )}
+      secondaryAction={(
+        <Button asChild variant='outline'>
+          <Link href={APP_ROUTES.home}>{common('actions.backHome')}</Link>
+        </Button>
+      )}
+    />
   );
+
+  if (inline) return feedback;
+
+  return <PageContainer><PageSection>{feedback}</PageSection></PageContainer>;
 }

@@ -1,1 +1,1 @@
-export { UserSettingsPageContent } from './components/user-settings-page-content';
+export { UserSettingsPageContent, UserSettingsPageHeading } from './components/user-settings-page-content';

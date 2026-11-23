@@ -1,1 +1,1 @@
-export { SessionBoundary, useSessionRecovery } from './session-boundary';
+export { SessionActivity, SessionBoundary, useSessionRecovery } from './session-boundary';

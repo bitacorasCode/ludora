@@ -2,11 +2,7 @@ import { useTranslations } from 'next-intl';
 
 import { ContentSkeleton } from '@/components/feedback';
 
-type ProfileSkeletonProps = {
-  withHeading?: boolean;
-};
-
-export function ProfileSkeleton({ withHeading = false }: ProfileSkeletonProps) {
+export function ProfileSkeleton() {
   const t = useTranslations('Profile');
 
   return (
@@ -16,7 +12,6 @@ export function ProfileSkeleton({ withHeading = false }: ProfileSkeletonProps) {
       withAction
       size='lg'
       withCard
-      withHeading={withHeading}
       label={t('loading')}
     />
   );

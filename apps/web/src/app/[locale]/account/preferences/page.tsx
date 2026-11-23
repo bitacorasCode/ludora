@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { Suspense } from 'react';
 
 import { PreferencesPageContent } from '@/features/preferences';
 
 import { AccountAccess } from '../_components/account-access';
-import PreferencesLoading from './loading';
 
 export async function generateMetadata({
   params,
@@ -24,8 +24,11 @@ export default async function AccountPreferencesPage({
   const { locale } = await params;
 
   return (
-    <AccountAccess locale={locale} fallback={<PreferencesLoading />}>
-      {() => <PreferencesPageContent />}
-    </AccountAccess>
+    <>
+      <PreferencesPageContent />
+      <Suspense fallback={null}>
+        <AccountAccess locale={locale} />
+      </Suspense>
+    </>
   );
 }

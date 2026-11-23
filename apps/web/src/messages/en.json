@@ -10,7 +10,6 @@
     "Activity": {
         "description": "View your recent matches and participation in rankings.",
         "eyebrow": "Your journey on Ludora",
-        "loading": "Loading activity",
         "matches": {
             "description": "View the matches you have played and their results.",
             "empty": {
@@ -274,7 +273,6 @@
             "description": "Choose the language for text and navigation.",
             "title": "Platform language"
         },
-        "loading": "Loading preferences",
         "title": "Preferences"
     },
     "Profile": {

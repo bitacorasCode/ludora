@@ -1,17 +1,25 @@
+import { Suspense } from 'react';
+
 import { APP_ROUTES } from '@/config/routes';
+import { ProfilePageHeading, ProfileSkeleton } from '@/features/profile';
 import { redirect } from '@/i18n/navigation';
 
 import { AccountAccess } from './_components/account-access';
-import AccountLoading from './loading';
 
 export default async function AccountPage({
   params,
 }: PageProps<'/[locale]/account'>) {
   const { locale } = await params;
+  const fallback = <ProfileSkeleton />;
 
   return (
-    <AccountAccess locale={locale} fallback={<AccountLoading />}>
-      {() => redirect({ href: APP_ROUTES.accountProfile, locale })}
-    </AccountAccess>
+    <>
+      <ProfilePageHeading />
+      <Suspense fallback={fallback}>
+        <AccountAccess locale={locale} fallback={fallback}>
+          {() => redirect({ href: APP_ROUTES.accountProfile, locale })}
+        </AccountAccess>
+      </Suspense>
+    </>
   );
 }

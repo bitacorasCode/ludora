@@ -3,7 +3,6 @@
 import { useTranslations } from 'next-intl';
 
 import { ErrorState } from '@/components/feedback';
-import { PageHeading } from '@/components/typography';
 import { Button } from '@/components/ui';
 
 import { useProfile } from '../hooks/use-profile';
@@ -14,10 +13,7 @@ type ProfilePageContentProps = {
   nickname: string;
 };
 
-export function ProfilePageContent({
-  userId,
-  nickname,
-}: ProfilePageContentProps) {
+export function ProfilePageContent({ userId, nickname }: ProfilePageContentProps) {
   const t = useTranslations('Profile');
   const actions = useTranslations('Common.actions');
   const errors = useTranslations('Common.errors');
@@ -41,12 +37,6 @@ export function ProfilePageContent({
 
   return (
     <>
-      <PageHeading
-        eyebrow={t('eyebrow')}
-        title={t('title')}
-        description={t('description')}
-      />
-
       {error && errorDescription && (
         <ErrorState
           title={t('loadError')}
