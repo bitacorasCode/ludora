@@ -2,7 +2,7 @@ import { Injectable, Logger, type OnApplicationBootstrap, type OnModuleDestroy }
 
 import { MailService } from '../../mail/index.js';
 import { EMAIL_VERIFICATION_CONFIG } from '../constants/email-verification.js';
-import { AUTH_MAIL_QUEUE } from '../constants/mail-queue.js';
+import { AUTH_MAIL_QUEUE, AUTH_MAIL_QUEUE_LOGS } from '../constants/mail-queue.js';
 import { EmailVerificationRepository } from '../repositories/email-verification.repository.js';
 import { EmailVerificationCodeService } from '../services/email-verification-code.service.js';
 import { createEmailVerificationMail } from '../templates/email-verification-mail.js';
@@ -39,22 +39,31 @@ export class EmailVerificationWorker implements OnApplicationBootstrap, OnModule
 
         if (!job) return false;
 
-        let nextAttempt: Date | null = null;
+        this.poller.warnIfBacklogged(job.readySince, now, this.logger);
 
-        if (job.deliveryAttempts <= maxAttempts) {
+        if (job.deliveryAttempts > maxAttempts) {
+            this.logger.error(AUTH_MAIL_QUEUE_LOGS.attemptsExhausted);
+        } else {
             try {
                 await this.deliver(job);
             } catch {
-                this.logger.warn('Could not submit an email verification delivery.');
                 const retryAtMs = Date.now() + retryDelayMs;
 
                 if (job.deliveryAttempts < maxAttempts && retryAtMs < job.expiresAt.getTime()) {
-                    nextAttempt = new Date(retryAtMs);
+                    await this.verifications.setDeliveryAvailability(job, new Date(retryAtMs));
+                    this.logger.warn(AUTH_MAIL_QUEUE_LOGS.retryScheduled);
+                    return true;
                 }
+
+                this.logger.error(
+                    job.deliveryAttempts === maxAttempts
+                        ? AUTH_MAIL_QUEUE_LOGS.attemptsExhausted
+                        : AUTH_MAIL_QUEUE_LOGS.retryPastDeadline,
+                );
             }
         }
 
-        await this.verifications.setDeliveryAvailability(job, nextAttempt);
+        await this.verifications.setDeliveryAvailability(job, null);
 
         return true;
     }

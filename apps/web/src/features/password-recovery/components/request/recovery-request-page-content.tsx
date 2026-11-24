@@ -2,8 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 
+import { Alert } from '@/components/feedback';
 import {
-  FormActions,
   FormPageCard,
   FormTextField,
   SubmitButton,
@@ -18,7 +18,8 @@ const formId = 'recovery-request-form';
 
 export function RecoveryRequestPageContent() {
   const t = useTranslations('PasswordRecovery');
-  const { form, onSubmit, isSubmitting } = useRecoveryRequestForm();
+  const { form, onSubmit, clearConfirmation, isRequestAccepted, isSubmitting } =
+    useRecoveryRequestForm();
 
   return (
     <FormPageCard
@@ -33,6 +34,7 @@ export function RecoveryRequestPageContent() {
         aria-busy={isSubmitting}
         tabIndex={-1}
         onSubmit={form.handleSubmit(onSubmit)}
+        onChange={clearConfirmation}
         noValidate
       >
         <FieldSet disabled={isSubmitting}>
@@ -45,22 +47,26 @@ export function RecoveryRequestPageContent() {
               label={t('fields.email.label')}
               placeholder={t('fields.email.placeholder')}
             />
-            <FormActions
-              secondaryAction={
-                <Button asChild variant='link'>
-                  <Link href={APP_ROUTES.login}>{t('backToLogin')}</Link>
-                </Button>
-              }
-            >
+            <div className='flex flex-row-reverse flex-wrap items-center gap-3'>
               <SubmitButton
                 isSubmitting={isSubmitting}
                 mainText={t('request.submit')}
                 submittingText={t('request.submitting')}
               />
-            </FormActions>
+              <Button asChild variant='link' className='mr-auto'>
+                <Link href={APP_ROUTES.login}>{t('backToLogin')}</Link>
+              </Button>
+            </div>
           </FieldGroup>
         </FieldSet>
       </form>
+      <div className={isRequestAccepted ? 'mt-4 [&>[data-slot=alert]]:mb-0' : 'sr-only'}>
+        <Alert
+          status='success'
+          title={isRequestAccepted ? t('request.success.title') : undefined}
+          message={isRequestAccepted ? t('request.success.message') : ''}
+        />
+      </div>
     </FormPageCard>
   );
 }

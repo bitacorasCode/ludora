@@ -31,12 +31,11 @@
         "title": "Activity"
     },
     "Catalog": {
-        "description": "The Ludora catalog is empty for now. Soon you'll find games to explore here.",
+        "description": "Game catalog for Ludora, an online board game platform in development.",
         "empty": {
-            "description": "We're preparing this space for the platform's first games.",
+            "description": "We're preparing Ludora's first board games.",
             "title": "No games yet"
         },
-        "eyebrow": "Explore Ludora",
         "title": "Game catalog"
     },
     "Common": {
@@ -76,7 +75,7 @@
             "label": "Verification code",
             "placeholder": "000000"
         },
-        "description": "Enter the code you received by email to confirm your address, activate your account, and sign in.",
+        "description": "Look for the code in your inbox or spam folder. The email may take a moment.",
         "errors": {
             "AUTH_EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED": "You have reached the attempt limit for this code. Select “Resend code” to request a new one.",
             "AUTH_EMAIL_VERIFICATION_CODE_INVALID": "The verification code is incorrect.",
@@ -86,13 +85,14 @@
         },
         "feedback": {
             "deliveryUnconfirmed": {
-                "message": "We couldn't confirm the email was sent. If you receive a code, you can enter it here. You can also request another when the waiting period ends.",
+                "message": "If the code arrives, enter it here. You can request another when the wait ends.",
                 "title": "We couldn't confirm the email was sent"
             },
             "errorTitle": "We couldn't confirm your email"
         },
         "resend": {
             "action": "Resend code",
+            "available": "You can now resend the code.",
             "cooldown": "{seconds, plural, one {You can resend in # second.} other {You can resend in # seconds.}}",
             "errorTitle": "We couldn't resend the code",
             "hint": "Didn't receive the email? You can request another code.",
@@ -183,7 +183,8 @@
         "validation": {
             "emailInvalid": "Enter a valid email address.",
             "passwordRequired": "Enter your password."
-        }
+        },
+        "verificationHint": "Email still unconfirmed? Sign in the same way you signed up."
     },
     "Logout": {
         "errorTitle": "Couldn't sign out",
@@ -235,11 +236,11 @@
         "request": {
             "description": "Enter your email address to request a password reset link.",
             "errorTitle": "Could not request password recovery",
-            "submit": "Send recovery link",
-            "submitting": "Sending link…",
+            "submit": "Request link",
+            "submitting": "Requesting link…",
             "success": {
-                "message": "If an account exists for that email address, you will receive a link to reset your password.",
-                "title": "Check your email"
+                "message": "If an account uses that address, look for the link in your inbox or spam folder. If it takes a while, check the address before requesting another.",
+                "title": "Request received"
             },
             "title": "Recover your password"
         },
@@ -319,7 +320,9 @@
     },
     "Register": {
         "accountData": "Account details",
+        "createAccountWithEmail": "Create account with email",
         "description": "Create your account to get started on Ludora.",
+        "emailRegistration": "Register with email",
         "errors": {
             "AUTH_EMAIL_ALREADY_EXISTS": "The email address is already registered.",
             "AUTH_NICKNAME_ALREADY_EXISTS": "The username is already in use."
@@ -350,6 +353,7 @@
             }
         },
         "metadataDescription": "Create your Ludora account and confirm your email address to get started.",
+        "requiredFields": "All fields are required.",
         "signIn": "I already have an account",
         "skipToForm": "Skip to form",
         "submit": "Create account",
@@ -358,10 +362,11 @@
         "validation": {
             "confirmPasswordRequired": "Repeat your password.",
             "emailInvalid": "Enter a valid email address.",
-            "nicknameMin": "The username must be at least 2 characters long.",
-            "passwordMin": "The password must be at least 8 characters long.",
+            "nicknameMin": "Use at least {minLength} characters.",
+            "passwordMin": "Use at least {minLength} characters.",
             "passwordMismatch": "The passwords do not match."
-        }
+        },
+        "verificationCodeNotice": "To activate your account, enter the {length}-digit code we'll send by email."
     },
     "RouteError": {
         "description": "Please try again. If the problem continues, you can return to the home page.",
@@ -383,6 +388,7 @@
             "errorTitle": "We couldn't sign you in"
         },
         "google": {
+            "completing": "Signing in with Google...",
             "continue": "Continue with Google",
             "redirecting": "Redirecting to Google..."
         },

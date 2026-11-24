@@ -16,6 +16,7 @@ import { createSession } from '@/lib/session';
 
 import { createSocialRegistrationSchema } from './schema';
 import {
+    completeGoogleCallback,
     createOAuthFlowCookie,
     deleteOAuthRegistrationCookie,
     getOAuthRegistrationCookie,
@@ -23,6 +24,10 @@ import {
     SOCIAL_AUTH_ENDPOINTS,
     socialRegistrationResponseSchema,
 } from './server';
+
+export async function completeGoogleAuth(locale: string, callbackId: string): Promise<string> {
+    return completeGoogleCallback(callbackId, resolveLocale(locale));
+}
 
 export async function startGoogleAuth(
     locale: string,

@@ -14,7 +14,7 @@ export class PasswordRecoveryJobRepository {
         await this.prisma.passwordRecoveryJob.create({ data: { email } });
     }
 
-    async claimNext(now: Date, leaseExpiresAt: Date): Promise<PasswordRecoveryJob | null> {
+    async claimNext(now: Date, leaseExpiresAt: Date) {
         const job = await this.prisma.passwordRecoveryJob.findFirst({
             where: { availableAt: { lte: now } },
             orderBy: [{ availableAt: 'asc' }, { id: 'asc' }],
@@ -29,7 +29,7 @@ export class PasswordRecoveryJobRepository {
         });
 
         return count === SINGLE_RECORD_COUNT
-            ? { ...job, availableAt: leaseExpiresAt, attempts: attempts + 1 }
+            ? { ...job, readySince: job.availableAt, availableAt: leaseExpiresAt, attempts: attempts + 1 }
             : null;
     }
 

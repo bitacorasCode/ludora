@@ -4,12 +4,18 @@
     "private": true,
     "type": "module",
     "exports": {
+        "./auth": {
+            "types": "./auth.d.ts",
+            "import": "./auth.js"
+        },
         "./profile": {
             "types": "./profile.d.ts",
             "import": "./profile.js"
         }
     },
     "files": [
+        "auth.js",
+        "auth.d.ts",
         "profile.js",
         "profile.d.ts"
     ]

@@ -1,5 +1,6 @@
 'use client';
 
+import { EMAIL_VERIFICATION_CODE_LENGTH } from '@ludora/security';
 import { useTranslations } from 'next-intl';
 import type { Control } from 'react-hook-form';
 
@@ -17,10 +18,16 @@ export default function RegisterFormData({ control }: RegisterFormDataProps) {
   const t = useTranslations('Register');
 
   return (
-    <div className='w-full'>
-      <CardDescription>{t('accountData')}</CardDescription>
-
-      <FieldGroup className='mt-4'>
+    <div className='w-full space-y-4'>
+      <div className='space-y-1'>
+        <CardDescription>
+          {t('verificationCodeNotice', {
+            length: EMAIL_VERIFICATION_CODE_LENGTH,
+          })}
+        </CardDescription>
+        <CardDescription>{t('requiredFields')}</CardDescription>
+      </div>
+      <FieldGroup>
         {userFields.map((field) => (
           <FormTextField
             key={field.name}
@@ -30,6 +37,7 @@ export default function RegisterFormData({ control }: RegisterFormDataProps) {
             placeholder={t(`fields.${field.name}.placeholder`)}
             inputType={field.inputType}
             autoComplete={field.autoComplete}
+            required
           />
         ))}
       </FieldGroup>

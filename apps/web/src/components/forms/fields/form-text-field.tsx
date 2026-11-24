@@ -13,7 +13,7 @@ import type { BaseFormFieldProps } from './types';
 
 type Props<T extends FieldValues> = BaseFormFieldProps<T> & Pick<
   ComponentProps<typeof Input>,
-  'autoFocus' | 'inputMode' | 'maxLength'
+  'autoFocus' | 'inputMode' | 'maxLength' | 'required'
 > & {
   placeholder?: string;
   inputType?: 'text' | 'email' | 'password';
@@ -30,6 +30,7 @@ export function FormTextField<T extends FieldValues>({
   autoFocus,
   inputMode,
   maxLength,
+  required,
 }: Props<T>) {
   const t = useTranslations('FormTextField');
   const id = useId();
@@ -57,6 +58,7 @@ export function FormTextField<T extends FieldValues>({
               inputMode={inputMode}
               maxLength={maxLength}
               placeholder={placeholder}
+              required={required}
               className={showVisibilityToggle ? 'pr-10' : undefined}
               aria-invalid={fieldState.invalid}
               aria-describedby={fieldState.error ? errorId : undefined}

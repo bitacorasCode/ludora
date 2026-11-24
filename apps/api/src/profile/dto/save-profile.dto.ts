@@ -5,7 +5,7 @@ import {
 import { z } from 'zod';
 
 export const saveProfileSchema = z.strictObject({
-    expectedUserId: z.uuid().optional(),
+    expectedUserId: z.uuid(),
     avatarPresetId: z.enum(PROFILE_AVATAR_PRESET_IDS).nullable(),
     bio: z.string().trim().max(PROFILE_BIO_MAX_LENGTH).nullable(),
 });

@@ -12,18 +12,11 @@ type SessionRecoveryContextValue = ReturnType<
 const SessionRecoveryContext =
   createContext<SessionRecoveryContextValue | null>(null);
 
-export function SessionBoundary({
-  children,
-  trackActivity = true,
-}: {
-  children: ReactNode;
-  trackActivity?: boolean;
-}) {
+export function SessionBoundary({ children }: { children: ReactNode }) {
   const value = useSessionRecoveryController();
 
   return (
     <SessionRecoveryContext.Provider value={value}>
-      {trackActivity && <SessionActivity />}
       {children}
     </SessionRecoveryContext.Provider>
   );

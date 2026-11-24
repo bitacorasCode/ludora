@@ -2,8 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 
-import { FormActions, FormPageCard, SubmitButton } from '@/components/forms';
-import { Button, FieldSet } from '@/components/ui';
+import { FormPageCard, SubmitButton } from '@/components/forms';
+import { Button, FieldLegend, FieldSet } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
 import { SocialAuthOptions } from '@/features/social-auth/components/social-auth-options';
 import { Link } from '@/i18n/navigation';
@@ -34,21 +34,18 @@ export function RegisterPageContent() {
         noValidate
       >
         <FieldSet disabled={isSubmitting}>
-          <legend className='sr-only'>{t('accountData')}</legend>
+          <FieldLegend>{t('emailRegistration')}</FieldLegend>
           <RegisterFormData control={form.control} />
-          <FormActions
-            secondaryAction={
-              <Button asChild variant='link'>
-                <Link href={APP_ROUTES.login}>{t('signIn')}</Link>
-              </Button>
-            }
-          >
+          <div className='flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between'>
             <SubmitButton
               isSubmitting={isSubmitting}
-              mainText={t('submit')}
+              mainText={t('createAccountWithEmail')}
               submittingText={t('submitting')}
             />
-          </FormActions>
+            <Button asChild variant='link' className='self-center'>
+              <Link href={APP_ROUTES.login}>{t('signIn')}</Link>
+            </Button>
+          </div>
         </FieldSet>
       </form>
     </FormPageCard>

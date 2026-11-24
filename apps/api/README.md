@@ -159,10 +159,10 @@ There is no global URL prefix. Bodies are JSON. Protected routes require
 | `POST` | `/auth/oauth/register`      | Internal requests only; accepts `registrationToken`, `nickname`, and optional `email`; creates the account and returns a session or verification metadata (`201`). |
 | `POST` | `/auth/forgot-password`     | Accepts `email`; acknowledges a valid request without revealing account existence or delivery status (`202`).           |
 | `POST` | `/auth/reset-password`      | Accepts `token` and `password`; consumes the recovery link and updates the password (`200`).                            |
-| `POST` | `/auth/change-password`     | Requires a verified JWT; accepts `currentPassword`, `password`, and optional `expectedUserId`; returns replacement credentials and the user (`200`). |
+| `POST` | `/auth/change-password`     | Requires a verified JWT and a body with `currentPassword`, `password`, and `expectedUserId`. Returns replacement credentials and the user (`200`). |
 | `GET`  | `/auth/me`                  | Returns the authenticated user, nullable `avatarPresetId`, and boolean `hasPassword`; never returns a password hash.      |
 | `GET`  | `/profile`                  | Returns the authenticated user's avatar preset and biography.                                                           |
-| `PUT`  | `/profile`                  | Saves `avatarPresetId` and `bio` for the authenticated user. If supplied, `expectedUserId` must match the JWT user ID.     |
+| `PUT`  | `/profile`                  | Saves `avatarPresetId` and `bio` for the authenticated user. Requires `expectedUserId` to match the JWT user ID.            |
 
 DTOs reject unexpected fields. Password confirmation belongs to the web form and
 must not be sent in registration or password-reset bodies. Shared validation and
@@ -250,7 +250,7 @@ Explicit account linking and Discord sign-in are later steps.
 
 `POST /auth/change-password` checks the current password and requires a different
 new password. The guard supplies the verified user ID and authentication version.
-If supplied, `expectedUserId` must match that user ID before any password lookup.
+`expectedUserId` must match that user ID before any password lookup.
 The web app sends it to bind the change to the account displayed by the editor.
 A conditional update checks that version and the password hash again, increments
 `authVersion`, and invalidates pending reset links within the same transaction.
@@ -263,9 +263,9 @@ An incorrect current password returns `400` with `AUTH_CURRENT_PASSWORD_INVALID`
 Reusing it returns `400` with `AUTH_PASSWORD_UNCHANGED`. These are form errors, not
 expired-session responses. A stale authentication version or account mismatch returns `401`.
 
-A password-change notice is scheduled after commit through
-`PasswordNotificationService`, also used by password recovery. Email delivery does not delay
-or undo the credential change. There is no email-change endpoint.
+`PasswordNotificationService` queues the notice in the same database transaction
+as the password update. A worker sends it after commit. Password recovery uses
+the same notification service. The account email is read-only.
 
 ### Errors and rate limiting
 

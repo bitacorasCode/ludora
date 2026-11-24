@@ -31,12 +31,11 @@
         "title": "Actividad"
     },
     "Catalog": {
-        "description": "El catálogo de Ludora aún está vacío. Pronto encontrarás aquí juegos para explorar.",
+        "description": "Catálogo de Ludora, una plataforma de juegos de mesa en desarrollo.",
         "empty": {
-            "description": "Estamos preparando este espacio para los primeros juegos de la plataforma.",
+            "description": "Estamos preparando los primeros juegos de mesa de Ludora.",
             "title": "Aún no hay juegos"
         },
-        "eyebrow": "Explora Ludora",
         "title": "Catálogo de juegos"
     },
     "Common": {
@@ -76,7 +75,7 @@
             "label": "Código de verificación",
             "placeholder": "000000"
         },
-        "description": "Introduce el código recibido por correo para confirmar tu dirección, activar tu cuenta e iniciar sesión.",
+        "description": "Busca el código en tu bandeja de entrada o en correo no deseado. Puede tardar.",
         "errors": {
             "AUTH_EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED": "Has alcanzado el límite de intentos para este código. Usa «Reenviar código» para solicitar uno nuevo.",
             "AUTH_EMAIL_VERIFICATION_CODE_INVALID": "El código de verificación es incorrecto.",
@@ -86,13 +85,14 @@
         },
         "feedback": {
             "deliveryUnconfirmed": {
-                "message": "No pudimos confirmar el envío del correo. Si recibes un código, puedes introducirlo aquí. También puedes solicitar otro cuando termine la espera.",
+                "message": "Si llega el código, úsalo aquí. Puedes pedir otro cuando termine la espera.",
                 "title": "No pudimos confirmar el envío del correo"
             },
             "errorTitle": "No pudimos confirmar tu correo"
         },
         "resend": {
             "action": "Reenviar código",
+            "available": "Ya puedes reenviar el código.",
             "cooldown": "{seconds, plural, one {Podrás reenviar en # segundo.} other {Podrás reenviar en # segundos.}}",
             "errorTitle": "No pudimos reenviar el código",
             "hint": "¿No recibiste el correo? Puedes solicitar otro código.",
@@ -183,7 +183,8 @@
         "validation": {
             "emailInvalid": "Introduce un correo electrónico válido.",
             "passwordRequired": "Introduce tu contraseña."
-        }
+        },
+        "verificationHint": "¿Correo sin confirmar? Entra del mismo modo que al registrarte."
     },
     "Logout": {
         "errorTitle": "No pudimos cerrar la sesión",
@@ -235,11 +236,11 @@
         "request": {
             "description": "Escribe tu correo electrónico para solicitar un enlace para restablecer tu contraseña.",
             "errorTitle": "No se pudo solicitar la recuperación de contraseña",
-            "submit": "Enviar enlace de recuperación",
-            "submitting": "Enviando enlace…",
+            "submit": "Solicitar enlace",
+            "submitting": "Solicitando enlace…",
             "success": {
-                "message": "Si existe una cuenta con ese correo electrónico, recibirás un enlace para restablecer tu contraseña.",
-                "title": "Revisa tu correo"
+                "message": "Si el correo está asociado a una cuenta, busca el enlace en tu bandeja de entrada o en correo no deseado. Si tarda, revisa la dirección antes de solicitar otro.",
+                "title": "Solicitud recibida"
             },
             "title": "Recuperar contraseña"
         },
@@ -319,7 +320,9 @@
     },
     "Register": {
         "accountData": "Datos de la cuenta",
+        "createAccountWithEmail": "Crear cuenta con correo",
         "description": "Crea tu cuenta para empezar en Ludora.",
+        "emailRegistration": "Registro con correo",
         "errors": {
             "AUTH_EMAIL_ALREADY_EXISTS": "El correo electrónico ya está registrado.",
             "AUTH_NICKNAME_ALREADY_EXISTS": "El nombre de usuario ya está en uso."
@@ -350,6 +353,7 @@
             }
         },
         "metadataDescription": "Crea tu cuenta de Ludora y confirma tu correo electrónico para empezar.",
+        "requiredFields": "Todos los campos son obligatorios.",
         "signIn": "Ya tengo una cuenta",
         "skipToForm": "Saltar al formulario",
         "submit": "Crear cuenta",
@@ -358,10 +362,11 @@
         "validation": {
             "confirmPasswordRequired": "Repite la contraseña.",
             "emailInvalid": "Introduce un correo electrónico válido.",
-            "nicknameMin": "El nombre de usuario debe tener al menos 2 caracteres.",
-            "passwordMin": "La contraseña debe tener al menos 8 caracteres.",
+            "nicknameMin": "Usa al menos {minLength} caracteres.",
+            "passwordMin": "Usa al menos {minLength} caracteres.",
             "passwordMismatch": "Las contraseñas no coinciden."
-        }
+        },
+        "verificationCodeNotice": "Para activar tu cuenta, introduce el código de {length} dígitos que te enviaremos por correo."
     },
     "RouteError": {
         "description": "Inténtalo de nuevo. Si el problema continúa, puedes volver al inicio.",
@@ -383,6 +388,7 @@
             "errorTitle": "No pudimos iniciar sesión"
         },
         "google": {
+            "completing": "Iniciando sesión con Google...",
             "continue": "Continuar con Google",
             "redirecting": "Redirigiendo a Google..."
         },

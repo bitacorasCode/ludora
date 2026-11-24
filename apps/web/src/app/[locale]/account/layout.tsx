@@ -34,7 +34,7 @@ export default function AccountLayout({ children }: LayoutProps<'/[locale]/accou
   );
 
   return (
-    <SessionBoundary trackActivity={false}>
+    <SessionBoundary>
       <AccountShell actions={actions}>{children}</AccountShell>
     </SessionBoundary>
   );

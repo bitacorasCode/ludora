@@ -1,7 +1,7 @@
+import { normalizeEmail } from '@ludora/contracts/auth';
 import { z } from 'zod';
 
 export const emailSchema = z
     .string()
-    .trim()
-    .toLowerCase()
+    .overwrite(normalizeEmail)
     .pipe(z.email());

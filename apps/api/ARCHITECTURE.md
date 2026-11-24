@@ -253,7 +253,7 @@ guard rejection after revocation.
 
 ## Authenticated password changes
 
-`POST /auth/change-password` accepts `currentPassword`, `password`, and optional
+`POST /auth/change-password` requires `currentPassword`, `password`, and
 `expectedUserId`. It requires `JwtAuthGuard` plus the dedicated rate limit. The
 guard provides the verified user ID and `authVersion`. `PasswordChangeService`
 rejects an account mismatch before loading password credentials, then verifies the
@@ -267,28 +267,31 @@ authentication version. It increments the version atomically. If the update lose
 a race or the user is no longer valid, the transaction rolls back and the request
 is rejected as stale authentication. Password reset rows remain intact on rollback.
 
-The transaction also creates a replacement session and signs its JWT using the
-updated version. After commit, the API schedules the shared password-change
-notification. Next validates the response's user identifier before replacing its
-HttpOnly session cookies. The current browser remains
-signed in; previously issued tokens are rejected. An incorrect current password
-uses `400`, so the frontend does not mistake it for an expired session. Email
-changes are not part of this use case and are not exposed by an endpoint.
+The transaction also queues the password-change notice, creates a replacement
+session, and signs its JWT using the updated version. The notification worker
+sends the notice after commit. Next validates the response's user identifier
+before replacing its HttpOnly session cookies. The current browser stays signed
+in, and Nest rejects previously issued tokens. An incorrect current password
+returns `400` as a form error. The account email is read-only.
+
+Both password changes and profile saves require `expectedUserId` as a UUID.
+Body validation returns `400` for a missing or invalid UUID. A valid UUID that
+differs from the authenticated user ID returns `401`. Coverage of the required
+account ID for both writes is deferred until requested.
 
 ## Password recovery model
 
-`PasswordResetTokenService.create()` generates a temporary credential containing
-its token, hash, and expiration. The initial configuration uses 32 random bytes
-encoded as `base64url`, a hexadecimal SHA-256 hash, and a 30-minute lifetime.
-`hash(token)` applies the same transformation when looking up a recovery link.
-The original token must be used exclusively in the email link. It must not be
-persisted, logged, or returned in the public recovery-request response.
+`PasswordResetTokenService.createForJob(jobId)` derives a `base64url` token with
+HMAC-SHA-256 using a password recovery key derived from `JWT_SECRET`. The same
+job ID and key produce the same token after a retry or restart. The email link
+carries the token, and PostgreSQL stores its hexadecimal SHA-256 hash.
+`hash(token)` recomputes that hash when looking up a submitted link.
 
-`PasswordReset` defines at most one request per user. `tokenHash` allows lookup
-without storing the token sent in the email link. Renewal must replace the hash
-and expiration, invalidating the previous link. As in email verification,
-`lastSentAt` represents the delivery reservation; it does not guarantee that the
-mail provider delivered the message.
+`PasswordReset` defines at most one request per user. When the worker reserves
+the request, `PasswordRecoveryService` sets the expiration to 30 minutes after
+the reservation. Renewal replaces the hash and expiration, invalidating the
+previous link. As in email verification, `lastSentAt` records when delivery was
+reserved.
 
 Consumption must conditionally delete the request by hash and expiration within
 the same transaction that changes the password. It may proceed only if one row
@@ -297,8 +300,9 @@ was deleted. This prevents reuse and concurrent consumption of the same link.
 `PasswordResetRepository.reserveRequest()` attempts insertion while skipping
 duplicates. If a request already exists, it renews it only when `lastSentAt`
 satisfies the supplied time limit. Both reservation and consumption require the
-service to pass a transaction. Lookup by hash returns only the associated user
-and expiration.
+service to pass a transaction. Lookup by hash selects the user ID, expiration,
+and previous password hash. The presence of a previous hash determines the
+wording of the notice sent after a successful reset.
 
 The service must calculate `lastSentAt` and the reservation cutoff from the same
 instant. To consume a token, it must capture the current time inside the
@@ -332,12 +336,11 @@ Completing or discarding a job removes its queued email address.
 
 The worker looks up the user and reserves the recovery request with the existing
 60-second per-account waiting period. The reservation and the job's prepared
-marker commit together. A token derived from the job ID and a dedicated key
-derived from `JWT_SECRET` lets retries reuse the same token while the database
-stores only its hash. Retries check that the reservation is still valid before
-sending. They cannot recreate a consumed or replaced token. A restart after the
-provider accepts a submission can cause the same link to be sent twice. Worker
-logs omit email addresses, links, and tokens.
+marker commit together. Before sending a retry, the worker checks that the
+original reservation is still valid. Resend receives the job ID as its
+idempotency key on every attempt, so it can deduplicate a retry after accepting
+an earlier submission. Worker logs omit email addresses, links, and tokens.
+Coverage of idempotency across recovery retries is deferred until requested.
 
 The same flow can establish the first password for an account created through an
 external provider. The mail subject and request description distinguish creation
@@ -445,3 +448,16 @@ and invalid responses propagate to the calling service's existing error handling
 The authentication mail workers own their persistent retries. The Resend
 transport forwards an optional idempotency key from the caller. SMTP can deliver
 duplicates when an earlier attempt has an uncertain result.
+
+The workers log scheduled retries at warning level. They log an error when a
+delivery reaches the attempt limit or its next retry would exceed the deadline.
+The logger context identifies the queue. Messages omit recipients, tokens, and
+provider response details.
+
+When a worker claims the oldest ready job, it checks how long the job was
+eligible for processing before the claim. A wait of at least one minute
+triggers a warning with the wait time, limited to one warning per queue per
+process every five minutes. Scheduled retries and active claims become eligible
+when their availability timestamp is reached. The check uses the existing
+claim query. Coverage of the warning threshold and interval is deferred until
+requested.

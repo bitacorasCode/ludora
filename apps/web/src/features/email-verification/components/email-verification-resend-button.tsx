@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 import { BodyText } from '@/components/typography';
 import { Button, Spinner } from '@/components/ui';
@@ -21,13 +21,32 @@ export function EmailVerificationResendButton({
 }: EmailVerificationResendButtonProps) {
   const t = useTranslations('EmailVerification.resend');
   const descriptionId = useId();
+  const statusRef = useRef<HTMLSpanElement>(null);
+  const announceWhenReady = useRef(false);
+  const isCoolingDown = secondsRemaining > 0;
+  const isDisabled = disabled || isResending || isCoolingDown;
+  const availableMessage = t('available');
+
+  useEffect(() => {
+    const status = statusRef.current;
+    if (!status) return;
+
+    if (isCoolingDown) announceWhenReady.current = true;
+
+    if (isDisabled) {
+      status.textContent = '';
+    } else if (announceWhenReady.current) {
+      announceWhenReady.current = false;
+      status.textContent = availableMessage;
+    }
+  }, [availableMessage, isCoolingDown, isDisabled]);
 
   return (
     <div className='flex flex-col items-start gap-2'>
       <Button
         type='button'
         variant='outline'
-        disabled={disabled || isResending || secondsRemaining > 0}
+        disabled={isDisabled}
         aria-busy={isResending}
         aria-describedby={descriptionId}
         onClick={onResend}
@@ -43,10 +62,11 @@ export function EmailVerificationResendButton({
         {isResending ? t('pending') : t('action')}
       </Button>
       <BodyText id={descriptionId} className='text-sm tabular-nums'>
-        {secondsRemaining > 0
+        {isCoolingDown
           ? t('cooldown', { seconds: secondsRemaining })
           : t('hint')}
       </BodyText>
+      <span ref={statusRef} role='status' aria-atomic='true' className='sr-only' />
     </div>
   );
 }

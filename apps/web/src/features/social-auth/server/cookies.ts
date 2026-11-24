@@ -5,11 +5,18 @@ import { z } from 'zod';
 
 import { NODE_ENVIRONMENT } from '@/config/environment';
 import type { Locale } from '@/i18n/routing';
+import { MILLISECONDS_PER_SECOND } from '@/lib/time';
 
-import { oauthFlowCookieSchema, oauthRegistrationCookieSchema } from './schemas';
+import { oauthCallbackCookieSchema, oauthFlowCookieSchema, oauthRegistrationCookieSchema } from './schemas';
 
 const EXPIRED_COOKIE_MAX_AGE_SECONDS = 0;
+const OAUTH_CALLBACK_TTL_SECONDS = 120;
+const MAX_OAUTH_CALLBACK_COOKIE_VALUE_BYTES = 3_500;
 const OAUTH_COOKIE_NAMES = {
+    callback: {
+        production: '__Host-ludora_oauth_callback',
+        local: 'ludora_oauth_callback',
+    },
     flow: {
         production: '__Host-ludora_oauth_flow',
         local: 'ludora_oauth_flow',
@@ -86,6 +93,25 @@ export function getOAuthFlowCookie() {
 
 export function deleteOAuthFlowCookie() {
     return deleteCookie('flow');
+}
+
+export async function createOAuthCallbackCookie(data: z.infer<typeof oauthCallbackCookieSchema>) {
+    if (encodeURIComponent(JSON.stringify(data)).length > MAX_OAUTH_CALLBACK_COOKIE_VALUE_BYTES) {
+        return false;
+    }
+
+    const expiresAt = new Date(Date.now() + OAUTH_CALLBACK_TTL_SECONDS * MILLISECONDS_PER_SECOND);
+    await writeCookie('callback', data, expiresAt.toISOString());
+
+    return true;
+}
+
+export function getOAuthCallbackCookie() {
+    return readCookie('callback', oauthCallbackCookieSchema);
+}
+
+export function deleteOAuthCallbackCookie() {
+    return deleteCookie('callback');
 }
 
 export function createOAuthRegistrationCookie({

@@ -1,3 +1,4 @@
+import { normalizeEmail, normalizeNickname } from '@ludora/contracts/auth';
 import { AUTH_VALIDATION } from '@ludora/security';
 import { z } from 'zod';
 
@@ -6,12 +7,17 @@ import esMessages from '@/messages/es.json';
 type ValidationKey = keyof typeof esMessages.Register.validation;
 
 export function createRegisterSchema(
-    t: (key: ValidationKey) => string,
+    t: (key: ValidationKey, values?: { minLength: number }) => string,
 ) {
+    const { nicknameMinLength, passwordMinLength } = AUTH_VALIDATION;
+    const invalidEmail = t('emailInvalid');
+
     return z.object({
-        nickname: z.string().min(AUTH_VALIDATION.nicknameMinLength, t('nicknameMin')),
-        email: z.email(t('emailInvalid')),
-        password: z.string().min(AUTH_VALIDATION.passwordMinLength, t('passwordMin')),
+        nickname: z.string()
+            .overwrite(normalizeNickname)
+            .min(nicknameMinLength, t('nicknameMin', { minLength: nicknameMinLength })),
+        email: z.string(invalidEmail).overwrite(normalizeEmail).pipe(z.email(invalidEmail)),
+        password: z.string().min(passwordMinLength, t('passwordMin', { minLength: passwordMinLength })),
         confirmPassword: z.string().min(1, t('confirmPasswordRequired')),
     }).refine(
         ({ password, confirmPassword }) =>

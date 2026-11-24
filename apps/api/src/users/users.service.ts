@@ -1,3 +1,4 @@
+import { normalizeEmail, normalizeNickname } from '@ludora/contracts/auth';
 import { Injectable } from '@nestjs/common';
 
 import type { Prisma, User } from '../generated/prisma/client.js';
@@ -13,8 +14,8 @@ export class UsersService {
     ) {
         return this.usersRepository.create(
             {
-                nickname: data.nickname.trim(),
-                email: data.email.trim().toLowerCase(),
+                nickname: normalizeNickname(data.nickname),
+                email: normalizeEmail(data.email),
                 passwordHash: data.passwordHash,
             },
             transaction,
@@ -22,9 +23,7 @@ export class UsersService {
     }
 
     findByEmail(email: string): Promise<User | null> {
-        const normalizedEmail = email.trim().toLowerCase();
-
-        return this.usersRepository.findByEmail(normalizedEmail);
+        return this.usersRepository.findByEmail(normalizeEmail(email));
     }
 
     findById(id: string) {
@@ -33,7 +32,7 @@ export class UsersService {
 
     findIdByEmail(email: string, transaction?: Prisma.TransactionClient) {
         return this.usersRepository.findIdByEmail(
-            email.trim().toLowerCase(),
+            normalizeEmail(email),
             transaction,
         );
     }

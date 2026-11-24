@@ -4,7 +4,6 @@ import { useTranslations } from 'next-intl';
 
 import { TransitionAlert } from '@/components/feedback';
 import {
-  FormActions,
   FormPageCard,
   FormTextField,
   SubmitButton,
@@ -40,7 +39,7 @@ export function LoginPageContent({
       formId={formId}
       skipToForm={t('skipToForm')}
       title={t('title')}
-      description={t('description')}
+      description={t('verificationHint')}
     >
       <SocialAuthOptions
         disabled={isSubmitting}
@@ -90,19 +89,16 @@ export function LoginPageContent({
               />
             </div>
 
-            <FormActions
-              secondaryAction={
-                <Button asChild variant='link'>
-                  <Link href={APP_ROUTES.register}>{t('register')}</Link>
-                </Button>
-              }
-            >
+            <div className='flex flex-row-reverse flex-wrap items-center gap-3'>
               <SubmitButton
                 isSubmitting={isSubmitting}
                 mainText={t('submit')}
                 submittingText={t('submitting')}
               />
-            </FormActions>
+              <Button asChild variant='link' className='mr-auto'>
+                <Link href={APP_ROUTES.register}>{t('register')}</Link>
+              </Button>
+            </div>
           </FieldGroup>
         </FieldSet>
       </form>

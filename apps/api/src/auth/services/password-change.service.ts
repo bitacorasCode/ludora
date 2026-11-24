@@ -25,7 +25,7 @@ export class PasswordChangeService {
         expectedAuthVersion: number,
         { currentPassword, password, expectedUserId }: ChangePasswordDto,
     ) {
-        if (expectedUserId !== undefined && expectedUserId !== userId) {
+        if (expectedUserId !== userId) {
             const { message, errorCode } = AUTH_ERRORS.authenticationRequired;
 
             throw new UnauthorizedException(message, { errorCode });

@@ -133,6 +133,9 @@ authorization on protected operations.
 - Registration creates an unverified account. Successful verification creates
   the session; logging in with valid credentials for an unverified account
   returns the user to the verification flow.
+- Classic and Google registration trim nicknames and trim and lowercase email
+  addresses before validating them. Both apps share these normalization rules.
+  Coverage of registration normalization is deferred until requested.
 - Registration and code resend display the verification details after Nest
   commits the delivery job. `emailQueued` lets the web acknowledge the request
   while the worker sends the email. The 15-second request deadline also supports
@@ -175,12 +178,12 @@ authorization on protected operations.
   and service failures preserve the cookies and return actionable feedback.
 - Browser calls that write session cookies share a Web Lock across tabs on the
   same origin. This covers refresh, activity, logout, password login, email
-  confirmation, completion of social registration, password reset, and password
-  change. A protected mutation releases the lock before attempting recovery and
-  reacquires it for the retry. A waiting refresh checks the current access cookie
-  and reuses it when Nest confirms it is valid. The Google OAuth callback is a
-  server-handled navigation outside this lock. Browsers without Web Locks fall
-  back to the API's rotation conflict handling.
+  confirmation, Google sign-in, completion of social registration, password
+  reset, and password change. A protected mutation releases the lock before
+  attempting recovery and reacquires it for the retry. A waiting refresh checks
+  the current access cookie and reuses it when Nest confirms it is valid.
+  Browsers without Web Locks rely on the API's rotation conflict handling for
+  refresh requests.
 - Creating or ending a session also updates a separate revision cookie that
   contains a random value. Open tabs use a local storage notification to
   recheck this revision and refresh the current route, including both menus.
@@ -228,12 +231,16 @@ state, and locale in an HttpOnly cookie before redirecting to Google. Configure
 Google's authorized redirect URI to match `GOOGLE_REDIRECT_URI` in the API; locally
 it is `http://localhost:3000/api/auth/google/callback`.
 
-The callback Route Handler checks browser state before consuming the flow cookie
-and asks Nest to validate the authorization response. A linked account receives
-the normal session or resumes pending email verification. A new identity receives
-a separate registration cookie and goes to `/complete-registration` to choose a
-username. Nest validates that pending token before the page displays its email
-context and validates it again when the form is submitted.
+The callback Route Handler checks browser state, saves the authorization response
+in a short-lived HttpOnly cookie, and redirects to `/complete-google-auth` with
+an ID that identifies that callback. The browser acquires the session lock and
+calls a Server Action. The action matches the ID and state to the cookies,
+consumes them, and asks Nest to validate the authorization response. It then
+updates the session cookies and returns a localized destination. A linked
+account receives the normal session or resumes pending email verification.
+A new identity receives a separate registration cookie and goes to
+`/complete-registration` to choose a username. Nest validates that pending token
+before displaying its email context and again when the form is submitted.
 
 Provider email addresses cannot be edited during registration. If the provider
 supplies no email, the form collects one and Ludora verifies it. A provider-verified
@@ -241,17 +248,18 @@ address permits immediate sign-in after account creation. Matching an existing
 account's email never links accounts automatically; the user must use the original
 sign-in method. Explicit linking and Discord sign-in are not implemented yet.
 
-Temporary tokens stay on the server side of browser JavaScript in HttpOnly
-cookies, use the API's expiration, and never enter query parameters or client
-component props. Production cookies are Secure and use the `__Host-` prefix;
-deletion preserves their Secure and path attributes. Callback redirects are local,
-noncached, and suppress referrers. Errors return to localized login with safe error
-metadata for the existing toast presentation. A callback with a missing or
-mismatched state leaves the active authorization cookie intact.
+Flow and registration tokens stay in HttpOnly cookies and use the API's
+expiration. The staged callback expires after two minutes. The continuation
+page receives its callback ID and destination information. Production cookies
+are Secure and use the `__Host-` prefix. Deletion preserves their Secure and path
+attributes. Callback redirects are local, noncached, and suppress referrers.
+Errors return to localized login with safe error metadata for the existing
+toast presentation. A callback with a missing or mismatched state leaves the
+active authorization cookie intact.
 
-Focused callback tests cover mismatched state, HttpOnly session and registration
-cookies, and localized redirects without exposing tokens. Google consent and
-provider responses are mocked; these checks do not replace a real provider flow.
+Updating callback coverage for the staging redirect, matching ID and state,
+cookie consumption, and serialization with a concurrent refresh is deferred
+until requested. A live Google sign-in remains a separate deployment check.
 
 ## Account settings
 

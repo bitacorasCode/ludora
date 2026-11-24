@@ -15,7 +15,7 @@ export class PasswordNotificationJobRepository {
     }
 
     async claimNext(now: Date, leaseExpiresAt: Date) {
-        const job = await this.prisma.passwordNotificationJob.findFirst({
+        const candidate = await this.prisma.passwordNotificationJob.findFirst({
             where: { availableAt: { lte: now } },
             orderBy: [{ availableAt: 'asc' }, { id: 'asc' }],
             select: {
@@ -23,19 +23,21 @@ export class PasswordNotificationJobRepository {
                 attempts: true,
                 isFirstPassword: true,
                 createdAt: true,
+                availableAt: true,
                 user: { select: { email: true } },
             },
         });
 
-        if (!job) return null;
+        if (!candidate) return null;
 
+        const { availableAt: readySince, ...job } = candidate;
         const { id, attempts } = job;
         const { count } = await this.prisma.passwordNotificationJob.updateMany({
             where: { id, attempts, availableAt: { lte: now } },
             data: { availableAt: leaseExpiresAt, attempts: { increment: 1 } },
         });
 
-        return count === SINGLE_RECORD_COUNT ? { ...job, attempts: attempts + 1 } : null;
+        return count === SINGLE_RECORD_COUNT ? { ...job, readySince, attempts: attempts + 1 } : null;
     }
 
     async retry({ id, attempts }: JobClaim, availableAt: Date): Promise<void> {

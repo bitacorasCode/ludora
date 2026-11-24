@@ -101,7 +101,7 @@ export class PasswordRecoveryService {
         });
 
         // Sending mail happens only after the reservation has committed.
-        await this.mailService.send({ to: recipient, ...message });
+        await this.mailService.send({ to: recipient, ...message }, { idempotencyKey: job.id });
     }
 
     private prepareRequest(job: PasswordRecoveryJob, userId: string, tokenHash: string): Promise<boolean> {

@@ -6,7 +6,7 @@ export {
     deleteOAuthRegistrationCookie,
     getOAuthRegistrationCookie,
 } from './cookies';
-export { handleGoogleCallback } from './google-callback';
+export { completeGoogleCallback, handleGoogleCallback } from './google-callback';
 export { getOAuthRegistrationContext } from './registration-context';
 export {
     googleAuthorizationResponseSchema,

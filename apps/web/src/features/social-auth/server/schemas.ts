@@ -34,6 +34,12 @@ export const oauthFlowCookieSchema = z.object({
     locale: z.enum(routing.locales),
 });
 
+export const oauthCallbackCookieSchema = z.object({
+    id: z.uuid(),
+    state: z.string().min(1),
+    responseParameters: z.string().min(1),
+});
+
 export const oauthRegistrationCookieSchema = z.object({
     registrationToken: z.string().min(1),
     locale: z.enum(routing.locales),

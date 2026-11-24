@@ -121,19 +121,25 @@ export class EmailVerificationRepository {
         const candidate = await this.prisma.emailVerification.findFirst({
             where: { deliveryAvailableAt: { lte: now } },
             orderBy: [{ deliveryAvailableAt: 'asc' }, { id: 'asc' }],
-            select: { id: true, deliveryId: true, deliveryAttempts: true, expiresAt: true },
+            select: {
+                id: true,
+                deliveryId: true,
+                deliveryAttempts: true,
+                deliveryAvailableAt: true,
+                expiresAt: true,
+            },
         });
 
-        if (!candidate?.deliveryId) return null;
+        if (!candidate?.deliveryId || !candidate.deliveryAvailableAt) return null;
 
-        const { id, deliveryId, deliveryAttempts, expiresAt } = candidate;
+        const { id, deliveryId, deliveryAttempts, deliveryAvailableAt: readySince, expiresAt } = candidate;
         const { count } = await this.prisma.emailVerification.updateMany({
             where: { id, deliveryId, deliveryAttempts, deliveryAvailableAt: { lte: now } },
             data: { deliveryAttempts: { increment: 1 }, deliveryAvailableAt: leaseExpiresAt },
         });
 
         return count === SINGLE_RECORD_COUNT
-            ? { id, deliveryId, deliveryAttempts: deliveryAttempts + 1, expiresAt }
+            ? { id, deliveryId, deliveryAttempts: deliveryAttempts + 1, readySince, expiresAt }
             : null;
     }
 

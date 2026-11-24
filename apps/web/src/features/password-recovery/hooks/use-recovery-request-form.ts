@@ -2,9 +2,8 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useRef, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 
 import { useActionErrorToast } from '@/hooks';
 import { ACTION_ERROR_CODES, OPERATION_STATUS } from '@/lib/actions';
@@ -16,8 +15,6 @@ import {
 
 import { requestPasswordRecovery } from '../actions';
 
-const RECOVERY_REQUEST_SUCCESS_TOAST_ID = 'recovery-request-success';
-
 export default function useRecoveryRequestForm() {
     const locale = useLocale();
     const validation = useTranslations('PasswordRecovery.validation');
@@ -28,6 +25,7 @@ export default function useRecoveryRequestForm() {
     });
 
     const [isPending, startTransition] = useTransition();
+    const [isRequestAccepted, setIsRequestAccepted] = useState(false);
 
     const requestInFlight = useRef(false);
     const requestVersion = useRef(0);
@@ -43,9 +41,12 @@ export default function useRecoveryRequestForm() {
             // Ignore responses from a previous locale or an unmounted form.
             requestVersion.current += 1;
             dismissError();
-            toast.dismiss(RECOVERY_REQUEST_SUCCESS_TOAST_ID);
         };
     }, [dismissError, locale]);
+
+    function clearConfirmation() {
+        setIsRequestAccepted(false);
+    }
 
     function onSubmit(data: RecoveryRequestFormData) {
         if (requestInFlight.current) return;
@@ -53,7 +54,7 @@ export default function useRecoveryRequestForm() {
         requestInFlight.current = true;
         const version = requestVersion.current;
         dismissError();
-        toast.dismiss(RECOVERY_REQUEST_SUCCESS_TOAST_ID);
+        clearConfirmation();
 
         startTransition(async () => {
             try {
@@ -66,10 +67,7 @@ export default function useRecoveryRequestForm() {
                     return;
                 }
 
-                toast.success(feedback('success.title'), {
-                    id: RECOVERY_REQUEST_SUCCESS_TOAST_ID,
-                    description: feedback('success.message'),
-                });
+                setIsRequestAccepted(true);
             } catch {
                 if (requestVersion.current !== version) return;
 
@@ -83,6 +81,8 @@ export default function useRecoveryRequestForm() {
     return {
         form,
         onSubmit,
+        clearConfirmation,
+        isRequestAccepted,
         isSubmitting: form.formState.isSubmitting || isPending,
     };
 }
