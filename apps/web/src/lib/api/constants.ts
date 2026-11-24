@@ -1,5 +1,6 @@
+import { AUTH_ERROR_CODES } from '@ludora/contracts/auth';
 import { HTTP_REQUEST_ID_HEADER } from '@ludora/contracts/http';
-import { AUTH_ERROR_CODES, INTERNAL_REQUEST_HEADERS } from '@ludora/security';
+import { INTERNAL_REQUEST_HEADERS } from '@ludora/security';
 
 export const API_TIMEOUT_MS = 10_000;
 export const JSON_MEDIA_TYPE = 'application/json';

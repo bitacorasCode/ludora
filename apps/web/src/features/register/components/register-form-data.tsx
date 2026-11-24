@@ -1,6 +1,6 @@
 'use client';
 
-import { EMAIL_VERIFICATION_CODE_LENGTH } from '@ludora/security';
+import { EMAIL_VERIFICATION_CODE_LENGTH } from '@ludora/contracts/auth';
 import { useTranslations } from 'next-intl';
 import type { Control } from 'react-hook-form';
 

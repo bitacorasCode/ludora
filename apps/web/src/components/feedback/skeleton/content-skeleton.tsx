@@ -7,7 +7,6 @@ import { SKELETON_DEFAULTS } from './constants';
 import { HeadingSkeleton } from './variants/heading-skeleton';
 import { ListSkeleton } from './variants/list-skeleton';
 import { RowSkeleton, type RowSkeletonProps } from './variants/row-skeleton';
-import { TextSkeleton } from './variants/text-skeleton';
 
 const MINIMUM_LIST_ITEMS = 1;
 
@@ -18,7 +17,6 @@ type ContentSkeletonProps = {
   descriptionLines?: number;
   className?: string;
 } & (
-  | { variant: 'text' }
   | ({ variant: 'row' } & Pick<
       RowSkeletonProps,
       'withAvatar' | 'withAction' | 'size'
@@ -38,9 +36,6 @@ export function ContentSkeleton(props: ContentSkeletonProps) {
   let content: ReactNode;
 
   switch (props.variant) {
-    case 'text':
-      content = <TextSkeleton lines={descriptionLines} />;
-      break;
     case 'row':
       content = (
         <RowSkeleton

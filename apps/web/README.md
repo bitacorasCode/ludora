@@ -404,6 +404,9 @@ Coverage reports are written to `apps/web/coverage`, including
 `coverage/index.html`. Real navigation, layout, and browser lifecycle behavior
 are covered by Playwright rather than jsdom alone.
 
+Test maintenance for the retired date, file, number, and select form wrappers
+and the `text` variant of `ContentSkeleton` is deferred until requested.
+
 ### Browser tests
 
 Browser navigation coverage includes the shared English 404 for unknown

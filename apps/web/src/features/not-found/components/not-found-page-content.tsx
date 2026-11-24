@@ -5,7 +5,6 @@ import { PageContainer, PageSection } from '@/components/layout';
 import { PageHeading } from '@/components/typography';
 import { Button } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
-import { getPathname } from '@/i18n/navigation';
 import type { Locale } from '@/i18n/routing';
 
 type NotFoundPageContentProps = {
@@ -26,18 +25,11 @@ export async function NotFoundPageContent({ locale }: NotFoundPageContentProps) 
           title={t('title')}
           description={t('description')}
         />
-        <div className='flex flex-col gap-3 sm:flex-row'>
-          <Button asChild size='lg'>
-            <Link href={getPathname({ locale, href: APP_ROUTES.home })}>
-              {common('actions.backHome')}
-            </Link>
-          </Button>
-          <Button asChild variant='outline' size='lg'>
-            <Link href={getPathname({ locale, href: APP_ROUTES.games })}>
-              {t('exploreGames')}
-            </Link>
-          </Button>
-        </div>
+        <Button asChild size='lg' className='sm:self-start'>
+          <Link href={APP_ROUTES.home} prefetch={false}>
+            {common('actions.backHome')}
+          </Link>
+        </Button>
       </PageSection>
     </PageContainer>
   );

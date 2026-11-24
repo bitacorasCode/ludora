@@ -143,7 +143,6 @@ There is no global URL prefix. Bodies are JSON. Protected routes require
 
 | Method | Path                        | Behavior                                                                                                                |
 | ------ | --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `GET`  | `/`                         | Starter response: `Hello World!`.                                                                                       |
 | `GET`  | `/health`                   | Checks PostgreSQL connectivity.                                                                                        |
 | `POST` | `/auth/register`            | Accepts `nickname`, `email`, and `password`; creates an unverified account and returns verification metadata (`201`).   |
 | `POST` | `/auth/verify-email`        | Accepts `verificationId` and `code`; confirms the email and returns an access token and user (`200`).                   |
@@ -166,7 +165,7 @@ There is no global URL prefix. Bodies are JSON. Protected routes require
 
 DTOs reject unexpected fields. Password confirmation belongs to the web form and
 must not be sent in registration or password-reset bodies. Shared validation and
-profile contracts live in `packages/security` and `packages/contracts`.
+profile contracts live in `packages/contracts`.
 
 ### Authentication and sessions
 
@@ -271,7 +270,7 @@ the same notification service. The account email is read-only.
 
 Consumers use stable `errorCode` values, not English message text, to select UI
 translations. Authentication definitions live in `auth/constants/auth-errors.ts`
-and shared code identifiers in `packages/security`. Common database and rate-limit
+and shared code identifiers in `@ludora/contracts/auth`. Common database and rate-limit
 errors live in `common/constants/errors.ts`. The global Prisma filter translates
 unique-constraint conflicts into `409` responses, distinguishing nickname and email.
 
@@ -386,8 +385,9 @@ and requires valid API environment configuration:
 pnpm --filter api test:e2e
 ```
 
-It checks the starter `/` endpoint and database connectivity through `/health`.
-Browser flows using the real API, PostgreSQL, and Mailpit
+The smoke suite checks PostgreSQL connectivity through `/health`. Updating the
+legacy root-route expectation to reflect removal of the starter endpoint is
+deferred until requested. Browser flows using the real API, PostgreSQL, and Mailpit
 are exercised by [the web Playwright suite](../web/README.md).
 
 `test/fixtures/auth-fixture.mjs` is local-only support for that suite. It only

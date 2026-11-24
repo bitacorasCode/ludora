@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { AUTH_NEXT_STEP } from '@ludora/security';
+import { AUTH_NEXT_STEP } from '@ludora/contracts/auth';
 import { parseHttpUrl } from '@ludora/security/server';
 import { z } from 'zod';
 

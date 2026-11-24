@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AUTH_ERROR_CODES } from '@ludora/security';
+import { AUTH_ERROR_CODES } from '@ludora/contracts/auth';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useLayoutEffect, useRef } from 'react';

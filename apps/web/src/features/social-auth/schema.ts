@@ -1,5 +1,4 @@
-import { normalizeEmail, normalizeNickname } from '@ludora/contracts/auth';
-import { AUTH_VALIDATION } from '@ludora/security';
+import { AUTH_VALIDATION, normalizeEmail, normalizeNickname } from '@ludora/contracts/auth';
 import { z } from 'zod';
 
 export function createSocialRegistrationSchema(

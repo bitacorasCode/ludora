@@ -1,4 +1,4 @@
-import { AUTH_VALIDATION } from '@ludora/security';
+import { AUTH_VALIDATION } from '@ludora/contracts/auth';
 import { z } from 'zod';
 
 export const resetPasswordSchema = z.strictObject({

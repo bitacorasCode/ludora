@@ -12,7 +12,6 @@ export {
 } from './alert-dialog';
 export { Avatar, AvatarFallback, AvatarImage } from './avatar';
 export { Button, buttonVariants } from './button';
-export { Calendar, CalendarDayButton } from './calendar';
 export {
     Card,
     CardAction,

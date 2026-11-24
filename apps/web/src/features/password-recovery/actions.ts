@@ -1,6 +1,6 @@
 'use server';
 
-import { AUTH_ERROR_CODES } from '@ludora/security';
+import { AUTH_ERROR_CODES } from '@ludora/contracts/auth';
 import { getTranslations } from 'next-intl/server';
 import { z } from 'zod';
 

@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { AUTH_ERROR_CODES } from '@ludora/security';
+import { AUTH_ERROR_CODES } from '@ludora/contracts/auth';
 import type { z } from 'zod';
 
 import { type ActionResult, OPERATION_STATUS } from '@/lib/actions';

@@ -1,6 +1,7 @@
 import { cva } from 'class-variance-authority';
-import { cn } from 'cn';
 import * as React from 'react';
+
+import { cn } from '@/lib/utils';
 
 const cardVariants = cva(
   'group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-2xl border border-border bg-card py-(--card-spacing) text-sm text-card-foreground [--card-spacing:--spacing(6)] data-[size=sm]:[--card-spacing:--spacing(4)] has-[>img:first-child]:pt-0 *:[img:first-child]:rounded-t-2xl *:[img:last-child]:rounded-b-2xl',

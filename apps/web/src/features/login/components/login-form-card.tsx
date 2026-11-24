@@ -1,6 +1,6 @@
 'use client';
 
-import type { PasswordFormMode } from '@ludora/security';
+import type { PasswordFormMode } from '@ludora/contracts/auth';
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 

@@ -1,4 +1,4 @@
-import { AUTH_NEXT_STEP } from '@ludora/security';
+import { AUTH_NEXT_STEP } from '@ludora/contracts/auth';
 import {
     BadRequestException,
     ConflictException,

@@ -1,4 +1,4 @@
-import { AUTH_ERROR_CODES } from '@ludora/security';
+import { AUTH_ERROR_CODES } from '@ludora/contracts/auth';
 
 // Allow time for Nest to return the verification state after mail submission times out.
 export const EMAIL_VERIFICATION_API_TIMEOUT_MS = 15_000;

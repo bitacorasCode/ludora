@@ -1,11 +1,11 @@
-import { DIGITS_PATTERN, EMAIL_VERIFICATION_CODE_LENGTH } from '@ludora/security';
+import { DIGITS_PATTERN, EMAIL_VERIFICATION_CODE_LENGTH } from '@ludora/contracts/auth';
 import { z } from 'zod';
 
 import type esMessages from '@/messages/es.json';
 
 type ValidationKey = keyof typeof esMessages.EmailVerification.validation;
 
-export { EMAIL_VERIFICATION_CODE_LENGTH } from '@ludora/security';
+export { EMAIL_VERIFICATION_CODE_LENGTH } from '@ludora/contracts/auth';
 
 export function createEmailVerificationSchema(
     t: (key: ValidationKey) => string,

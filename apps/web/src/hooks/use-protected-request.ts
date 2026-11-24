@@ -1,6 +1,6 @@
 'use client';
 
-import { AUTH_ERROR_CODES } from '@ludora/security';
+import { AUTH_ERROR_CODES } from '@ludora/contracts/auth';
 import { useCallback } from 'react';
 
 import { useSessionRecovery } from '@/components/auth';

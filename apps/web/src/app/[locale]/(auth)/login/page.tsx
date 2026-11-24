@@ -1,4 +1,4 @@
-import { PASSWORD_FORM_MODE } from '@ludora/security';
+import { PASSWORD_FORM_MODE } from '@ludora/contracts/auth';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';

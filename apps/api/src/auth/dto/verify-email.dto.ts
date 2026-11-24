@@ -1,4 +1,4 @@
-import { DIGITS_PATTERN } from '@ludora/security';
+import { DIGITS_PATTERN } from '@ludora/contracts/auth';
 import { z } from 'zod';
 
 import { EMAIL_VERIFICATION_CONFIG } from '../constants/index.js';

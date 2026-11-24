@@ -1,4 +1,4 @@
-import { PASSWORD_FORM_MODE } from '@ludora/security';
+import { PASSWORD_FORM_MODE } from '@ludora/contracts/auth';
 import { parseHttpUrl } from '@ludora/security/server';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';

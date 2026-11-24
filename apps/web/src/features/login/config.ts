@@ -1,4 +1,4 @@
-import { AUTH_ERROR_CODES } from '@ludora/security';
+import { AUTH_ERROR_CODES } from '@ludora/contracts/auth';
 
 export const LOGIN_FORM_ID = 'login-form';
 

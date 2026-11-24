@@ -1,4 +1,4 @@
-import { AUTH_ERROR_CODES } from '@ludora/security';
+import { AUTH_ERROR_CODES } from '@ludora/contracts/auth';
 
 import type { ApiErrorDefinition } from '../../common/types/api-error-definition.js';
 

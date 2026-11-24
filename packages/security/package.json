@@ -13,6 +13,9 @@
             "import": "./server.js"
         }
     },
+    "dependencies": {
+        "@ludora/contracts": "workspace:*"
+    },
     "files": [
         "index.js",
         "index.d.ts",

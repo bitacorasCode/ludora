@@ -1,4 +1,4 @@
-import { PASSWORD_FORM_MODE } from '@ludora/security';
+import { PASSWORD_FORM_MODE } from '@ludora/contracts/auth';
 import { z } from 'zod';
 
 export const PASSWORD_RECOVERY_COMPLETION_PARAM = 'passwordUpdated';

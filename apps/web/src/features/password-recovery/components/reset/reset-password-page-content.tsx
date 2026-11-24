@@ -1,6 +1,6 @@
 'use client';
 
-import { AUTH_ERROR_CODES, PASSWORD_FORM_MODE, type PasswordFormMode } from '@ludora/security';
+import { AUTH_ERROR_CODES, PASSWORD_FORM_MODE, type PasswordFormMode } from '@ludora/contracts/auth';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 

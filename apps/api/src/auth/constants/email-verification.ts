@@ -1,4 +1,4 @@
-import { EMAIL_VERIFICATION_CODE_LENGTH } from '@ludora/security';
+import { EMAIL_VERIFICATION_CODE_LENGTH } from '@ludora/contracts/auth';
 
 import {
     CRYPTO_ENCODING,

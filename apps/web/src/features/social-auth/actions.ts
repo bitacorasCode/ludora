@@ -1,6 +1,6 @@
 'use server';
 
-import { AUTH_ERROR_CODES, AUTH_NEXT_STEP } from '@ludora/security';
+import { AUTH_ERROR_CODES, AUTH_NEXT_STEP } from '@ludora/contracts/auth';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 

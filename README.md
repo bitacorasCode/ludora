@@ -13,7 +13,7 @@ show empty states; playable games and multiplayer rooms are upcoming work.
 | `apps/web`               | Next.js App Router frontend                              | [Web README](apps/web/README.md)                                               |
 | `apps/api`               | NestJS API with Prisma and PostgreSQL                    | [API README](apps/api/README.md), [API architecture](apps/api/ARCHITECTURE.md) |
 | `packages/contracts`     | Shared application contracts and validation rules        | [Package exports](packages/contracts/package.json)                             |
-| `packages/security`      | Shared authentication constants and validation utilities | [Security README](packages/security/README.md)                                 |
+| `packages/security`      | Internal request rules and session policies              | [Security README](packages/security/README.md)                                 |
 | `packages/eslint-config` | Shared ESLint rules                                      | [ESLint README](packages/eslint-config/README.md)                              |
 
 The repository uses pnpm workspaces. Run the commands below from the monorepo root

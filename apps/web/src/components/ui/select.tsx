@@ -2,9 +2,10 @@
 
 import { ArrowDown01Icon,ArrowUp01Icon, Tick02Icon, UnfoldMoreIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { cn } from "cn"
 import { Select as SelectPrimitive } from "radix-ui"
 import * as React from "react"
+
+import { cn } from "@/lib/utils"
 
 function Select({
   ...props

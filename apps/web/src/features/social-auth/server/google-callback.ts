@@ -2,7 +2,7 @@ import 'server-only';
 
 import { randomUUID } from 'node:crypto';
 
-import { AUTH_ERROR_CODES, AUTH_NEXT_STEP } from '@ludora/security';
+import { AUTH_ERROR_CODES, AUTH_NEXT_STEP } from '@ludora/contracts/auth';
 import type { NextRequest } from 'next/server';
 
 import { APP_ROUTES } from '@/config/routes';

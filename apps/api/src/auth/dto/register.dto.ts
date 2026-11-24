@@ -1,5 +1,4 @@
-import { normalizeNickname } from '@ludora/contracts/auth';
-import { AUTH_VALIDATION } from '@ludora/security';
+import { AUTH_VALIDATION, normalizeNickname } from '@ludora/contracts/auth';
 import { z } from 'zod';
 
 import { emailSchema } from '../schemas/email.schema.js';

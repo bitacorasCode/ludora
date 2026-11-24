@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AUTH_ERROR_CODES, PASSWORD_FORM_MODE, type PasswordFormMode } from '@ludora/security';
+import { AUTH_ERROR_CODES, PASSWORD_FORM_MODE, type PasswordFormMode } from '@ludora/contracts/auth';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';

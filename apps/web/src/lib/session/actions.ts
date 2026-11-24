@@ -2,7 +2,8 @@
 
 import { Buffer } from 'node:buffer';
 
-import { AUTH_ERROR_CODES, SESSION_ACTIVITY_INTERVAL_SECONDS } from '@ludora/security';
+import { AUTH_ERROR_CODES } from '@ludora/contracts/auth';
+import { SESSION_ACTIVITY_INTERVAL_SECONDS } from '@ludora/security';
 import { z } from 'zod';
 
 import { type ActionResult, isAuthenticationError, OPERATION_STATUS } from '@/lib/actions';
