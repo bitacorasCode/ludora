@@ -91,7 +91,6 @@ export function ResetPasswordPageContent({ token, mode }: ResetPasswordPageConte
               inputType='password'
               autoComplete='new-password'
               label={t('fields.password.label')}
-              placeholder={t('fields.password.placeholder')}
             />
             <FormTextField
               control={form.control}
@@ -99,7 +98,6 @@ export function ResetPasswordPageContent({ token, mode }: ResetPasswordPageConte
               inputType='password'
               autoComplete='new-password'
               label={t('fields.confirmPassword.label')}
-              placeholder={t('fields.confirmPassword.placeholder')}
             />
             <FormActions
               secondaryAction={

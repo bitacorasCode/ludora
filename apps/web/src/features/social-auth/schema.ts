@@ -3,15 +3,19 @@ import { AUTH_VALIDATION } from '@ludora/security';
 import { z } from 'zod';
 
 export function createSocialRegistrationSchema(
-    t: (key: 'nicknameMin' | 'emailInvalid') => string,
+    t: {
+        (key: 'emailInvalid'): string;
+        (key: 'nicknameMin', values: { minLength: number }): string;
+    },
     requiresEmail: boolean,
 ) {
+    const { nicknameMinLength } = AUTH_VALIDATION;
     const emailSchema = z.string().overwrite(normalizeEmail).pipe(z.email(t('emailInvalid')));
 
     return z.object({
         nickname: z.string()
             .overwrite(normalizeNickname)
-            .min(AUTH_VALIDATION.nicknameMinLength, t('nicknameMin')),
+            .min(nicknameMinLength, t('nicknameMin', { minLength: nicknameMinLength })),
         email: requiresEmail
             ? emailSchema
             : z.union([z.literal(''), emailSchema]).optional(),

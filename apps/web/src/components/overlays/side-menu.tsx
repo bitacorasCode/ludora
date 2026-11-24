@@ -14,6 +14,7 @@ type SideMenuProps = {
   trigger: ReactNode;
   title: ReactNode;
   description: ReactNode;
+  closeLabel: string;
   navigationLabel: string;
   children: ReactNode;
 };
@@ -22,6 +23,7 @@ export function SideMenu({
   trigger,
   title,
   description,
+  closeLabel,
   navigationLabel,
   children,
 }: SideMenuProps) {
@@ -29,7 +31,7 @@ export function SideMenu({
     <Sheet>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
 
-      <SheetContent side='right'>
+      <SheetContent side='right' closeLabel={closeLabel}>
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription>{description}</SheetDescription>

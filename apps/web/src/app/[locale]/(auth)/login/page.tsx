@@ -1,13 +1,12 @@
+import { PASSWORD_FORM_MODE } from '@ludora/security';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
-import { LoginPageContent } from '@/features/login';
+import { LoginFormSkeleton, LoginPageContent } from '@/features/login';
+import { PASSWORD_RECOVERY_COMPLETION_PARAM } from '@/features/password-recovery/schema';
 import { getSocialAuthCallbackError } from '@/features/social-auth/locations';
 
-import { AuthFormSkeleton } from '../../_components/auth/auth-form-skeleton';
 import { GuestOnly } from '../../_components/auth/guest-only';
-
-const LOGIN_PLACEHOLDER_FIELDS = 2;
 
 export async function generateMetadata({
   params,
@@ -25,7 +24,7 @@ export default async function LoginPage({
   const { locale } = await params;
 
   return (
-    <GuestOnly locale={locale} fallback={<AuthFormSkeleton fields={LOGIN_PLACEHOLDER_FIELDS} />}>
+    <GuestOnly locale={locale} fallback={<LoginFormSkeleton />}>
       <LoginContent searchParams={searchParams} />
     </GuestOnly>
   );
@@ -34,7 +33,18 @@ export default async function LoginPage({
 async function LoginContent({
   searchParams,
 }: Pick<PageProps<'/[locale]/login'>, 'searchParams'>) {
-  const socialAuthError = getSocialAuthCallbackError(await searchParams);
+  const query = await searchParams;
+  const socialAuthError = getSocialAuthCallbackError(query);
+  const passwordUpdated = query[PASSWORD_RECOVERY_COMPLETION_PARAM];
+  const completedPasswordMode = passwordUpdated === PASSWORD_FORM_MODE.create
+    || passwordUpdated === PASSWORD_FORM_MODE.reset
+    ? passwordUpdated
+    : undefined;
 
-  return <LoginPageContent socialAuthError={socialAuthError ?? undefined} />;
+  return (
+    <LoginPageContent
+      socialAuthError={socialAuthError ?? undefined}
+      completedPasswordMode={completedPasswordMode}
+    />
+  );
 }

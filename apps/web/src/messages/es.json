@@ -125,6 +125,7 @@
         "games": "Juegos",
         "login": "Iniciar sesión",
         "menu": {
+            "close": "Cerrar menú",
             "description": "Accede a las secciones de la plataforma.",
             "label": "Menú",
             "title": "Menú de Ludora"
@@ -212,7 +213,7 @@
             "submit": "Crear contraseña",
             "submitting": "Creando contraseña…",
             "success": {
-                "message": "Tu contraseña ha sido creada. Inicia sesión con ella o sigue usando tu método de acceso habitual.",
+                "message": "Inicia sesión con tu nueva contraseña o usa tu método de acceso habitual.",
                 "title": "Contraseña creada"
             }
         },
@@ -221,16 +222,14 @@
         },
         "fields": {
             "confirmPassword": {
-                "label": "Confirmar contraseña nueva",
-                "placeholder": "Repite la contraseña nueva"
+                "label": "Confirmar contraseña nueva"
             },
             "email": {
                 "label": "Correo electrónico",
                 "placeholder": "tu@ejemplo.com"
             },
             "password": {
-                "label": "Contraseña nueva",
-                "placeholder": "Crea una contraseña nueva"
+                "label": "Contraseña nueva"
             }
         },
         "request": {
@@ -248,14 +247,14 @@
             "description": "Elige una contraseña nueva para tu cuenta.",
             "errorTitle": "No se pudo restablecer tu contraseña",
             "invalidLink": {
-                "requestNewLink": "Solicitar un enlace de recuperación nuevo",
+                "requestNewLink": "Solicitar otro enlace",
                 "title": "Este enlace de recuperación no es válido"
             },
             "loading": "Cargando el formulario de nueva contraseña",
             "submit": "Cambiar contraseña",
             "submitting": "Cambiando contraseña…",
             "success": {
-                "message": "Tu contraseña se ha cambiado. Inicia sesión con tu contraseña nueva.",
+                "message": "Inicia sesión con tu nueva contraseña.",
                 "title": "Contraseña cambiada"
             },
             "title": "Crear una contraseña nueva"
@@ -264,7 +263,7 @@
         "validation": {
             "confirmPasswordRequired": "Repite la contraseña nueva.",
             "emailInvalid": "Introduce un correo electrónico válido.",
-            "passwordMin": "La contraseña debe tener al menos 8 caracteres.",
+            "passwordMin": "La contraseña debe tener al menos {minLength} caracteres.",
             "passwordMismatch": "Las contraseñas no coinciden."
         }
     },
@@ -405,7 +404,9 @@
         "separator": "o usa tu correo"
     },
     "ThemeSwitch": {
-        "label": "Modo oscuro"
+        "dark": "Oscuro",
+        "label": "Modo oscuro",
+        "light": "Claro"
     },
     "UserSettings": {
         "description": "Consulta tu correo privado y administra tu contraseña.",
@@ -418,16 +419,16 @@
         "password": {
             "change": "Cambiar contraseña",
             "create": {
-                "description": "Aún no tienes contraseña. Solicita un enlace por correo para crearla. Después tendrás que iniciar sesión de nuevo.",
-                "errorTitle": "No pudimos solicitar la creación de tu contraseña",
-                "submit": "Crear contraseña",
+                "description": "Seguirás conectado mientras esperas el correo. Cuando guardes tu primera contraseña desde el enlace, vuelve a iniciar sesión con Google o con tu nueva contraseña.",
+                "errorTitle": "No pudimos solicitar el enlace",
+                "submit": "Solicitar enlace",
                 "submitting": "Solicitando enlace…",
                 "success": {
-                    "message": "Recibimos tu solicitud. Revisa tu bandeja de entrada y spam para encontrar el enlace con el que crear tu contraseña.",
+                    "message": "Recibimos tu solicitud. Busca el enlace en tu bandeja de entrada o en correo no deseado.",
                     "title": "Revisa tu correo"
                 }
             },
-            "description": "Elige una contraseña nueva. Se cerrarán tus otras sesiones.",
+            "description": "Esta sesión seguirá abierta. Se cerrarán tus otras sesiones.",
             "errors": {
                 "AUTH_CURRENT_PASSWORD_INVALID": "La contraseña actual es incorrecta.",
                 "AUTH_PASSWORD_UNCHANGED": "Elige una contraseña diferente de la actual."

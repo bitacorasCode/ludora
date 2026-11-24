@@ -20,18 +20,22 @@ export function ThemeSwitch() {
   const t = useTranslations('ThemeSwitch');
   const id = useId();
   const mounted = useMounted();
+  const isDark = resolvedTheme === THEME.dark;
 
   return (
     <div className='flex items-center gap-2'>
       <Switch
         id={id}
         aria-label={t('label')}
-        checked={mounted && resolvedTheme === THEME.dark}
+        checked={mounted && isDark}
         disabled={!mounted}
         onCheckedChange={(checked) =>
           setTheme(checked ? THEME.dark : THEME.light)
         }
       />
+      <span aria-hidden='true' className='text-sm text-muted-foreground'>
+        {mounted && t(isDark ? 'dark' : 'light')}
+      </span>
     </div>
   );
 }

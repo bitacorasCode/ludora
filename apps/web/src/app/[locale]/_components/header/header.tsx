@@ -50,6 +50,7 @@ export function Header() {
           }
           title={t('menu.title')}
           description={t('menu.description')}
+          closeLabel={t('menu.close')}
           navigationLabel={t('navigation.mobile')}
         >
           <HeaderLinks isSideMenu />

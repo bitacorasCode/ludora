@@ -1,15 +1,12 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useRef, useTransition } from 'react';
-import { toast } from 'sonner';
+import { useRef, useState, useTransition } from 'react';
 
 import { useActionErrorToast, useProtectedRequest } from '@/hooks';
 import { ACTION_ERROR_CODES, OPERATION_STATUS } from '@/lib/actions';
 
 import { requestPasswordCreation } from '../actions';
-
-const PASSWORD_CREATION_REQUEST_TOAST_ID = 'password-creation-request';
 
 export function useCreatePasswordRequest(userId: string) {
   const locale = useLocale();
@@ -17,6 +14,7 @@ export function useCreatePasswordRequest(userId: string) {
   const { execute, isRecoveringSession } = useProtectedRequest();
   const { showError, dismissError } = useActionErrorToast({ title: t('errorTitle') });
   const [isPending, startTransition] = useTransition();
+  const [isRequestAccepted, setIsRequestAccepted] = useState(false);
   const requestInFlight = useRef(false);
 
   function requestCreation() {
@@ -24,6 +22,7 @@ export function useCreatePasswordRequest(userId: string) {
 
     requestInFlight.current = true;
     dismissError();
+    setIsRequestAccepted(false);
 
     startTransition(async () => {
       try {
@@ -36,10 +35,7 @@ export function useCreatePasswordRequest(userId: string) {
           return;
         }
 
-        toast.success(t('success.title'), {
-          id: PASSWORD_CREATION_REQUEST_TOAST_ID,
-          description: t('success.message'),
-        });
+        setIsRequestAccepted(true);
       } catch {
         showError({ errorCode: ACTION_ERROR_CODES.unexpected });
       } finally {
@@ -48,5 +44,5 @@ export function useCreatePasswordRequest(userId: string) {
     });
   }
 
-  return { requestCreation, isSubmitting: isPending || isRecoveringSession };
+  return { requestCreation, isRequestAccepted, isSubmitting: isPending || isRecoveringSession };
 }

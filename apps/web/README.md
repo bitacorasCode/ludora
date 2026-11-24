@@ -268,9 +268,10 @@ address is displayed without an edit control and is not exposed on the profile.
 
 The API's `hasPassword` capability determines the password action. Accounts with
 a password keep the change-password form. Accounts without one, including new
-Google accounts, see **Create password** instead. Its Server Action verifies that
-the session still belongs to the displayed user and requests the existing recovery
-flow using the email from that session; the browser cannot choose the recipient.
+Google accounts, see **Request link** to create their first password. The action
+verifies that the session still belongs to the displayed user and requests the
+existing recovery flow using the email from that session; the browser cannot
+choose the recipient.
 The request does not change credentials or end the session. Its acknowledgement
 does not guarantee email delivery, and existing cooldowns and rate limits apply.
 

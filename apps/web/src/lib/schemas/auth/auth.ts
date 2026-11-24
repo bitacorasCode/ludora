@@ -20,11 +20,13 @@ export function createRecoveryRequestSchema(
 }
 
 export function createPasswordResetSchema(
-  t: (key: RecoveryValidationKey) => string,
+  t: (key: RecoveryValidationKey, values?: { minLength: number }) => string,
 ) {
+  const { passwordMinLength } = AUTH_VALIDATION;
+
   return z
     .object({
-      password: z.string().min(AUTH_VALIDATION.passwordMinLength, t('passwordMin')),
+      password: z.string().min(passwordMinLength, t('passwordMin', { minLength: passwordMinLength })),
       confirmPassword: z.string().min(1, t('confirmPasswordRequired')),
     })
     .refine(

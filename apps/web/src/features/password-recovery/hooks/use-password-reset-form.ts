@@ -5,7 +5,6 @@ import { AUTH_ERROR_CODES, PASSWORD_FORM_MODE, type PasswordFormMode } from '@lu
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 
 import { APP_ROUTES } from '@/config/routes';
 import { useActionErrorToast } from '@/hooks';
@@ -16,8 +15,7 @@ import { createPasswordResetSchema, type PasswordResetFormData } from '@/lib/sch
 import { withSessionLock } from '@/lib/session/session-lock';
 
 import { resetPassword } from '../actions';
-
-const PASSWORD_RESET_SUCCESS_TOAST_ID = 'password-reset-success';
+import { PASSWORD_RECOVERY_COMPLETION_PARAM } from '../schema';
 
 export default function usePasswordResetForm(token: string | null, mode: PasswordFormMode) {
     const locale = useLocale();
@@ -75,11 +73,10 @@ export default function usePasswordResetForm(token: string | null, mode: Passwor
                 }
 
                 form.reset();
-                toast.success(feedback('success.title'), {
-                    id: PASSWORD_RESET_SUCCESS_TOAST_ID,
-                    description: feedback('success.message'),
+                router.replace({
+                    pathname: APP_ROUTES.login,
+                    query: { [PASSWORD_RECOVERY_COMPLETION_PARAM]: mode },
                 });
-                router.replace(APP_ROUTES.login);
                 router.refresh();
             } catch {
                 if (requestVersion.current !== version) return;

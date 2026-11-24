@@ -3,6 +3,8 @@ import type { DefaultValues } from 'react-hook-form';
 
 import type { RegisterFormData } from '@/lib/schemas';
 
+export const REGISTER_FORM_ID = 'register-form';
+
 type RegisterField = {
     name: keyof RegisterFormData;
     inputType: 'text' | 'email' | 'password';

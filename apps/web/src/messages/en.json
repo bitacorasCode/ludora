@@ -125,6 +125,7 @@
         "games": "Games",
         "login": "Sign in",
         "menu": {
+            "close": "Close menu",
             "description": "Browse the platform sections.",
             "label": "Menu",
             "title": "Ludora menu"
@@ -212,7 +213,7 @@
             "submit": "Create password",
             "submitting": "Creating password…",
             "success": {
-                "message": "Your password has been created. Sign in with your new password or continue using your usual sign-in method.",
+                "message": "Sign in with your new password or use your usual sign-in method.",
                 "title": "Password created"
             }
         },
@@ -221,16 +222,14 @@
         },
         "fields": {
             "confirmPassword": {
-                "label": "Confirm new password",
-                "placeholder": "Repeat your new password"
+                "label": "Confirm new password"
             },
             "email": {
                 "label": "Email address",
                 "placeholder": "you@example.com"
             },
             "password": {
-                "label": "New password",
-                "placeholder": "Create a new password"
+                "label": "New password"
             }
         },
         "request": {
@@ -248,14 +247,14 @@
             "description": "Choose a new password for your account.",
             "errorTitle": "Could not reset your password",
             "invalidLink": {
-                "requestNewLink": "Request a new recovery link",
+                "requestNewLink": "Request another link",
                 "title": "This recovery link is not valid"
             },
             "loading": "Loading password reset form",
             "submit": "Change password",
             "submitting": "Changing password…",
             "success": {
-                "message": "Your password has been changed. Sign in with your new password.",
+                "message": "Sign in with your new password.",
                 "title": "Password changed"
             },
             "title": "Create a new password"
@@ -264,7 +263,7 @@
         "validation": {
             "confirmPasswordRequired": "Repeat your new password.",
             "emailInvalid": "Enter a valid email address.",
-            "passwordMin": "The password must be at least 8 characters long.",
+            "passwordMin": "The password must be at least {minLength} characters long.",
             "passwordMismatch": "The passwords do not match."
         }
     },
@@ -405,7 +404,9 @@
         "separator": "or use your email"
     },
     "ThemeSwitch": {
-        "label": "Dark mode"
+        "dark": "Dark",
+        "label": "Dark mode",
+        "light": "Light"
     },
     "UserSettings": {
         "description": "View your private email address and manage your password.",
@@ -418,16 +419,16 @@
         "password": {
             "change": "Change password",
             "create": {
-                "description": "You don't have a password yet. Request an email link to create one. After choosing it, you will need to sign in again.",
-                "errorTitle": "Could not request password creation",
-                "submit": "Create password",
+                "description": "You’ll stay signed in while you wait for the email. Once you save your first password using the link, sign in again with Google or your new password.",
+                "errorTitle": "Could not request the link",
+                "submit": "Request link",
                 "submitting": "Requesting link…",
                 "success": {
-                    "message": "Your request has been received. Check your inbox and spam folder for a link to create your password.",
+                    "message": "We received your request. Look for the link in your inbox or spam folder.",
                     "title": "Check your email"
                 }
             },
-            "description": "Choose a new password. Your other sessions will be signed out.",
+            "description": "This session will stay open. Your other sessions will end.",
             "errors": {
                 "AUTH_CURRENT_PASSWORD_INVALID": "The current password is incorrect.",
                 "AUTH_PASSWORD_UNCHANGED": "Choose a password different from your current password."

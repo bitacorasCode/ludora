@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
 import { SessionActivity, SessionBoundary } from '@/components/auth';
+import { NavigationGuardProvider } from '@/components/navigation';
 import { Skeleton } from '@/components/ui';
 import { AccountShell } from '@/features/account';
 import { LogoutButton } from '@/features/logout';
@@ -35,7 +36,9 @@ export default function AccountLayout({ children }: LayoutProps<'/[locale]/accou
 
   return (
     <SessionBoundary>
-      <AccountShell actions={actions}>{children}</AccountShell>
+      <NavigationGuardProvider>
+        <AccountShell actions={actions}>{children}</AccountShell>
+      </NavigationGuardProvider>
     </SessionBoundary>
   );
 }
