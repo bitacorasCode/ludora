@@ -9,14 +9,15 @@ export class UsersService {
     constructor(private readonly usersRepository: UsersRepository) { }
 
     create(
-        data: CreateUserData,
+        { nickname, email, passwordHash, emailVerifiedAt = null }: CreateUserData,
         transaction?: Prisma.TransactionClient,
     ) {
         return this.usersRepository.create(
             {
-                nickname: normalizeNickname(data.nickname),
-                email: normalizeEmail(data.email),
-                passwordHash: data.passwordHash,
+                nickname: normalizeNickname(nickname),
+                email: normalizeEmail(email),
+                passwordHash,
+                emailVerifiedAt,
             },
             transaction,
         );

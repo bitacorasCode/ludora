@@ -8,6 +8,10 @@
             "types": "./auth.d.ts",
             "import": "./auth.js"
         },
+        "./http": {
+            "types": "./http.d.ts",
+            "import": "./http.js"
+        },
         "./profile": {
             "types": "./profile.d.ts",
             "import": "./profile.js"
@@ -16,6 +20,8 @@
     "files": [
         "auth.js",
         "auth.d.ts",
+        "http.js",
+        "http.d.ts",
         "profile.js",
         "profile.d.ts"
     ]

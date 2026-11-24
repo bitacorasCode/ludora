@@ -114,10 +114,10 @@ and retention of consumed tokens is deferred until requested.
 
 ## Reads and responses
 
-User creation and public reads select `id`, `nickname`, `email`, and `createdAt`.
-The email lookup used for authentication includes the password hash. That complete
-row belongs to the internal authentication flow and is never returned directly
-in an HTTP response.
+Public user reads select `id`, `nickname`, `email`, and `createdAt`. User creation
+also returns `authVersion` and `emailVerifiedAt` for internal authentication.
+The email lookup used for password authentication includes the password hash.
+HTTP responses explicitly project the fields they expose.
 
 The dedicated current-user read selects the optional profile's avatar preset and
 the password hash for internal capability detection. `GET /auth/me` removes the
@@ -183,8 +183,9 @@ verify it through Ludora. The client cannot supply an `emailVerified` flag or a
 password. Social accounts are created with a null password hash.
 
 `OAuthAccountService` rechecks identity and email conflicts inside the
-transaction, then creates the user and provider identity together. A verified
-provider email marks the new user as verified. Other addresses receive a pending
+transaction, then creates the user and provider identity together. The user insert
+sets `emailVerifiedAt` when the provider verified the account email and returns
+the authentication fields needed to continue. Other addresses receive a pending
 email verification record in the same transaction. Unique constraints protect
 concurrent requests. A provider-identity constraint violation returns
 `AUTH_OAUTH_IDENTITY_ALREADY_LINKED` and rolls back the competing user creation.
@@ -262,10 +263,10 @@ the transaction.
 
 Inside the transaction, pending reset rows are removed first, matching recovery's
 reset-row-before-user-row lock order. `UsersRepository.changePasswordIfCurrent()`
-then conditionally updates the user using the expected password hash and verified
-authentication version. It increments the version atomically. If the update loses
-a race or the user is no longer valid, the transaction rolls back and the request
-is rejected as stale authentication. Password reset rows remain intact on rollback.
+then updates the verified user only when the expected hash and authentication
+version still match. `updateManyAndReturn()` increments the version atomically
+and returns the row used to create the replacement session. An empty result
+causes a stale-authentication error and rolls back the reset-row deletion.
 
 The transaction also queues the password-change notice, creates a replacement
 session, and signs its JWT using the updated version. The notification worker
@@ -278,6 +279,9 @@ Both password changes and profile saves require `expectedUserId` as a UUID.
 Body validation returns `400` for a missing or invalid UUID. A valid UUID that
 differs from the authenticated user ID returns `401`. Coverage of the required
 account ID for both writes is deferred until requested.
+
+Coverage of the returned password-update projection, stale-update rollback, and
+initial OAuth verification state is deferred until requested.
 
 ## Password recovery model
 

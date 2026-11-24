@@ -62,21 +62,14 @@ export class PasswordChangeService {
         return this.prisma.$transaction(async (transaction) => {
             // Match recovery's lock order: reset rows first, then the user row.
             await this.resetRepository.deleteForUser(userId, transaction);
-            const changed = await this.usersService.changePasswordIfCurrent({
+            const updated = await this.usersService.changePasswordIfCurrent({
                 userId,
                 passwordHash,
                 expectedPasswordHash: currentPasswordHash,
                 expectedAuthVersion,
             }, transaction);
 
-            if (!changed) {
-                const { message, errorCode } = AUTH_ERRORS.invalidToken;
-                throw new UnauthorizedException(message, { errorCode });
-            }
-
-            const updated = await this.usersService.findAuthenticationById(userId, transaction);
-
-            if (!updated?.emailVerifiedAt) {
+            if (!updated) {
                 const { message, errorCode } = AUTH_ERRORS.invalidToken;
                 throw new UnauthorizedException(message, { errorCode });
             }

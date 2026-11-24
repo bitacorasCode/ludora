@@ -14,19 +14,25 @@ type RegisterFormDataProps = {
   control: Control<RegisterFormData>;
 };
 
+export function RegisterFormInstructions() {
+  const t = useTranslations('Register');
+
+  return (
+    <div className='space-y-1'>
+      <CardDescription>
+        {t('verificationCodeNotice', { length: EMAIL_VERIFICATION_CODE_LENGTH })}
+      </CardDescription>
+      <CardDescription>{t('requiredFields')}</CardDescription>
+    </div>
+  );
+}
+
 export default function RegisterFormData({ control }: RegisterFormDataProps) {
   const t = useTranslations('Register');
 
   return (
     <div className='w-full space-y-4'>
-      <div className='space-y-1'>
-        <CardDescription>
-          {t('verificationCodeNotice', {
-            length: EMAIL_VERIFICATION_CODE_LENGTH,
-          })}
-        </CardDescription>
-        <CardDescription>{t('requiredFields')}</CardDescription>
-      </div>
+      <RegisterFormInstructions />
       <FieldGroup>
         {userFields.map((field) => (
           <FormTextField

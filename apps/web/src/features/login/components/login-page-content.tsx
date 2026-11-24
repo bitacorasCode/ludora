@@ -3,7 +3,7 @@
 import type { PasswordFormMode } from '@ludora/security';
 import { useTranslations } from 'next-intl';
 
-import { Alert, TransitionAlert } from '@/components/feedback';
+import { TransitionAlert } from '@/components/feedback';
 import { FormTextField, SubmitButton } from '@/components/forms';
 import { Button, FieldGroup, FieldSet } from '@/components/ui';
 import { APP_ROUTES } from '@/config/routes';
@@ -13,7 +13,7 @@ import type { ActionError } from '@/lib/actions';
 
 import { LOGIN_ERROR_CODES, LOGIN_FORM_ID } from '../config';
 import useLoginForm from '../hooks/use-login-form';
-import { LoginFormCard } from './login-form-card';
+import { LoginFormCard, PasswordCompletionNotice } from './login-form-card';
 
 export function LoginPageContent({
   socialAuthError,
@@ -23,7 +23,6 @@ export function LoginPageContent({
   completedPasswordMode?: PasswordFormMode;
 }) {
   const t = useTranslations('Login');
-  const passwordRecovery = useTranslations('PasswordRecovery');
 
   const {
     form,
@@ -36,11 +35,7 @@ export function LoginPageContent({
   return (
     <LoginFormCard>
       {completedPasswordMode && (
-        <Alert
-          status='success'
-          title={passwordRecovery(`${completedPasswordMode}.success.title`)}
-          message={passwordRecovery(`${completedPasswordMode}.success.message`)}
-        />
+        <PasswordCompletionNotice mode={completedPasswordMode} />
       )}
       <SocialAuthOptions
         disabled={isSubmitting}

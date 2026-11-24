@@ -12,6 +12,7 @@ import {
     OPERATION_STATUS,
 } from '@/lib/actions';
 import { API_ERROR_CODES, publicApi } from '@/lib/api';
+import { parseApiResponse } from '@/lib/api/parse-api-response';
 import { createSession } from '@/lib/session';
 
 import { createSocialRegistrationSchema } from './schema';
@@ -38,28 +39,15 @@ export async function startGoogleAuth(
         SOCIAL_AUTH_ENDPOINTS.googleStart,
         {},
     );
+    const response = parseApiResponse(result, googleAuthorizationResponseSchema);
 
-    if (result.status === OPERATION_STATUS.error) {
-        return result;
-    }
-
-    const validation =
-        googleAuthorizationResponseSchema.safeParse(result.data);
-
-    if (!validation.success) {
-        return {
-            status: OPERATION_STATUS.error,
-            error: {
-                errorCode: API_ERROR_CODES.invalidResponse,
-            },
-        };
-    }
+    if (response.status === OPERATION_STATUS.error) return response;
 
     const {
         authorizationUrl,
         flowToken,
         expiresAt,
-    } = validation.data;
+    } = response.data;
 
     const state = new URL(authorizationUrl).searchParams.get('state');
 
@@ -118,25 +106,17 @@ export async function completeSocialRegistration(
         nickname,
         ...(email && { email }),
     }, { timeoutMs: EMAIL_VERIFICATION_API_TIMEOUT_MS });
+    const response = parseApiResponse(result, socialRegistrationResponseSchema);
 
-    if (result.status === OPERATION_STATUS.error) {
+    if (response.status === OPERATION_STATUS.error) {
         if (
-            result.error.errorCode === AUTH_ERROR_CODES.oauthRegistrationInvalid
-            || result.error.errorCode === AUTH_ERROR_CODES.oauthIdentityAlreadyLinked
+            response.error.errorCode === AUTH_ERROR_CODES.oauthRegistrationInvalid
+            || response.error.errorCode === AUTH_ERROR_CODES.oauthIdentityAlreadyLinked
         ) {
             await deleteOAuthRegistrationCookie();
         }
 
-        return result;
-    }
-
-    const response = socialRegistrationResponseSchema.safeParse(result.data);
-
-    if (!response.success) {
-        return {
-            status: OPERATION_STATUS.error,
-            error: { errorCode: API_ERROR_CODES.invalidResponse },
-        };
+        return response;
     }
 
     await deleteOAuthRegistrationCookie();

@@ -10,7 +10,8 @@ import {
     createValidationFailure,
     OPERATION_STATUS,
 } from '@/lib/actions';
-import { API_ERROR_CODES, publicApi } from '@/lib/api';
+import { publicApi } from '@/lib/api';
+import { parseApiResponse } from '@/lib/api/parse-api-response';
 import { createPasswordResetSchema, createRecoveryRequestSchema } from '@/lib/schemas';
 import { deleteSession } from '@/lib/session';
 
@@ -41,19 +42,9 @@ export async function requestPasswordRecovery(
         PASSWORD_RECOVERY_REQUEST_ENDPOINT,
         validation.data,
     );
+    const response = parseApiResponse(result, recoveryRequestResponseSchema);
 
-    if (result.status === OPERATION_STATUS.error) {
-        return result;
-    }
-
-    const responseValidation = recoveryRequestResponseSchema.safeParse(result.data);
-
-    if (!responseValidation.success) {
-        return {
-            status: OPERATION_STATUS.error,
-            error: { errorCode: API_ERROR_CODES.invalidResponse },
-        };
-    }
+    if (response.status === OPERATION_STATUS.error) return response;
 
     return {
         status: OPERATION_STATUS.success,
@@ -91,19 +82,9 @@ export async function resetPassword(
         token: tokenValidation.data,
         password,
     });
+    const response = parseApiResponse(result, passwordResetResponseSchema);
 
-    if (result.status === OPERATION_STATUS.error) {
-        return result;
-    }
-
-    const responseValidation = passwordResetResponseSchema.safeParse(result.data);
-
-    if (!responseValidation.success) {
-        return {
-            status: OPERATION_STATUS.error,
-            error: { errorCode: API_ERROR_CODES.invalidResponse },
-        };
-    }
+    if (response.status === OPERATION_STATUS.error) return response;
 
     await deleteSession();
 

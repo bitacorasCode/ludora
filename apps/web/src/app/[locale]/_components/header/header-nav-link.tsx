@@ -15,7 +15,7 @@ type HeaderNavLinkProps = {
 
 export function HeaderNavLink({ href, children, isSideMenu }: HeaderNavLinkProps) {
   const pathname = usePathname();
-  const isActive = isSideMenu && pathname === href;
+  const isActive = pathname === href;
   const link = (
     <Link
       href={href}
@@ -23,10 +23,15 @@ export function HeaderNavLink({ href, children, isSideMenu }: HeaderNavLinkProps
       className={cn(
         buttonVariants({ variant: isActive ? 'secondary' : 'ghost', size: 'sm' }),
         isSideMenu && 'h-auto min-h-8 justify-start py-1',
-        isActive && '[&_[data-slot=header-nav-label]]:underline [&_[data-slot=header-nav-label]]:decoration-2 [&_[data-slot=header-nav-label]]:underline-offset-4',
+        isActive &&
+          '[&_[data-slot=header-nav-label]]:underline [&_[data-slot=header-nav-label]]:decoration-2 [&_[data-slot=header-nav-label]]:underline-offset-4',
       )}
     >
-      {typeof children === 'string' ? <span data-slot='header-nav-label'>{children}</span> : children}
+      {typeof children === 'string' ? (
+        <span data-slot='header-nav-label'>{children}</span>
+      ) : (
+        children
+      )}
     </Link>
   );
 

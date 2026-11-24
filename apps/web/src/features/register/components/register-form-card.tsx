@@ -4,9 +4,10 @@ import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 
 import { FormPageCard, FormPageSkeleton } from '@/components/forms';
-import { Skeleton } from '@/components/ui';
+import { FieldLegend, FieldSet, Skeleton } from '@/components/ui';
 
 import { REGISTER_FORM_ID, userFields } from '../config';
+import { RegisterFormInstructions } from './register-form-data';
 
 export function RegisterFormCard({ children }: { children: ReactNode }) {
   const t = useTranslations('Register');
@@ -17,7 +18,7 @@ export function RegisterFormCard({ children }: { children: ReactNode }) {
       skipToForm={t('skipToForm')}
       title={t('title')}
       description={t('description')}
-      contentClassName='relative min-h-[46.25rem] min-[24rem]:min-h-[45rem] sm:min-h-[42.25rem]'
+      contentClassName='min-h-[46.25rem] min-[24rem]:min-h-[45rem] sm:min-h-[42.25rem]'
     >
       {children}
     </FormPageCard>
@@ -25,13 +26,12 @@ export function RegisterFormCard({ children }: { children: ReactNode }) {
 }
 
 export function RegisterFormSkeleton() {
+  const t = useTranslations('Register');
   const beforeFields = (
-    <div className='mb-4 space-y-2'>
-      <Skeleton className='mb-3 h-5 w-36' />
-      <Skeleton className='h-3' />
-      <Skeleton className='h-3 w-5/6' />
-      <Skeleton className='h-3 w-2/3' />
-    </div>
+    <FieldSet className='mb-4'>
+      <FieldLegend>{t('emailRegistration')}</FieldLegend>
+      <RegisterFormInstructions />
+    </FieldSet>
   );
 
   const afterFields = (

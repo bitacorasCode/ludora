@@ -127,40 +127,24 @@ export class OAuthAccountService {
                     throw new ConflictException(message, { errorCode });
                 }
 
-                const createdUser = await this.usersService.create(
-                    { nickname, email, passwordHash: null },
+                const user = await this.usersService.create(
+                    {
+                        nickname,
+                        email,
+                        passwordHash: null,
+                        emailVerifiedAt: isEmailVerified ? new Date() : null,
+                    },
                     transaction,
                 );
 
                 await this.authIdentityRepository.create(
-                    { userId: createdUser.id, provider, providerUserId },
+                    { userId: user.id, provider, providerUserId },
                     transaction,
                 );
 
-                if (isEmailVerified) {
-                    await this.usersService.markEmailVerifiedIfPending(
-                        createdUser.id,
-                        transaction,
-                    );
-                }
-
-                const verification = isEmailVerified
+                const verification = user.emailVerifiedAt
                     ? null
-                    : await this.emailVerificationService.create(
-                        createdUser.id,
-                        transaction,
-                    );
-
-                const user = await this.usersService.findAuthenticationById(
-                    createdUser.id,
-                    transaction,
-                );
-
-                if (!user) {
-                    const { message, errorCode } = AUTH_ERRORS.authenticationRequired;
-
-                    throw new UnauthorizedException(message, { errorCode });
-                }
+                    : await this.emailVerificationService.create(user.id, transaction);
 
                 return { user, verification };
             },

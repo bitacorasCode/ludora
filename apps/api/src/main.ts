@@ -3,6 +3,8 @@ import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module.js';
 import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter.js';
+import { createRequestObservabilityMiddleware } from './common/observability/request-observability.js';
+import { InternalRequestService } from './common/services/index.js';
 
 const DEFAULT_API_PORT = 3001;
 
@@ -10,6 +12,8 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
     app.enableShutdownHooks();
+
+    app.use(createRequestObservabilityMiddleware(app.get(InternalRequestService)));
 
     app.useGlobalPipes(new StandardSchemaValidationPipe());
 

@@ -480,10 +480,19 @@ as potentially containing account data and keep them out of Git.
 
 ## Production
 
-The intended web host is Vercel, with `apps/web` as its project root. Configure
-the server-only API origin and internal secret separately in each deployment
-environment. See the root README for the planned Vercel/Render deployment split
-and the API README for the backend configuration.
+The web app runs at [ludora.cl](https://ludora.cl) on Vercel with `apps/web` as
+its project root. Configure `API_URL` with the Render API's HTTPS origin and
+match `INTERNAL_API_SECRET` with the API configuration. Set both server-only
+variables in the Vercel environment for each deployment. See the
+[API deployment notes](../api/README.md#deployment-notes) for backend setup.
+
+The Next server logs a JSON `dependency` event for calls to Nest. Look for
+`dependency: "nest"`, the HTTP `method` and `route`, the `statusCode` when a
+response arrived, and `durationMs` through reading the response body. Network
+and JSON parsing failures include a local `errorCode`. Search for `requestId`
+in the Render logs to correlate an uncached call. Cacheable requests omit the
+generated header and the corresponding log field to preserve the fetch cache key.
+The event omits query strings, bodies, and credentials.
 
 Before releasing, run the build and checks against the deployed HTTPS setup,
 including registration email delivery, session cookies, protected redirects,

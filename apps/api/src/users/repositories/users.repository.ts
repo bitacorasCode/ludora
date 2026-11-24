@@ -7,7 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 export type CreateUserData = Pick<
     User,
     'nickname' | 'email' | 'passwordHash'
->;
+> & Partial<Pick<User, 'emailVerifiedAt'>>;
 
 export type ChangePasswordData = {
     userId: string;
@@ -23,6 +23,12 @@ const userResponseSelect = {
     createdAt: true,
 } satisfies Prisma.UserSelect;
 
+const userAuthenticationSelect = {
+    ...userResponseSelect,
+    authVersion: true,
+    emailVerifiedAt: true,
+} satisfies Prisma.UserSelect;
+
 @Injectable()
 export class UsersRepository {
     constructor(private readonly prisma: PrismaService) {}
@@ -33,7 +39,7 @@ export class UsersRepository {
     ) {
         return transaction.user.create({
             data,
-            select: userResponseSelect,
+            select: userAuthenticationSelect,
         });
     }
 
@@ -72,11 +78,7 @@ export class UsersRepository {
     ) {
         return transaction.user.findUnique({
             where: { id },
-            select: {
-                ...userResponseSelect,
-                authVersion: true,
-                emailVerifiedAt: true,
-            },
+            select: userAuthenticationSelect,
         });
     }
 
@@ -110,10 +112,8 @@ export class UsersRepository {
         return this.prisma.user.findUnique({
             where: { id },
             select: {
-                ...userResponseSelect,
+                ...userAuthenticationSelect,
                 passwordHash: true,
-                authVersion: true,
-                emailVerifiedAt: true,
             },
         });
     }
@@ -121,17 +121,19 @@ export class UsersRepository {
     async changePasswordIfCurrent(
         { userId, passwordHash, expectedPasswordHash, expectedAuthVersion }: ChangePasswordData,
         transaction: Prisma.TransactionClient,
-    ): Promise<boolean> {
-        const { count } = await transaction.user.updateMany({
+    ) {
+        const [user] = await transaction.user.updateManyAndReturn({
             where: {
                 id: userId,
                 passwordHash: expectedPasswordHash,
                 authVersion: expectedAuthVersion,
+                emailVerifiedAt: { not: null },
             },
             data: { passwordHash, authVersion: { increment: 1 } },
+            select: userAuthenticationSelect,
         });
 
-        return count === SINGLE_RECORD_COUNT;
+        return user ?? null;
     }
 
     async markEmailVerifiedIfPending(

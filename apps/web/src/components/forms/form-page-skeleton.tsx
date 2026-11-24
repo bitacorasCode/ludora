@@ -25,10 +25,9 @@ export function FormPageSkeleton({
       id={formId}
       role='status'
       tabIndex={-1}
-      className='absolute inset-0 overflow-hidden px-(--card-spacing)'
     >
       <span className='sr-only'>{t('loadingForm')}</span>
-      <div aria-hidden='true' className='flex h-full flex-col'>
+      <div aria-hidden='true' className='pointer-events-none flex flex-col'>
         <div className='mb-6 space-y-6'>
           <Skeleton className='h-10 rounded-lg' />
           <FieldSeparator className='my-0 [&>span]:bg-card'>
@@ -41,7 +40,7 @@ export function FormPageSkeleton({
         <FieldGroup>
           {Array.from({ length: fields }, (_, index) => (
             <Field key={index}>
-              <div className='flex h-5 items-center'>
+              <div className='flex h-lh items-center text-sm leading-snug'>
                 <Skeleton className='h-3 w-24' />
               </div>
               <Skeleton className='h-9 rounded-lg' />
@@ -50,7 +49,7 @@ export function FormPageSkeleton({
           ))}
         </FieldGroup>
 
-        <div className='mt-auto'>{afterFields}</div>
+        {afterFields}
       </div>
     </div>
   );

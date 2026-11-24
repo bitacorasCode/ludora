@@ -11,7 +11,8 @@ import { getPathname } from '@/i18n/navigation';
 import { resolveLocale } from '@/i18n/resolve-locale';
 import { type Locale, LOCALE_COOKIE_NAME, routing } from '@/i18n/routing';
 import { type ActionError, OPERATION_STATUS } from '@/lib/actions';
-import { API_ERROR_CODES, HTTP_STATUS, publicApi } from '@/lib/api';
+import { HTTP_STATUS, publicApi } from '@/lib/api';
+import { parseApiResponse } from '@/lib/api/parse-api-response';
 import { createSession, deleteSession } from '@/lib/session';
 
 import { SOCIAL_AUTH_QUERY_PARAMS } from '../config';
@@ -89,18 +90,13 @@ export async function completeGoogleCallback(callbackId: string, fallbackLocale:
         flowToken: flow.flowToken,
         responseParameters: callback.responseParameters,
     });
+    const parsed = parseApiResponse(result, socialAuthCallbackResponseSchema);
 
-    if (result.status === OPERATION_STATUS.error) {
-        return errorLocation(result.error, locale);
+    if (parsed.status === OPERATION_STATUS.error) {
+        return errorLocation(parsed.error, locale);
     }
 
-    const validation = socialAuthCallbackResponseSchema.safeParse(result.data);
-
-    if (!validation.success) {
-        return errorLocation({ errorCode: API_ERROR_CODES.invalidResponse }, locale);
-    }
-
-    const response = validation.data;
+    const response = parsed.data;
 
     if (response.nextStep === AUTH_NEXT_STEP.authenticated) {
         await createSession(response);

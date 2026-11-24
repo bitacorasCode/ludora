@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { ErrorState } from '@/components/feedback';
 import { Button } from '@/components/ui';
-import type { ActionResult } from '@/lib/actions';
+import { type ActionResult, getCommonActionErrorKey } from '@/lib/actions';
 
 import { useProfile } from '../hooks/use-profile';
 import type { ProfileResponse } from '../schema';
@@ -34,14 +34,12 @@ export function ProfilePageContent({ userId, nickname, initialResult }: ProfileP
   );
 
   const errorDescription = error
-    ? errors.has(error.errorCode)
-      ? errors(error.errorCode)
-      : errors('unknown')
+    ? errors(getCommonActionErrorKey(error.errorCode, errors))
     : null;
 
   return (
     <>
-      {error && errorDescription && (
+      {errorDescription && (
         <ErrorState
           title={t('loadError')}
           description={errorDescription}

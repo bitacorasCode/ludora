@@ -9,6 +9,7 @@ import { type ConfigType } from '@nestjs/config';
 import * as oidc from 'openid-client';
 import { z } from 'zod';
 
+import { measureDependency } from '../../common/observability/request-observability.js';
 import { AuthProvider } from '../../generated/prisma/client.js';
 import {
     GOOGLE_OAUTH,
@@ -76,15 +77,11 @@ export class GoogleAuthService {
             const { clientId, clientSecret } = this.settings;
             const { issuer, requestTimeoutSeconds } = GOOGLE_OAUTH;
 
-            this.clientConfiguration = oidc.discovery(
-                new URL(issuer),
-                clientId,
-                clientSecret,
-                undefined,
-                {
+            this.clientConfiguration = measureDependency('google', 'discovery', () =>
+                oidc.discovery(new URL(issuer), clientId, clientSecret, undefined, {
                     timeout: requestTimeoutSeconds,
                     execute: [oidc.enableNonRepudiationChecks],
-                },
+                }),
             ).catch(() => {
                 this.clientConfiguration = undefined;
 
@@ -114,14 +111,12 @@ export class GoogleAuthService {
         let claims: unknown;
 
         try {
-            const tokens = await oidc.authorizationCodeGrant(
-                configuration,
-                callbackUrl,
-                {
+            const tokens = await measureDependency('google', 'authorization-code-grant', () =>
+                oidc.authorizationCodeGrant(configuration, callbackUrl, {
                     expectedState: flow.state,
                     expectedNonce: flow.nonce,
                     pkceCodeVerifier: flow.codeVerifier,
-                },
+                }),
             );
 
             claims = tokens.claims();

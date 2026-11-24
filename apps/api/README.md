@@ -453,3 +453,27 @@ environment. Configure Render's health check path as `/health`. The mail workers
 start with Nest and require no separate service. Add shared rate-limit storage
 before scaling replicas. Document how to back up and restore the deployment
 database.
+
+### Observability
+
+Render receives JSON events from the API on standard output. For calls from Next
+that bypass its fetch cache, search Vercel and Render for the same `requestId`.
+Next sends it in `x-ludora-request-id`. The API accepts UUIDv4 values from trusted
+internal requests and generates its own ID for other requests. It returns the
+ID in the response header.
+
+| Event | What to inspect |
+| ----- | --------------- |
+| `http.request` | `method`, matched route, HTTP `statusCode`, `outcome`, and total `durationMs` in Nest. Count completed events with `statusCode: 429` per route for rate-limit volume. |
+| `dependency` | `dependency`, `operation`, `outcome`, and `durationMs` for Google discovery and code exchange, or for mail submission to Resend/SMTP. A worker submission runs outside the original HTTP request and has no `requestId`. |
+| `auth.refresh` | `outcome` of `renewed`, `already_rotated`, `invalid`, `reuse_revoked`, or `error`. A revoked, expired, or otherwise invalid refresh token is counted as `invalid`. `reuse_revoked` means the reuse-triggered revocation committed. |
+
+`http.request` also includes `databaseQueryCount` and `databaseDurationMs` for
+completed Prisma queries observed during the request. The second value sums SQL
+durations, so it can exceed elapsed request time when queries overlap. The
+events omit SQL, query parameters, request bodies, credentials, and personal
+identifiers. Request IDs are diagnostic IDs. Count and aggregate these events
+in the log platform to track volume and latency.
+
+Automated coverage for request ID propagation, timing and `429` records, and
+refresh outcome records is deferred until requested.

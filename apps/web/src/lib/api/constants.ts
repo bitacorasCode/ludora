@@ -1,3 +1,4 @@
+import { HTTP_REQUEST_ID_HEADER } from '@ludora/contracts/http';
 import { AUTH_ERROR_CODES, INTERNAL_REQUEST_HEADERS } from '@ludora/security';
 
 export const API_TIMEOUT_MS = 10_000;
@@ -31,6 +32,7 @@ export const API_RESERVED_HEADERS = [
     API_HEADERS.cookie,
     API_HEADERS.host,
     API_HEADERS.proxyAuthorization,
+    HTTP_REQUEST_ID_HEADER,
     ...Object.values(INTERNAL_REQUEST_HEADERS),
 ] as const;
 

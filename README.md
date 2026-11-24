@@ -12,7 +12,7 @@ show empty states; playable games and multiplayer rooms are upcoming work.
 | ------------------------ | -------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | `apps/web`               | Next.js App Router frontend                              | [Web README](apps/web/README.md)                                               |
 | `apps/api`               | NestJS API with Prisma and PostgreSQL                    | [API README](apps/api/README.md), [API architecture](apps/api/ARCHITECTURE.md) |
-| `packages/contracts`     | Shared profile contracts and validation rules            | [Package exports](packages/contracts/package.json)                             |
+| `packages/contracts`     | Shared application contracts and validation rules        | [Package exports](packages/contracts/package.json)                             |
 | `packages/security`      | Shared authentication constants and validation utilities | [Security README](packages/security/README.md)                                 |
 | `packages/eslint-config` | Shared ESLint rules                                      | [ESLint README](packages/eslint-config/README.md)                              |
 
@@ -183,13 +183,15 @@ authentication.
 - Keep server-only credentials and APIs out of client components and browser bundles.
 - Follow [AGENTS.md](AGENTS.md) for the repository's coding conventions.
 
-## Deployment direction
+## Deployment
 
-The intended hosting is Vercel for Next.js, Render for NestJS, and a managed
-PostgreSQL database on Render. Each application needs its own environment
-variables even though both live in this repository. Local Docker Compose is a
-development setup, not an automatic production deployment.
+[Ludora](https://ludora.cl) runs on Vercel for Next.js and on Render for the
+NestJS API and managed PostgreSQL. Each application has its own host environment.
+See the [web production notes](apps/web/README.md#production) and
+[API deployment notes](apps/api/README.md#deployment-notes) for environment
+variables and database migrations. Docker Compose runs the local infrastructure.
 
-Before a public release, configure HTTPS, production email delivery, database
-backups, logging, and the deployment migration step. Application-specific details
-and current limitations belong in the corresponding README.
+To investigate an uncached Next-to-Nest call, find its `requestId` in Vercel's
+runtime logs, then search for the same ID in the Render API logs. The
+[observability guide](apps/api/README.md#observability) describes the timing
+fields, refresh outcomes, and how to identify rate-limited responses.

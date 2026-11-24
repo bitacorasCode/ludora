@@ -182,7 +182,7 @@
         "submitting": "Iniciando sesión...",
         "title": "Iniciar sesión",
         "validation": {
-            "emailInvalid": "Introduce un correo electrónico válido.",
+            "emailInvalid": "Introduce un correo válido.",
             "passwordRequired": "Introduce tu contraseña."
         },
         "verificationHint": "¿Correo sin confirmar? Entra del mismo modo que al registrarte."
@@ -323,7 +323,7 @@
         "description": "Crea tu cuenta para empezar en Ludora.",
         "emailRegistration": "Registro con correo",
         "errors": {
-            "AUTH_EMAIL_ALREADY_EXISTS": "El correo electrónico ya está registrado.",
+            "AUTH_EMAIL_ALREADY_EXISTS": "Este correo ya está registrado.",
             "AUTH_NICKNAME_ALREADY_EXISTS": "El nombre de usuario ya está en uso."
         },
         "feedback": {
@@ -360,7 +360,7 @@
         "title": "Registro",
         "validation": {
             "confirmPasswordRequired": "Repite la contraseña.",
-            "emailInvalid": "Introduce un correo electrónico válido.",
+            "emailInvalid": "Introduce un correo válido.",
             "nicknameMin": "Usa al menos {minLength} caracteres.",
             "passwordMin": "Usa al menos {minLength} caracteres.",
             "passwordMismatch": "Las contraseñas no coinciden."

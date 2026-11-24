@@ -3,6 +3,7 @@ import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/co
 import { JwtService } from '@nestjs/jwt';
 
 import { MILLISECONDS_PER_SECOND } from '../../common/constants/time.js';
+import { API_OBSERVABILITY_EVENT, logApiEvent } from '../../common/observability/request-observability.js';
 import { type AuthSession, Prisma, type User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
@@ -15,6 +16,14 @@ type SessionForCredentials = Pick<
     AuthSession,
     'id' | 'userId' | 'authVersion' | 'idleExpiresAt' | 'absoluteExpiresAt'
 >;
+
+const REFRESH_LOG_OUTCOME = {
+    renewed: 'renewed',
+    alreadyRotated: 'already_rotated',
+    invalid: 'invalid',
+    reuseRevoked: 'reuse_revoked',
+    error: 'error',
+} as const;
 
 function getIdleExpiration(nowMs: number, absoluteExpiresAt: Date) {
     const idleExpiresAtMs = nowMs + SESSION_CONFIG.idleTimeoutSeconds * MILLISECONDS_PER_SECOND;
@@ -108,11 +117,37 @@ export class AuthSessionService {
     }
 
     async rotateRefreshToken(refreshToken: string) {
+        const credentials = await this.rotateCredentials(refreshToken).catch((error: unknown) => {
+            let outcome: string = REFRESH_LOG_OUTCOME.error;
+
+            if (error instanceof ConflictException) {
+                outcome = REFRESH_LOG_OUTCOME.alreadyRotated;
+            } else if (error instanceof UnauthorizedException) {
+                outcome = REFRESH_LOG_OUTCOME.invalid;
+            }
+
+            logApiEvent({ event: API_OBSERVABILITY_EVENT.refresh, outcome });
+            throw error;
+        });
+
+        logApiEvent({
+            event: API_OBSERVABILITY_EVENT.refresh,
+            outcome: credentials === null ? REFRESH_LOG_OUTCOME.reuseRevoked : REFRESH_LOG_OUTCOME.renewed,
+        });
+
+        if (credentials === null) {
+            throw this.invalidRefreshTokenError();
+        }
+
+        return credentials;
+    }
+
+    private async rotateCredentials(refreshToken: string) {
         const attemptedAtMs = Date.now();
         const tokenHash = hashOpaqueToken(refreshToken);
         const { token: nextRefreshToken, tokenHash: nextTokenHash } = createOpaqueToken();
 
-        const credentials = await this.prisma.$transaction(async (transaction) => {
+        return this.prisma.$transaction(async (transaction) => {
             const { id: currentTokenId, consumedAt, session } =
                 await this.getRefreshContext(tokenHash, transaction);
 
@@ -153,12 +188,6 @@ export class AuthSessionService {
             // Commit the revocation before reporting the authentication error.
             return null;
         }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted });
-
-        if (credentials === null) {
-            throw this.invalidRefreshTokenError();
-        }
-
-        return credentials;
     }
 
     private async issueCredentials(

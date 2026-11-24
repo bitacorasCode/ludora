@@ -8,7 +8,8 @@ import {
     createValidationFailure,
     OPERATION_STATUS,
 } from '@/lib/actions';
-import { API_ERROR_CODES, publicApi } from '@/lib/api';
+import { publicApi } from '@/lib/api';
+import { parseApiResponse } from '@/lib/api/parse-api-response';
 import { AUTH_NEXT_STEP, loginResponseSchema } from '@/lib/auth';
 import { createLoginSchema } from '@/lib/schemas';
 import { createSession } from '@/lib/session';
@@ -39,23 +40,11 @@ export async function loginUser(
     }
 
     const result = await publicApi.post(LOGIN_ENDPOINT, validation.data);
+    const parsed = parseApiResponse(result, loginResponseSchema);
 
-    if (result.status === OPERATION_STATUS.error) {
-        return result;
-    }
+    if (parsed.status === OPERATION_STATUS.error) return parsed;
 
-    const responseValidation = loginResponseSchema.safeParse(result.data);
-
-    if (!responseValidation.success) {
-        return {
-            status: OPERATION_STATUS.error,
-            error: {
-                errorCode: API_ERROR_CODES.invalidResponse,
-            },
-        };
-    }
-
-    const response = responseValidation.data;
+    const response = parsed.data;
 
     if (response.nextStep === AUTH_NEXT_STEP.verifyEmail) {
         const { id: verificationId, resendAvailableAt } = response.verification;

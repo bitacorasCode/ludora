@@ -1,8 +1,9 @@
 import { PASSWORD_FORM_MODE } from '@ludora/security';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { Suspense } from 'react';
 
-import { LoginFormSkeleton, LoginPageContent } from '@/features/login';
+import { LoginFormCard, LoginFormSkeleton, LoginPageContent } from '@/features/login';
 import { PASSWORD_RECOVERY_COMPLETION_PARAM } from '@/features/password-recovery/schema';
 import { getSocialAuthCallbackError } from '@/features/social-auth/locations';
 
@@ -24,15 +25,16 @@ export default async function LoginPage({
   const { locale } = await params;
 
   return (
-    <GuestOnly locale={locale} fallback={<LoginFormSkeleton />}>
-      <LoginContent searchParams={searchParams} />
-    </GuestOnly>
+    <Suspense fallback={<LoginFormCard />}>
+      <LoginContent locale={locale} searchParams={searchParams} />
+    </Suspense>
   );
 }
 
 async function LoginContent({
+  locale,
   searchParams,
-}: Pick<PageProps<'/[locale]/login'>, 'searchParams'>) {
+}: Pick<PageProps<'/[locale]/login'>, 'searchParams'> & { locale: string }) {
   const query = await searchParams;
   const socialAuthError = getSocialAuthCallbackError(query);
   const passwordUpdated = query[PASSWORD_RECOVERY_COMPLETION_PARAM];
@@ -42,9 +44,14 @@ async function LoginContent({
     : undefined;
 
   return (
-    <LoginPageContent
-      socialAuthError={socialAuthError ?? undefined}
-      completedPasswordMode={completedPasswordMode}
-    />
+    <GuestOnly
+      locale={locale}
+      fallback={<LoginFormSkeleton completedPasswordMode={completedPasswordMode} />}
+    >
+      <LoginPageContent
+        socialAuthError={socialAuthError ?? undefined}
+        completedPasswordMode={completedPasswordMode}
+      />
+    </GuestOnly>
   );
 }

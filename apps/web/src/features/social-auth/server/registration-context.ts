@@ -1,10 +1,11 @@
 import 'server-only';
 
 import { AUTH_ERROR_CODES } from '@ludora/security';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { type ActionResult, OPERATION_STATUS } from '@/lib/actions';
-import { API_ERROR_CODES, publicApi } from '@/lib/api';
+import { publicApi } from '@/lib/api';
+import { parseApiResponse } from '@/lib/api/parse-api-response';
 
 import { SOCIAL_AUTH_ENDPOINTS } from './config';
 import { getOAuthRegistrationCookie } from './cookies';
@@ -26,16 +27,5 @@ export async function getOAuthRegistrationContext(): Promise<
         registrationToken: registration.registrationToken,
     });
 
-    if (result.status === OPERATION_STATUS.error) return result;
-
-    const validation = oauthRegistrationContextSchema.safeParse(result.data);
-
-    if (!validation.success) {
-        return {
-            status: OPERATION_STATUS.error,
-            error: { errorCode: API_ERROR_CODES.invalidResponse },
-        };
-    }
-
-    return { status: OPERATION_STATUS.success, data: validation.data };
+    return parseApiResponse(result, oauthRegistrationContextSchema);
 }

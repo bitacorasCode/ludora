@@ -9,7 +9,8 @@ import {
     createValidationFailure,
     OPERATION_STATUS,
 } from '@/lib/actions';
-import { API_ERROR_CODES, publicApi } from '@/lib/api';
+import { publicApi } from '@/lib/api';
+import { parseApiResponse } from '@/lib/api/parse-api-response';
 import { emailVerificationResponseSchema } from '@/lib/auth';
 import { createRegisterSchema } from '@/lib/schemas';
 
@@ -47,25 +48,13 @@ export async function registerUser(
         email,
         password,
     }, { timeoutMs: EMAIL_VERIFICATION_API_TIMEOUT_MS });
+    const response = parseApiResponse(result, emailVerificationResponseSchema);
 
-    if (result.status === OPERATION_STATUS.error) {
-        return result;
-    }
-
-    const responseValidation = emailVerificationResponseSchema.safeParse(result.data);
-
-    if (!responseValidation.success) {
-        return {
-            status: OPERATION_STATUS.error,
-            error: {
-                errorCode: API_ERROR_CODES.invalidResponse,
-            },
-        };
-    }
+    if (response.status === OPERATION_STATUS.error) return response;
 
     const {
         verification: { id: verificationId, emailQueued, emailSent, resendAvailableAt },
-    } = responseValidation.data;
+    } = response.data;
 
     return {
         status: OPERATION_STATUS.success,

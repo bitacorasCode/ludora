@@ -43,7 +43,7 @@ const getHeaderAccountNavigation = cache(async () => {
                 <span data-slot='header-nav-label' className='block lg:hidden'>
                   {t('Account.title')}
                 </span>
-                <span className='block max-w-40 truncate text-xs text-muted-foreground lg:text-sm lg:text-current'>
+                <span className='block max-w-40 truncate text-xs text-muted-foreground lg:text-sm lg:text-current lg:group-aria-[current=page]/button:underline lg:group-aria-[current=page]/button:decoration-2 lg:group-aria-[current=page]/button:underline-offset-4'>
                   {user.nickname}
                 </span>
               </span>

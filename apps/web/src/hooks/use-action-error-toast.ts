@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
-import type { ActionError } from '@/lib/actions';
+import { type ActionError, getCommonActionErrorKey } from '@/lib/actions';
 import { HTTP_STATUS } from '@/lib/api/constants';
 
 type ErrorTranslator = {
@@ -61,10 +61,8 @@ export function useActionErrorToast({
       description = validationMessage;
     } else if (featureErrors?.has(errorCode)) {
       description = featureErrors(errorCode);
-    } else if (commonErrors.has(errorCode)) {
-      description = commonErrors(errorCode);
     } else {
-      description = commonErrors('unknown');
+      description = commonErrors(getCommonActionErrorKey(errorCode, commonErrors));
     }
 
     if (

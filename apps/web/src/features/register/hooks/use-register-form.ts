@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { APP_ROUTES } from '@/config/routes';
@@ -44,7 +44,14 @@ export default function useRegisterForm() {
         resolver: zodResolver(createRegisterSchema(validation)),
         defaultValues: userDefaultValues,
     });
-    const { getFieldState, setFocus } = form;
+    const { control, getFieldState, getValues, setFocus, trigger } = form;
+    const password = useWatch({ control, name: 'password' });
+
+    useEffect(() => {
+        if (getValues('confirmPassword')) {
+            void trigger('confirmPassword');
+        }
+    }, [getValues, password, trigger]);
 
     useEffect(() => {
         if (isPending) {

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createTransport, type Transporter } from 'nodemailer';
 
+import { measureDependency } from '../common/observability/request-observability.js';
 import {
     MAIL_ERRORS,
     MAIL_PROVIDER,
@@ -80,13 +81,16 @@ export class MailService {
     }
 
     async send(message: SendMailInput, { idempotencyKey }: { idempotencyKey?: string } = {}): Promise<void> {
-        if (this.transport.provider === MAIL_PROVIDER.smtp) {
-            await this.transport.transporter.sendMail(message);
+        const transport = this.transport;
 
-            return;
-        }
+        await measureDependency(transport.provider, 'send-mail', async () => {
+            if (transport.provider === MAIL_PROVIDER.smtp) {
+                await transport.transporter.sendMail(message);
+                return;
+            }
 
-        await this.sendWithResend(message, this.transport.settings, idempotencyKey);
+            await this.sendWithResend(message, transport.settings, idempotencyKey);
+        });
     }
 
     private async sendWithResend(

@@ -10,6 +10,7 @@ import { APP_ROUTES } from '@/config/routes';
 import { Link } from '@/i18n/navigation';
 
 import { HeaderAccountLinks } from './header-account-links';
+import { HeaderAccountMenu } from './header-account-menu';
 import { HeaderLinks } from './header-links';
 
 export function Header() {
@@ -38,7 +39,9 @@ export function Header() {
           <HeaderLinks />
 
           <Suspense fallback={sessionFallback}>
-            <HeaderAccountLinks />
+            <HeaderAccountMenu fallback={sessionFallback}>
+              <HeaderAccountLinks />
+            </HeaderAccountMenu>
           </Suspense>
         </div>
 
@@ -55,7 +58,9 @@ export function Header() {
         >
           <HeaderLinks isSideMenu />
           <Suspense fallback={sessionFallback}>
-            <HeaderAccountLinks isSideMenu />
+            <HeaderAccountMenu fallback={sessionFallback}>
+              <HeaderAccountLinks isSideMenu />
+            </HeaderAccountMenu>
           </Suspense>
         </SideMenu>
       </nav>
