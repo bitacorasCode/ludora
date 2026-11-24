@@ -8,7 +8,7 @@ import { HTTP_STATUS, publicApi } from '@/lib/api';
 import { sessionCredentials } from '../../../../test/fixtures/session-credentials';
 import { SOCIAL_AUTH_QUERY_PARAMS } from '../config';
 import { SOCIAL_AUTH_ENDPOINTS } from './config';
-import { handleGoogleCallback } from './google-callback';
+import { completeGoogleCallback, handleGoogleCallback } from './google-callback';
 
 const cookieStore = vi.hoisted(() => ({ get: vi.fn(), set: vi.fn(), delete: vi.fn() }));
 vi.mock('next/headers', () => ({ cookies: async () => cookieStore }));
@@ -22,6 +22,7 @@ const cookieNames = {
   session: 'ludora_session',
   refresh: 'ludora_refresh',
   flow: 'ludora_oauth_flow',
+  callback: 'ludora_oauth_callback',
   registration: 'ludora_oauth_registration',
 };
 
@@ -31,9 +32,33 @@ function callbackRequest(state: string = flow.state) {
   return new NextRequest(url);
 }
 
+async function stageCallback(request: NextRequest) {
+  const response = await handleGoogleCallback(request);
+  const location = new URL(response.headers.get('Location')!, request.url);
+  const callbackId = location.searchParams.get(SOCIAL_AUTH_QUERY_PARAMS.callbackId);
+
+  expect(location.pathname).toBe('/es/complete-google-auth');
+  expect(callbackId).toBeTruthy();
+  expect(cookieStore.set).toHaveBeenCalledWith(cookieNames.callback, JSON.stringify({
+    id: callbackId,
+    state: flow.state,
+    responseParameters: request.nextUrl.searchParams.toString(),
+  }), expect.objectContaining({ httpOnly: true }));
+  expect(publicApi.post).not.toHaveBeenCalled();
+
+  return { response, callbackId: callbackId! };
+}
+
 beforeEach(() => {
   vi.resetAllMocks();
-  cookieStore.get.mockReturnValue({ value: JSON.stringify(flow) });
+  const cookies = new Map<string, string>([[cookieNames.flow, JSON.stringify(flow)]]);
+  cookieStore.get.mockImplementation((name: string) => {
+    const value = cookies.get(name);
+    return value ? { value } : undefined;
+  });
+  cookieStore.set.mockImplementation((name: string, value: string) => {
+    cookies.set(name, value);
+  });
   vi.mocked(publicApi.post).mockResolvedValue({
     status: OPERATION_STATUS.success,
     data: { nextStep: AUTH_NEXT_STEP.authenticated, ...sessionCredentials },
@@ -55,12 +80,15 @@ describe('Google browser callback', () => {
 
   it('stores an authenticated result in an HttpOnly cookie and redirects without exposing the JWT', async () => {
     const request = callbackRequest();
-    const response = await handleGoogleCallback(request);
+    const { response, callbackId } = await stageCallback(request);
+
+    const destination = await completeGoogleCallback(callbackId, flow.locale);
 
     expect(publicApi.post).toHaveBeenCalledExactlyOnceWith(SOCIAL_AUTH_ENDPOINTS.googleCallback, {
       flowToken: flow.flowToken,
       responseParameters: request.nextUrl.searchParams.toString(),
-    }, { signal: request.signal });
+    });
+    expect(cookieStore.set).toHaveBeenCalledWith(cookieNames.callback, '', expect.objectContaining({ maxAge: 0 }));
     expect(cookieStore.set).toHaveBeenCalledWith(cookieNames.flow, '', expect.objectContaining({ maxAge: 0 }));
     expect(cookieStore.set).toHaveBeenCalledWith(cookieNames.session, sessionCredentials.accessToken, expect.objectContaining({
       httpOnly: true,
@@ -71,7 +99,7 @@ describe('Google browser callback', () => {
       httpOnly: true,
       expires: new Date(sessionCredentials.absoluteExpiresAt),
     }));
-    expect(response.headers.get('Location')).toBe('/es');
+    expect(destination).toBe('/es');
     expect(response.headers.get('Cache-Control')).toBe('private, no-store');
     expect(response.headers.get('Referrer-Policy')).toBe('no-referrer');
     expect(await response.text()).toBe('');
@@ -89,7 +117,9 @@ describe('Google browser callback', () => {
       data: { nextStep: AUTH_NEXT_STEP.completeRegistration, registration },
     });
 
-    const response = await handleGoogleCallback(callbackRequest());
+    const { response, callbackId } = await stageCallback(callbackRequest());
+
+    const destination = await completeGoogleCallback(callbackId, flow.locale);
 
     expect(cookieStore.set).toHaveBeenCalledWith(cookieNames.registration,
       JSON.stringify({ registrationToken: registration.registrationToken, locale: flow.locale }),
@@ -97,7 +127,7 @@ describe('Google browser callback', () => {
     );
     expect(cookieStore.set).toHaveBeenCalledWith(cookieNames.session, '', expect.objectContaining({ maxAge: 0 }));
     expect(cookieStore.set).toHaveBeenCalledWith(cookieNames.refresh, '', expect.objectContaining({ maxAge: 0 }));
-    expect(response.headers.get('Location')).toBe('/es/complete-registration');
+    expect(destination).toBe('/es/complete-registration');
     expect(await response.text()).toBe('');
   });
 });

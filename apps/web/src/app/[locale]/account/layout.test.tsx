@@ -3,12 +3,13 @@ import { createTranslator, NextIntlClientProvider } from 'next-intl';
 import type { ComponentProps } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { NavigationGuardProvider } from '@/components/navigation';
-import { getCurrentUser } from '@/lib/auth';
+import { OPERATION_STATUS } from '@/lib/actions';
+import { API_ERROR_CODES } from '@/lib/api/constants';
+import { getCurrentUserResult } from '@/lib/auth';
 import esMessages from '@/messages/es.json';
 
 import { currentUser } from '../../../../test/fixtures/current-user';
-import { resolveSuspendedComponent } from '../../../../test/resolve-suspended-component';
+import { SessionRecovery } from '../_components/auth/session-recovery';
 import { AccountAccess } from './_components/account-access';
 import AccountLayout from './layout';
 
@@ -29,8 +30,8 @@ const { redirect } = vi.hoisted(() => ({
   }),
 }));
 
-vi.mock('@/lib/auth', () => ({ getCurrentUser: vi.fn() }));
-vi.mock('@/lib/session', () => ({ getRefreshToken: vi.fn() }));
+vi.mock('@/lib/auth', () => ({ getCurrentUserResult: vi.fn() }));
+vi.mock('@/lib/session', () => ({ getRefreshToken: vi.fn(), getSessionToken: vi.fn() }));
 vi.mock('@/features/logout', () => ({
   LogoutButton: () => <button>Log out</button>,
 }));
@@ -54,22 +55,19 @@ vi.mock('next-intl/server', () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(getCurrentUser).mockReset();
-  vi.mocked(getCurrentUser).mockResolvedValue(currentUser);
+  vi.mocked(getCurrentUserResult).mockResolvedValue({
+    status: OPERATION_STATUS.success,
+    data: currentUser,
+  });
 });
 afterEach(() => cleanup());
 
-async function getContent() {
-  const layout = await AccountLayout({
-    children: <p>Private</p>,
-    params: Promise.resolve({ locale: 'es' }),
-  });
-  return resolveSuspendedComponent(layout);
-}
-
 describe('AccountLayout access', () => {
   it('redirects a guest to login preserving the locale', async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    vi.mocked(getCurrentUserResult).mockResolvedValue({
+      status: OPERATION_STATUS.error,
+      error: { errorCode: API_ERROR_CODES.authenticationRequired },
+    });
     const children = vi.fn(() => <p>Private</p>);
     await expect(AccountAccess({ locale: 'es', children })).rejects.toThrow('redirect');
     expect(children).not.toHaveBeenCalled();
@@ -79,10 +77,10 @@ describe('AccountLayout access', () => {
     });
   });
 
-  it('renders the account navigation and content for a signed-in user', async () => {
+  it('renders the account navigation and content for a signed-in user', () => {
     render(
       <NextIntlClientProvider locale='es' messages={esMessages}>
-        <NavigationGuardProvider>{await getContent()}</NavigationGuardProvider>
+        {AccountLayout({ children: <p>Private</p>, params: Promise.resolve({ locale: 'es' }) })}
       </NextIntlClientProvider>,
     );
     expect(screen.getByText('Private')).toBeTruthy();
@@ -94,9 +92,17 @@ describe('AccountLayout access', () => {
     expect(redirect).not.toHaveBeenCalled();
   });
 
-  it('propagates an API failure instead of redirecting to login', async () => {
-    vi.mocked(getCurrentUser).mockRejectedValue(new Error('API_UNAVAILABLE'));
-    await expect(getContent()).rejects.toThrow('API_UNAVAILABLE');
+  it('keeps the API error available for retry inside Account', async () => {
+    const error = { errorCode: API_ERROR_CODES.unavailable };
+    vi.mocked(getCurrentUserResult).mockResolvedValue({ status: OPERATION_STATUS.error, error });
+    const children = vi.fn(() => <p>Private</p>);
+    const fallback = <p>Loading</p>;
+
+    await expect(AccountAccess({ locale: 'es', children, fallback })).resolves.toMatchObject({
+      type: SessionRecovery,
+      props: { inAccount: true, initialError: error, fallback },
+    });
+    expect(children).not.toHaveBeenCalled();
     expect(redirect).not.toHaveBeenCalled();
   });
 });

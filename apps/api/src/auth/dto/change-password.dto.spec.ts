@@ -1,11 +1,15 @@
-import { AUTH_VALIDATION } from '@ludora/security';
+import { AUTH_VALIDATION } from '@ludora/contracts/auth';
 
 import { changePasswordSchema } from './change-password.dto.js';
 
 describe('changePasswordSchema', () => {
-    const data = { currentPassword: 'CurrentPassword123!', password: 'NewPassword123!' };
+    const data = {
+        currentPassword: 'CurrentPassword123!',
+        password: 'NewPassword123!',
+        expectedUserId: 'a0db3414-7659-46ee-8435-1a32f52b1f26',
+    };
 
-    it('should accept only the current and new passwords', () => {
+    it('accepts the current and new passwords with the expected account ID', () => {
         expect(changePasswordSchema.parse(data)).toEqual(data);
     });
 
@@ -16,6 +20,8 @@ describe('changePasswordSchema', () => {
         { currentPassword: data.currentPassword },
         { ...data, email: 'changed@example.com' },
         { ...data, userId: 'another-user' },
+        { ...data, expectedUserId: undefined },
+        { ...data, expectedUserId: 'not-a-uuid' },
         { ...data, confirmPassword: data.password },
     ])('should reject malformed or unexpected fields: %j', (invalid) => {
         expect(changePasswordSchema.safeParse(invalid).success).toBe(false);

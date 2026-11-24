@@ -1,3 +1,4 @@
+import { SESSION_EXPIRED_NOTICE } from '../src/lib/session/constants';
 import esMessages from '../src/messages/es.json';
 import {
   API_URL,
@@ -33,10 +34,9 @@ test.describe('Real authentication', () => {
     await expect(
       navigation.getByRole('link', {
         name: testAccount.nickname,
-        exact: true,
       }),
     ).toBeVisible();
-    await expect(peerHeader.getByRole('link', { name: testAccount.nickname, exact: true })).toBeVisible();
+    await expect(peerHeader.getByRole('link', { name: testAccount.nickname })).toBeVisible();
     const cookies = await context.cookies();
     const cookie = cookies.find(
       ({ name }) => name === SESSION_COOKIE,
@@ -57,7 +57,6 @@ test.describe('Real authentication', () => {
     await expect(
       navigation.getByRole('link', {
         name: testAccount.nickname,
-        exact: true,
       }),
     ).toBeVisible();
     await page.goto('/es/login');
@@ -69,7 +68,7 @@ test.describe('Real authentication', () => {
     await peer.setViewportSize({ width: 390, height: 844 });
     await peer.getByRole('button', { name: esMessages.Header.menu.label, exact: true }).click();
     const peerMenu = peer.getByRole('dialog', { name: esMessages.Header.menu.title });
-    await expect(peerMenu.getByRole('link', { name: testAccount.nickname, exact: true })).toBeVisible();
+    await expect(peerMenu.getByRole('link', { name: testAccount.nickname })).toBeVisible();
     // Capture native document reloads: the logout should use Next navigation.
     await page.evaluate(() => {
       (window as Window & { logoutMarker?: boolean }).logoutMarker = true;
@@ -175,7 +174,13 @@ test.describe('Real authentication', () => {
       },
     ]);
     await page.goto('/es/account/profile');
-    await expect(page).toHaveURL('/es/login');
+    await expect(page).toHaveURL((url) =>
+      url.pathname === '/es/login'
+      && url.searchParams.get(SESSION_EXPIRED_NOTICE.param) === SESSION_EXPIRED_NOTICE.value,
+    );
+    await expect(page.getByRole('status').filter({
+      hasText: esMessages.Login.sessionExpired.title,
+    })).toBeVisible();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
       esMessages.Login.title,
     );
@@ -183,7 +188,7 @@ test.describe('Real authentication', () => {
     await expect(page).toHaveURL('/es');
   });
 
-  test('shows the route error for a session lookup outage instead of showing the login form', async ({
+  test('keeps Account open and retries a session lookup outage', async ({
     page,
     context,
     request,
@@ -206,17 +211,17 @@ test.describe('Real authentication', () => {
     ]);
     await apiMode('unavailable');
     await page.goto('/es/account/profile');
-    await expect(
-      page.getByRole('alert', {
-        name: esMessages.RouteError.title,
-        exact: true,
-      }),
-    ).toContainText(esMessages.RouteError.title);
-    await expect(
-      page.getByRole('button', { name: esMessages.Common.actions.retry }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole('button', { name: esMessages.Login.submit, exact: true }),
-    ).toHaveCount(0);
+    await expect(page).toHaveURL('/es/account/profile');
+    const profile = page.getByRole('main');
+    await expect(profile.getByRole('alert', {
+      name: esMessages.Header.session.unavailable,
+      exact: true,
+    })).toBeVisible();
+    const retry = profile.getByRole('button', { name: esMessages.Common.actions.retry });
+    await expect(retry).toBeVisible();
+
+    await apiMode('healthy');
+    await retry.click();
+    await expect(profile.getByRole('button', { name: esMessages.Profile.edit })).toBeVisible();
   });
 });

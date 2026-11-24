@@ -35,7 +35,6 @@ async function expectAuthenticatedAccount(
   await expect(
     navigation.getByRole('link', {
       name: account.nickname,
-      exact: true,
     }),
   ).toBeVisible();
 
@@ -67,7 +66,6 @@ async function expectAuthenticatedAccount(
   await expect(
     navigation.getByRole('link', {
       name: account.nickname,
-      exact: true,
     }),
   ).toBeVisible();
 }
@@ -82,12 +80,17 @@ test.describe('Email verification with real mail', () => {
     test.setTimeout(60_000);
 
     await page.goto('/es/register');
+    const { AUTH_VALIDATION } = await import('@ludora/contracts/auth');
+    const nicknameMinimum = esMessages.Register.validation.nicknameMin.replace(
+      '{minLength}',
+      String(AUTH_VALIDATION.nicknameMinLength),
+    );
     const nickname = page.getByLabel(esMessages.Register.fields.nickname.label, { exact: true });
     // SSR fields can be visible before React attaches their change handlers.
     await expect.poll(async () => {
       await nickname.fill('x');
       await nickname.press('Tab');
-      return page.getByText(esMessages.Register.validation.nicknameMin, { exact: true }).isVisible();
+      return page.getByText(nicknameMinimum, { exact: true }).isVisible();
     }, {
       timeout: FORM_INTERACTION_TIMEOUT_MS,
       message: 'Registration controls must be interactive before entering account details',
@@ -105,7 +108,7 @@ test.describe('Email verification with real mail', () => {
       .getByLabel(esMessages.Register.fields.confirmPassword.label, { exact: true })
       .fill(registrationAccount.password);
     await page
-      .getByRole('button', { name: esMessages.Register.submit, exact: true })
+      .getByRole('button', { name: esMessages.Register.createAccountWithEmail, exact: true })
       .click();
 
     await expect(page).toHaveURL((url) => url.pathname === '/es/verify-email');
@@ -173,7 +176,7 @@ test.describe('Email verification with real mail', () => {
     await expect(resendButton).toBeEnabled({ timeout: 75_000 });
     await resendButton.click();
     await expect(
-      page.getByText(esMessages.EmailVerification.resend.success.title, { exact: true }),
+      page.getByText(esMessages.EmailVerification.resend.queued.title, { exact: true }),
     ).toBeVisible();
     const resentEmail = await waitForVerificationEmail(request, pendingAccount.email, {
       excludeMessageIds: [firstEmail.id],

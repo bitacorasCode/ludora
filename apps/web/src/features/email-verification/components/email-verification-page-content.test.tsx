@@ -212,7 +212,7 @@ describe('EmailVerificationPageContent integration', () => {
       messages.feedback.deliveryUnconfirmed.title,
       { description: messages.feedback.deliveryUnconfirmed.message },
     ));
-    expect(screen.getByRole('status').textContent).toContain(messages.feedback.deliveryUnconfirmed.message);
+    expect(screen.getByText(messages.feedback.deliveryUnconfirmed.message)).toBeTruthy();
     expect((screen.getByLabelText(messages.code.label) as HTMLInputElement).value).toBe('');
     expect(new URL(window.location.href).searchParams.get('delivery')).toBe('unconfirmed');
     expect((await screen.findByRole('button', { name: messages.resend.action })).hasAttribute('disabled')).toBe(true);
@@ -257,9 +257,9 @@ describe('EmailVerificationPageContent integration', () => {
 
     fireEvent.click(screen.getByRole('button', { name: messages.resend.action }));
 
-    await waitFor(() => expect(toast.error).toHaveBeenCalledExactlyOnceWith(
-      messages.resend.errorTitle,
-      { description: esMessages.Common.errors.API_UNAVAILABLE, duration: Infinity },
+    await waitFor(() => expect(toast.warning).toHaveBeenCalledExactlyOnceWith(
+      messages.feedback.deliveryUnconfirmed.title,
+      { description: messages.resend.unconfirmedMessage },
     ));
     expect((screen.getByLabelText(messages.code.label) as HTMLInputElement).value).toBe('123456');
     expect((await screen.findByRole('button', { name: messages.resend.action })).hasAttribute('disabled')).toBe(false);

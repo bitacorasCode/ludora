@@ -1,7 +1,7 @@
 import { setImmediate as settleBackgroundTasks } from 'node:timers/promises';
 
-import { PASSWORD_FORM_MODE } from '@ludora/security';
-import { HttpStatus, Logger } from '@nestjs/common';
+import { PASSWORD_FORM_MODE } from '@ludora/contracts/auth';
+import { HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { vi } from 'vitest';
@@ -15,19 +15,10 @@ import { AUTH_ERRORS } from '../constants/auth-errors.js';
 import { PASSWORD_RESET_CONFIG } from '../constants/password-reset.js';
 import { PasswordRecoveryJobRepository } from '../repositories/password-recovery-job.repository.js';
 import { PasswordResetRepository } from '../repositories/password-reset.repository.js';
-import { createPasswordChangedMail } from '../templates/password-changed-mail.js';
 import { PasswordService } from './password.service.js';
 import { PasswordNotificationService } from './password-notification.service.js';
 import { PasswordRecoveryService } from './password-recovery.service.js';
 import { PasswordResetTokenService } from './password-reset-token.service.js';
-
-const scheduled = vi.hoisted(() => ({ tasks: [] as (() => void)[] }));
-
-vi.mock('node:timers', () => ({
-    setImmediate: vi.fn((callback: () => void) => {
-        scheduled.tasks.push(callback);
-    }),
-}));
 
 describe('PasswordRecoveryService', () => {
     let service: PasswordRecoveryService;
@@ -94,10 +85,7 @@ describe('PasswordRecoveryService', () => {
     const mailService = { send: vi.fn<MailService['send']>() };
     const passwordService = { hash: vi.fn<PasswordService['hash']>() };
 
-    async function runBackgroundTasks() {
-        for (const task of scheduled.tasks.splice(0)) task();
-        await settleBackgroundTasks();
-    }
+    const notifications = { enqueuePasswordChanged: vi.fn<PasswordNotificationService['enqueuePasswordChanged']>() };
 
     function createDeferredCompletion() {
         let resolve!: () => void;
@@ -108,13 +96,11 @@ describe('PasswordRecoveryService', () => {
     beforeEach(async () => {
         vi.useFakeTimers({ toFake: ['Date'] });
         vi.setSystemTime(now);
-        scheduled.tasks = [];
         events = [];
         prisma.$transaction.mockClear();
-        for (const dependency of [usersService, tokenService, repository, jobs, mailService, passwordService]) {
+        for (const dependency of [usersService, tokenService, repository, jobs, mailService, passwordService, notifications]) {
             for (const method of Object.values(dependency)) method.mockReset();
         }
-        vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
         usersService.findByEmail.mockResolvedValue(user);
         usersService.updatePassword.mockResolvedValue({ id: user.id, email: user.email });
@@ -141,7 +127,7 @@ describe('PasswordRecoveryService', () => {
                 { provide: MailService, useValue: mailService },
                 { provide: PasswordService, useValue: passwordService },
                 { provide: PasswordRecoveryJobRepository, useValue: jobs },
-                PasswordNotificationService,
+                { provide: PasswordNotificationService, useValue: notifications },
                 PasswordRecoveryService,
             ],
         }).compile();
@@ -149,7 +135,6 @@ describe('PasswordRecoveryService', () => {
     });
 
     afterEach(() => {
-        scheduled.tasks = [];
         vi.useRealTimers();
         vi.restoreAllMocks();
     });
@@ -212,6 +197,7 @@ describe('PasswordRecoveryService', () => {
                 requestBefore: new Date(now.getTime() - PASSWORD_RESET_CONFIG.requestCooldownSeconds * MILLISECONDS_PER_SECOND),
             }, transaction);
             expect(events).toEqual(['transaction:start', 'transaction:resolved', 'mail:send']);
+            expect(mailService.send).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ to: user.email }), { idempotencyKey: job.id });
             const [mail] = mailService.send.mock.calls[0];
             expect(mail.to).toBe(user.email);
             expect(mail.subject).toBe(subject);
@@ -278,13 +264,13 @@ describe('PasswordRecoveryService', () => {
             expect(tokenService.hash).toHaveBeenCalledExactlyOnceWith(token);
             expect(passwordService.hash).not.toHaveBeenCalled();
             expect(prisma.$transaction).not.toHaveBeenCalled();
-            expect(scheduled.tasks).toHaveLength(0);
+            expect(notifications.enqueuePasswordChanged).not.toHaveBeenCalled();
         });
 
         it.each([
-            { passwordHash: user.passwordHash, subject: 'Your Ludora password has been changed' },
-            { passwordHash: null, subject: 'Your Ludora password has been created' },
-        ])('should commit the password before sending "$subject"', async ({ passwordHash, subject }) => {
+            { passwordHash: user.passwordHash, firstPassword: false },
+            { passwordHash: null, firstPassword: true },
+        ])('queues the password notice atomically with firstPassword=$firstPassword', async ({ passwordHash, firstPassword }) => {
             repository.findByTokenHash.mockResolvedValue({ ...storedReset, user: { passwordHash } });
             await expect(service.reset(token, newPassword)).resolves.toBeUndefined();
 
@@ -294,16 +280,8 @@ describe('PasswordRecoveryService', () => {
             expect(repository.consume).toHaveBeenCalledBefore(usersService.updatePassword);
             expect(events).toEqual(['password:hash', 'transaction:start', 'transaction:resolved']);
             expect(mailService.send).not.toHaveBeenCalled();
-            expect(scheduled.tasks).toHaveLength(1);
-
-            await runBackgroundTasks();
-
-            expect(events).toEqual(['password:hash', 'transaction:start', 'transaction:resolved', 'mail:send']);
-            expect(mailService.send).toHaveBeenCalledExactlyOnceWith({
-                to: user.email,
-                subject,
-                text: expect.stringContaining(subject.replace('Your Ludora password', 'The password for your Ludora account') + '.'),
-            });
+            expect(notifications.enqueuePasswordChanged).toHaveBeenCalledExactlyOnceWith(user.id, firstPassword, transaction);
+            expect(usersService.updatePassword).toHaveBeenCalledBefore(notifications.enqueuePasswordChanged);
         });
 
         it('should capture a fresh expiration check after hashing finishes', async () => {
@@ -321,7 +299,7 @@ describe('PasswordRecoveryService', () => {
 
             expect(repository.consume).toHaveBeenCalledExactlyOnceWith({ tokenHash, now: afterHash }, transaction);
             expect(usersService.updatePassword).not.toHaveBeenCalled();
-            expect(scheduled.tasks).toHaveLength(0);
+            expect(notifications.enqueuePasswordChanged).not.toHaveBeenCalled();
         });
 
         it('should reject a token already consumed or renewed by a concurrent operation', async () => {
@@ -333,7 +311,7 @@ describe('PasswordRecoveryService', () => {
             });
 
             expect(usersService.updatePassword).not.toHaveBeenCalled();
-            expect(scheduled.tasks).toHaveLength(0);
+            expect(notifications.enqueuePasswordChanged).not.toHaveBeenCalled();
             expect(mailService.send).not.toHaveBeenCalled();
             expect(events).toEqual(['password:hash', 'transaction:start', 'transaction:rejected']);
         });
@@ -346,7 +324,7 @@ describe('PasswordRecoveryService', () => {
 
             expect(prisma.$transaction).not.toHaveBeenCalled();
             expect(repository.consume).not.toHaveBeenCalled();
-            expect(scheduled.tasks).toHaveLength(0);
+            expect(notifications.enqueuePasswordChanged).not.toHaveBeenCalled();
         });
 
         it('should propagate an update failure without scheduling a false success notice', async () => {
@@ -357,11 +335,11 @@ describe('PasswordRecoveryService', () => {
 
             expect(repository.consume).toHaveBeenCalledWith({ tokenHash, now }, transaction);
             expect(events).toEqual(['password:hash', 'transaction:start', 'transaction:rejected']);
-            expect(scheduled.tasks).toHaveLength(0);
+            expect(notifications.enqueuePasswordChanged).not.toHaveBeenCalled();
             expect(mailService.send).not.toHaveBeenCalled();
         });
 
-        it('should wait for transaction resolution before scheduling the notice', async () => {
+        it('waits for the password and notice transaction to commit before completing the reset', async () => {
             const commit = createDeferredCompletion();
             prisma.$transaction.mockImplementationOnce(async (operation) => {
                 const result = await operation(transaction);
@@ -369,55 +347,26 @@ describe('PasswordRecoveryService', () => {
                 return result;
             });
 
-            const reset = service.reset(token, newPassword);
-            await settleBackgroundTasks();
-
-            expect(usersService.updatePassword).toHaveBeenCalledOnce();
-            expect(scheduled.tasks).toHaveLength(0);
-            expect(mailService.send).not.toHaveBeenCalled();
-
-            commit.resolve();
-            await reset;
-
-            expect(scheduled.tasks).toHaveLength(1);
-        });
-
-        it('should send the notice to the recipient returned by the password update', async () => {
-            const recipient = 'current-address@example.com';
-            usersService.updatePassword.mockResolvedValue({ id: user.id, email: recipient });
-
-            await service.reset(token, newPassword);
-            await runBackgroundTasks();
-
-            expect(mailService.send).toHaveBeenCalledExactlyOnceWith({ to: recipient, ...createPasswordChangedMail() });
-            expect(usersService.findByEmail).not.toHaveBeenCalled();
-            const [mail] = mailService.send.mock.calls[0];
-            for (const secret of [token, tokenHash, newPassword, newPasswordHash, user.passwordHash]) {
-                expect(mail.text).not.toContain(secret);
+            const completed = vi.fn();
+            const reset = service.reset(token, newPassword).then(completed);
+            try {
+                await settleBackgroundTasks();
+                expect(notifications.enqueuePasswordChanged).toHaveBeenCalledExactlyOnceWith(user.id, false, transaction);
+                expect(completed).not.toHaveBeenCalled();
+            } finally {
+                commit.resolve();
+                await reset;
             }
+            expect(completed).toHaveBeenCalledOnce();
         });
 
-        it('should finish reset without waiting for pending SMTP delivery', async () => {
-            const delivery = createDeferredCompletion();
-            mailService.send.mockReturnValue(delivery.promise);
+        it('propagates a notice enqueue failure so the password update rolls back', async () => {
+            const error = new Error('Notice enqueue failed');
+            notifications.enqueuePasswordChanged.mockRejectedValue(error);
 
-            await expect(service.reset(token, newPassword)).resolves.toBeUndefined();
-            await runBackgroundTasks();
-
-            expect(mailService.send).toHaveBeenCalledOnce();
-            delivery.resolve();
-            await settleBackgroundTasks();
-        });
-
-        it('should log notification failure without changing the successful reset result', async () => {
-            mailService.send.mockRejectedValue(new Error(`SMTP failure: ${user.email} ${token} ${newPassword}`));
-
-            await expect(service.reset(token, newPassword)).resolves.toBeUndefined();
-            await runBackgroundTasks();
-
-            expect(Logger.prototype.error).toHaveBeenCalledExactlyOnceWith('Could not send password update notification.');
-            expect(prisma.$transaction).toHaveBeenCalledOnce();
-            expect(usersService.updatePassword).toHaveBeenCalledOnce();
+            await expect(service.reset(token, newPassword)).rejects.toBe(error);
+            expect(events).toEqual(['password:hash', 'transaction:start', 'transaction:rejected']);
+            expect(mailService.send).not.toHaveBeenCalled();
         });
     });
 });

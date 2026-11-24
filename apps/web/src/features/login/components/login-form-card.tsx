@@ -14,6 +14,11 @@ import { LOGIN_FORM_ID } from '../config';
 
 const LOGIN_FORM_FIELD_COUNT = 2;
 
+export type LoginNoticeProps = {
+  completedPasswordMode?: PasswordFormMode;
+  sessionExpired?: boolean;
+};
+
 export function LoginFormCard({ children }: { children?: ReactNode }) {
   const t = useTranslations();
 
@@ -34,17 +39,34 @@ export function LoginFormCard({ children }: { children?: ReactNode }) {
   );
 }
 
-export function PasswordCompletionNotice({ mode }: { mode: PasswordFormMode }) {
-  const t = useTranslations('PasswordRecovery');
+export function LoginNotice({ completedPasswordMode, sessionExpired }: LoginNoticeProps) {
+  const t = useTranslations();
 
-  return (
-    <Alert status='success' title={t(`${mode}.success.title`)} message={t(`${mode}.success.message`)} />
-  );
+  if (completedPasswordMode) {
+    return (
+      <Alert
+        status='success'
+        title={t(`PasswordRecovery.${completedPasswordMode}.success.title`)}
+        message={t(`PasswordRecovery.${completedPasswordMode}.success.message`)}
+      />
+    );
+  }
+
+  if (sessionExpired) {
+    return (
+      <Alert
+        status='warning'
+        role='status'
+        title={t('Login.sessionExpired.title')}
+        message={t('Login.sessionExpired.message')}
+      />
+    );
+  }
+
+  return null;
 }
 
-export function LoginFormSkeleton({ completedPasswordMode }: {
-  completedPasswordMode?: PasswordFormMode;
-}) {
+export function LoginFormSkeleton(notice: LoginNoticeProps) {
   const t = useTranslations('Login');
   const actionClassName = buttonVariants({ variant: 'ghost' });
   const afterFields = (
@@ -66,10 +88,10 @@ export function LoginFormSkeleton({ completedPasswordMode }: {
 
   return (
     <LoginFormCard>
-      {completedPasswordMode && (
+      {(notice.completedPasswordMode || notice.sessionExpired) && (
         <div aria-hidden='true' className='relative flow-root'>
           <div className='invisible'>
-            <PasswordCompletionNotice mode={completedPasswordMode} />
+            <LoginNotice {...notice} />
           </div>
           <Skeleton className='absolute inset-x-0 top-0 bottom-4 rounded-2xl' />
         </div>

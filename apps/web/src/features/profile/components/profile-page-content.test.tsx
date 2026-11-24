@@ -407,7 +407,7 @@ describe('ProfilePageContent integration', () => {
     ).toBeTruthy();
     expect(screen.queryByText(esMessages.Profile.loadError)).toBeNull();
     expect(
-      screen.getByRole('button', { name: esMessages.Profile.edit }),
+      await screen.findByRole('button', { name: esMessages.Profile.edit }),
     ).toBeTruthy();
     expect(loadProfile).toHaveBeenCalledOnce();
   });

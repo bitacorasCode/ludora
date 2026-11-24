@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ACTION_ERROR_CODES, OPERATION_STATUS } from '@/lib/actions';
 import { API_ERROR_CODES, HTTP_STATUS } from '@/lib/api';
-import { getCurrentUser } from '@/lib/auth';
 
 import { currentUser } from '../../../test/fixtures/current-user';
 import { saveProfile } from './actions';
@@ -12,7 +11,6 @@ import { profileApi } from './server/profile-api';
 vi.mock('@/lib/api', async () => ({
   ...(await import('@/lib/api/constants')),
 }));
-vi.mock('@/lib/auth', () => ({ getCurrentUser: vi.fn() }));
 vi.mock('./server/profile-api', () => ({
   profileApi: { save: vi.fn() },
 }));
@@ -25,7 +23,6 @@ const otherUserId = '223e4567-e89b-42d3-a456-426614174000';
 
 beforeEach(() => {
   vi.resetAllMocks();
-  vi.mocked(getCurrentUser).mockResolvedValue(currentUser);
   vi.mocked(profileApi.save).mockResolvedValue({
     status: OPERATION_STATUS.success,
     data: { userId: currentUser.id, ...validData },
@@ -42,8 +39,7 @@ describe('saveProfile', () => {
       status: OPERATION_STATUS.success,
       data: { userId: currentUser.id, ...validData },
     });
-    expect(getCurrentUser).toHaveBeenCalledOnce();
-    expect(profileApi.save).toHaveBeenCalledExactlyOnceWith(validData);
+    expect(profileApi.save).toHaveBeenCalledExactlyOnceWith({ ...validData, expectedUserId: currentUser.id });
   });
 
   it.each([
@@ -57,37 +53,18 @@ describe('saveProfile', () => {
       status: OPERATION_STATUS.error,
       error: { errorCode: ACTION_ERROR_CODES.validationFailed },
     });
-    expect(getCurrentUser).not.toHaveBeenCalled();
     expect(profileApi.save).not.toHaveBeenCalled();
   });
 
-  it('rejects a missing session before modifying a profile', async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue(null);
-
-    expect(await saveProfile(currentUser.id, validData)).toEqual({
+  it('preserves an authentication failure from the guarded update', async () => {
+    const failure = {
       status: OPERATION_STATUS.error,
-      error: {
-        errorCode: API_ERROR_CODES.authenticationRequired,
-        statusCode: HTTP_STATUS.unauthorized,
-      },
-    });
-    expect(profileApi.save).not.toHaveBeenCalled();
-  });
+      error: { errorCode: API_ERROR_CODES.authenticationRequired, statusCode: HTTP_STATUS.unauthorized },
+    } as const;
+    vi.mocked(profileApi.save).mockResolvedValue(failure);
 
-  it('rejects an account change before modifying the newly signed-in user', async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue({
-      ...currentUser,
-      id: otherUserId,
-    });
-
-    expect(await saveProfile(currentUser.id, validData)).toEqual({
-      status: OPERATION_STATUS.error,
-      error: {
-        errorCode: API_ERROR_CODES.authenticationRequired,
-        statusCode: HTTP_STATUS.unauthorized,
-      },
-    });
-    expect(profileApi.save).not.toHaveBeenCalled();
+    expect(await saveProfile(currentUser.id, validData)).toEqual(failure);
+    expect(profileApi.save).toHaveBeenCalledExactlyOnceWith({ ...validData, expectedUserId: currentUser.id });
   });
 
   it('preserves API errors and retry information', async () => {
@@ -104,12 +81,9 @@ describe('saveProfile', () => {
     expect(await saveProfile(currentUser.id, validData)).toEqual(failure);
   });
 
-  it('does not mutate a profile when the current session cannot be checked', async () => {
-    vi.mocked(getCurrentUser).mockRejectedValue(new Error('API unavailable'));
+  it('propagates configuration errors from the update request', async () => {
+    vi.mocked(profileApi.save).mockRejectedValue(new Error('Invalid API_URL'));
 
-    await expect(saveProfile(currentUser.id, validData)).rejects.toThrow(
-      'API unavailable',
-    );
-    expect(profileApi.save).not.toHaveBeenCalled();
+    await expect(saveProfile(currentUser.id, validData)).rejects.toThrow('Invalid API_URL');
   });
 });

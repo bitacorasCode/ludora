@@ -74,7 +74,7 @@ describe('requestPasswordCreation', () => {
 });
 
 describe('changePassword', () => {
-  it('sends only current and new passwords and rotates the HttpOnly session', async () => {
+  it('sends the passwords and expected account ID before rotating the HttpOnly session', async () => {
     expect(await changePassword('es', currentUser.id, validData)).toEqual({
       status: OPERATION_STATUS.success,
       data: null,
@@ -82,7 +82,9 @@ describe('changePassword', () => {
     expect(authenticatedApi.post).toHaveBeenCalledExactlyOnceWith('/auth/change-password', {
       currentPassword: validData.currentPassword,
       password: validData.newPassword,
+      expectedUserId: currentUser.id,
     });
+    expect(getCurrentUser).not.toHaveBeenCalled();
     expect(createSession).toHaveBeenCalledExactlyOnceWith({ ...sessionCredentials, user: { id: currentUser.id } });
   });
 
@@ -107,21 +109,27 @@ describe('changePassword', () => {
     expect(createSession).not.toHaveBeenCalled();
   });
 
-  it.each([null, { ...currentUser, id: otherUserId }])(
-    'rejects missing or changed accounts without changing their password', async (user) => {
-      vi.mocked(getCurrentUser).mockResolvedValue(user);
+  it('preserves an authentication failure from the guarded password change', async () => {
+    const failure = {
+      status: OPERATION_STATUS.error,
+      error: { errorCode: API_ERROR_CODES.authenticationRequired, statusCode: HTTP_STATUS.unauthorized },
+    } as const;
+    vi.mocked(authenticatedApi.post).mockResolvedValue(failure);
 
-      expect(await changePassword('es', currentUser.id, validData)).toEqual({
-        status: OPERATION_STATUS.error,
-        error: {
-          errorCode: API_ERROR_CODES.authenticationRequired,
-          statusCode: HTTP_STATUS.unauthorized,
-        },
-      });
-      expect(authenticatedApi.post).not.toHaveBeenCalled();
-      expect(createSession).not.toHaveBeenCalled();
-    },
-  );
+    expect(await changePassword('es', currentUser.id, validData)).toEqual(failure);
+    expect(createSession).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid account ID before calling the API', async () => {
+    const result = await changePassword('es', 'not-a-uuid', validData);
+
+    expect(result).toEqual({
+      status: OPERATION_STATUS.error,
+      error: { errorCode: API_ERROR_CODES.authenticationRequired, statusCode: HTTP_STATUS.unauthorized },
+    });
+    expect(authenticatedApi.post).not.toHaveBeenCalled();
+    expect(createSession).not.toHaveBeenCalled();
+  });
 
   it('preserves a request limit and its waiting period', async () => {
     const failure = {

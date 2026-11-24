@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { vi } from 'vitest';
 
-import { SINGLE_RECORD_COUNT } from '../../common/constants/database.js';
+import { authenticationUser } from '../../../test/fixtures/auth-users.js';
 import type { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersRepository } from './users.repository.js';
@@ -13,7 +13,7 @@ describe('UsersRepository authentication queries', () => {
     const passwordHash = 'new-password-hash';
     const publicSelection = { id: true, nickname: true, email: true, createdAt: true };
     const databaseQueries = { findUnique: vi.fn(), update: vi.fn() };
-    const transactionQueries = { update: vi.fn(), updateMany: vi.fn() };
+    const transactionQueries = { update: vi.fn(), updateManyAndReturn: vi.fn() };
     const transaction = { user: transactionQueries } as unknown as Prisma.TransactionClient;
 
     beforeEach(async () => {
@@ -109,25 +109,28 @@ describe('UsersRepository authentication queries', () => {
         };
 
         it('should compare the verified hash and auth version in the update that changes both values', async () => {
-            transactionQueries.updateMany.mockResolvedValue({ count: SINGLE_RECORD_COUNT });
+            const updatedUser = { ...authenticationUser, authVersion: change.expectedAuthVersion + 1 };
+            transactionQueries.updateManyAndReturn.mockResolvedValue([updatedUser]);
 
-            await expect(repository.changePasswordIfCurrent(change, transaction)).resolves.toBe(true);
+            await expect(repository.changePasswordIfCurrent(change, transaction)).resolves.toEqual(updatedUser);
 
-            expect(transactionQueries.updateMany).toHaveBeenCalledExactlyOnceWith({
+            expect(transactionQueries.updateManyAndReturn).toHaveBeenCalledExactlyOnceWith({
                 where: {
                     id: userId,
                     passwordHash: change.expectedPasswordHash,
                     authVersion: change.expectedAuthVersion,
+                    emailVerifiedAt: { not: null },
                 },
                 data: { passwordHash, authVersion: { increment: 1 } },
+                select: { ...publicSelection, authVersion: true, emailVerifiedAt: true },
             });
             expect(transactionQueries.update).not.toHaveBeenCalled();
         });
 
         it('should report a stale comparison without treating it as a successful change', async () => {
-            transactionQueries.updateMany.mockResolvedValue({ count: 0 });
+            transactionQueries.updateManyAndReturn.mockResolvedValue([]);
 
-            await expect(repository.changePasswordIfCurrent(change, transaction)).resolves.toBe(false);
+            await expect(repository.changePasswordIfCurrent(change, transaction)).resolves.toBeNull();
         });
     });
 });

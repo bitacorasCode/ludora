@@ -12,8 +12,11 @@ type SessionRecoveryContextValue = ReturnType<
 const SessionRecoveryContext =
   createContext<SessionRecoveryContextValue | null>(null);
 
-export function SessionBoundary({ children }: { children: ReactNode }) {
-  const value = useSessionRecoveryController();
+export function SessionBoundary({ children, inAccount = false }: {
+  children: ReactNode;
+  inAccount?: boolean;
+}) {
+  const value = useSessionRecoveryController({ inAccount });
 
   return (
     <SessionRecoveryContext.Provider value={value}>

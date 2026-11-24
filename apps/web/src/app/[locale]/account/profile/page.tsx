@@ -27,7 +27,7 @@ async function ProfileContent({ user, fallback }: { user: CurrentUser; fallback:
   const result = validateProfileOwner(await profileApi.get(), user.id);
 
   if (result.status === OPERATION_STATUS.error && isAuthenticationError(result.error)) {
-    return <SessionRecovery fallback={fallback} inline />;
+    return <SessionRecovery fallback={fallback} inAccount />;
   }
 
   return <ProfilePageContent userId={user.id} nickname={user.nickname} initialResult={result} />;

@@ -1,4 +1,4 @@
-import { AUTH_NEXT_STEP } from '@ludora/security';
+import { AUTH_NEXT_STEP } from '@ludora/contracts/auth';
 import { Test } from '@nestjs/testing';
 import { vi } from 'vitest';
 
@@ -30,7 +30,6 @@ describe('OAuthAccountService', () => {
     const usersService = {
         create: vi.fn<UsersService['create']>(),
         findIdByEmail: vi.fn<UsersService['findIdByEmail']>(),
-        markEmailVerifiedIfPending: vi.fn<UsersService['markEmailVerifiedIfPending']>(),
         findAuthenticationById: vi.fn<(
             ...args: Parameters<UsersService['findAuthenticationById']>
         ) => Promise<Awaited<ReturnType<UsersService['findAuthenticationById']>>>>(),
@@ -50,14 +49,12 @@ describe('OAuthAccountService', () => {
     };
     const verificationService = {
         create: vi.fn<EmailVerificationService['create']>(),
-        send: vi.fn<EmailVerificationService['send']>(),
     };
 
     beforeEach(async () => {
         vi.resetAllMocks();
-        usersService.create.mockResolvedValue(publicUser);
+        usersService.create.mockResolvedValue(authenticationUser);
         usersService.findIdByEmail.mockResolvedValue(null);
-        usersService.markEmailVerifiedIfPending.mockResolvedValue(true);
         usersService.findAuthenticationById.mockResolvedValue(authenticationUser);
         identities.findByProviderUserId.mockResolvedValue(null);
         authSessions.create.mockResolvedValue({ ...sessionCredentials, user: publicUser });
@@ -124,11 +121,10 @@ describe('OAuthAccountService', () => {
                 user: publicUser,
             });
             expect(oauthTokens.verifyRegistration).toHaveBeenCalledExactlyOnceWith(grant.registrationToken);
-            expect(usersService.create).toHaveBeenCalledExactlyOnceWith({ nickname: user.nickname, email: user.email, passwordHash: null }, transaction);
+            expect(usersService.create).toHaveBeenCalledExactlyOnceWith({ nickname: user.nickname, email: user.email, passwordHash: null, emailVerifiedAt: expect.any(Date) }, transaction);
             expect(identities.create).toHaveBeenCalledExactlyOnceWith({ userId: user.id, provider: identity.provider, providerUserId: identity.providerUserId }, transaction);
-            expect(usersService.markEmailVerifiedIfPending).toHaveBeenCalledExactlyOnceWith(user.id, transaction);
+            expect(usersService.findAuthenticationById).not.toHaveBeenCalled();
             expect(verificationService.create).not.toHaveBeenCalled();
-            expect(verificationService.send).not.toHaveBeenCalled();
         });
 
         it('rejects an existing email instead of linking an unrecognized identity automatically', async () => {

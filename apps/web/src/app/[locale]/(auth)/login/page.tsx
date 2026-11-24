@@ -6,6 +6,7 @@ import { Suspense } from 'react';
 import { LoginFormCard, LoginFormSkeleton, LoginPageContent } from '@/features/login';
 import { PASSWORD_RECOVERY_COMPLETION_PARAM } from '@/features/password-recovery/schema';
 import { getSocialAuthCallbackError } from '@/features/social-auth/locations';
+import { SESSION_EXPIRED_NOTICE } from '@/lib/session/constants';
 
 import { GuestOnly } from '../../_components/auth/guest-only';
 
@@ -42,15 +43,17 @@ async function LoginContent({
     || passwordUpdated === PASSWORD_FORM_MODE.reset
     ? passwordUpdated
     : undefined;
+  const sessionExpired = query[SESSION_EXPIRED_NOTICE.param] === SESSION_EXPIRED_NOTICE.value;
+  const notice = { completedPasswordMode, sessionExpired };
 
   return (
     <GuestOnly
       locale={locale}
-      fallback={<LoginFormSkeleton completedPasswordMode={completedPasswordMode} />}
+      fallback={<LoginFormSkeleton {...notice} />}
     >
       <LoginPageContent
         socialAuthError={socialAuthError ?? undefined}
-        completedPasswordMode={completedPasswordMode}
+        {...notice}
       />
     </GuestOnly>
   );

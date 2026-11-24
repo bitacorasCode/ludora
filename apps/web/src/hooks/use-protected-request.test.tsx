@@ -1,4 +1,5 @@
 import { act, cleanup, renderHook } from '@testing-library/react';
+import { NextIntlClientProvider } from 'next-intl';
 import {
   Activity,
   type Dispatch,
@@ -22,7 +23,10 @@ import { useProtectedRequest } from './use-protected-request';
 
 const router = vi.hoisted(() => ({ refresh: vi.fn() }));
 
-vi.mock('next/navigation', () => ({ useRouter: () => router }));
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  useRouter: () => router,
+}));
 vi.mock('@/lib/session/actions', () => ({
   refreshSession: vi.fn(),
   recordSessionActivity: vi.fn(),
@@ -53,9 +57,11 @@ function Wrapper({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <SessionBoundary>
-      <Activity mode={mode}>{children}</Activity>
-    </SessionBoundary>
+    <NextIntlClientProvider locale='en'>
+      <SessionBoundary>
+        <Activity mode={mode}>{children}</Activity>
+      </SessionBoundary>
+    </NextIntlClientProvider>
   );
 }
 

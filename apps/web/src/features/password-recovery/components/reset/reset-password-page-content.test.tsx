@@ -1,3 +1,4 @@
+import { AUTH_VALIDATION } from '@ludora/contracts/auth';
 import { AUTH_ERROR_CODES, PASSWORD_FORM_MODE, type PasswordFormMode } from '@ludora/security';
 import {
   act,
@@ -19,12 +20,17 @@ import { API_ERROR_CODES, HTTP_STATUS } from '@/lib/api/constants';
 import esMessages from '@/messages/es.json';
 
 import { resetPassword } from '../../actions';
+import { PASSWORD_RECOVERY_COMPLETION_PARAM } from '../../schema';
 import { ResetPasswordPageContent } from './reset-password-page-content';
 
 const token = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
 const replacementToken = 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB';
 const newPassword = 'NewPassword123!';
-const PASSWORD_RESET_SUCCESS_TOAST_ID = 'password-reset-success';
+const validation = createTranslator({
+  locale: 'es',
+  messages: esMessages,
+  namespace: 'PasswordRecovery.validation',
+});
 const RETRY_AFTER_SECONDS = 45;
 const commonStatus = createTranslator({
   locale: 'es',
@@ -65,7 +71,7 @@ beforeEach(() => {
     status: OPERATION_STATUS.success,
     data: null,
   });
-  vi.spyOn(toast, 'success').mockReturnValue(PASSWORD_RESET_SUCCESS_TOAST_ID);
+  vi.spyOn(toast, 'success').mockReturnValue('password-reset-success');
   vi.spyOn(toast, 'error').mockReturnValue('password-reset-error');
   vi.spyOn(toast, 'dismiss').mockImplementation((id) => id ?? 'all-toasts');
 });
@@ -117,7 +123,7 @@ describe('ResetPasswordPageContent integration', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Cambiar contraseña' }));
 
-    expect(await screen.findByText(esMessages.PasswordRecovery.validation.passwordMin)).toBeTruthy();
+    expect(await screen.findByText(validation('passwordMin', { minLength: AUTH_VALIDATION.passwordMinLength }))).toBeTruthy();
     expect(screen.getByText(esMessages.PasswordRecovery.validation.confirmPasswordRequired)).toBeTruthy();
   });
 
@@ -161,11 +167,11 @@ describe('ResetPasswordPageContent integration', () => {
     expect(screen.getByLabelText('Confirmar contraseña nueva').getAttribute('type')).toBe('password');
   });
 
-  it.each([PASSWORD_FORM_MODE.reset, PASSWORD_FORM_MODE.create])('submits and confirms the %s flow before navigating to login', async (mode) => {
+  it.each([PASSWORD_FORM_MODE.reset, PASSWORD_FORM_MODE.create])('redirects to the matching login confirmation after the %s flow', async (mode) => {
     const feedback = esMessages.PasswordRecovery[mode];
     const pending = Promise.withResolvers<Awaited<ReturnType<typeof resetPassword>>>();
     vi.mocked(resetPassword).mockReturnValue(pending.promise);
-    const { unmount } = renderPasswordReset(token, mode);
+    renderPasswordReset(token, mode);
     expect(screen.getByRole('button', { name: feedback.submit })).toBeTruthy();
     submitValidPasswordReset();
 
@@ -176,21 +182,14 @@ describe('ResetPasswordPageContent integration', () => {
     ));
     expect(screen.getByRole('button', { name: feedback.submitting })).toHaveProperty('disabled', true);
     await act(async () => pending.resolve({ status: OPERATION_STATUS.success, data: null }));
-    await waitFor(() => expect(toast.success).toHaveBeenCalledExactlyOnceWith(
-      feedback.success.title,
-      {
-        id: PASSWORD_RESET_SUCCESS_TOAST_ID,
-        description: feedback.success.message,
-      },
-    ));
-    expect(router.replace).toHaveBeenCalledExactlyOnceWith(APP_ROUTES.login);
+    await waitFor(() => expect(router.replace).toHaveBeenCalledExactlyOnceWith({
+      pathname: APP_ROUTES.login,
+      query: { [PASSWORD_RECOVERY_COMPLETION_PARAM]: mode },
+    }));
     expect(router.refresh).toHaveBeenCalledOnce();
-    expect(toast.success).toHaveBeenCalledBefore(router.replace);
     expect((screen.getByLabelText(esMessages.PasswordRecovery.fields.password.label) as HTMLInputElement).value).toBe('');
     expect((screen.getByLabelText(esMessages.PasswordRecovery.fields.confirmPassword.label) as HTMLInputElement).value).toBe('');
 
-    unmount();
-    expect(toast.dismiss).not.toHaveBeenCalledWith(PASSWORD_RESET_SUCCESS_TOAST_ID);
   });
 
   it('shows a focused and accessible recovery action when the token is missing', async () => {
@@ -376,7 +375,10 @@ describe('ResetPasswordPageContent integration', () => {
       replacementToken,
       { password: newPassword, confirmPassword: newPassword },
     ));
-    await waitFor(() => expect(router.replace).toHaveBeenCalledExactlyOnceWith(APP_ROUTES.login));
+    await waitFor(() => expect(router.replace).toHaveBeenCalledExactlyOnceWith({
+      pathname: APP_ROUTES.login,
+      query: { [PASSWORD_RECOVERY_COMPLETION_PARAM]: PASSWORD_FORM_MODE.reset },
+    }));
   });
 
   it('ignores a result from the previous locale', async () => {

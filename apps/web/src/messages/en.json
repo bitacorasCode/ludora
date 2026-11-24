@@ -177,6 +177,10 @@
         },
         "forgotPassword": "Forgot your password?",
         "register": "Create an account",
+        "sessionExpired": {
+            "message": "Sign in again to continue.",
+            "title": "Your session expired"
+        },
         "skipToForm": "Skip to sign in form",
         "submit": "Sign in",
         "submitting": "Signing in...",

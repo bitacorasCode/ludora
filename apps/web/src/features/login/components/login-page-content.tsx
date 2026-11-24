@@ -1,6 +1,5 @@
 'use client';
 
-import type { PasswordFormMode } from '@ludora/contracts/auth';
 import { useTranslations } from 'next-intl';
 
 import { TransitionAlert } from '@/components/feedback';
@@ -13,14 +12,13 @@ import type { ActionError } from '@/lib/actions';
 
 import { LOGIN_ERROR_CODES, LOGIN_FORM_ID } from '../config';
 import useLoginForm from '../hooks/use-login-form';
-import { LoginFormCard, PasswordCompletionNotice } from './login-form-card';
+import { LoginFormCard, LoginNotice, type LoginNoticeProps } from './login-form-card';
 
 export function LoginPageContent({
   socialAuthError,
-  completedPasswordMode,
-}: {
+  ...notice
+}: LoginNoticeProps & {
   socialAuthError?: ActionError;
-  completedPasswordMode?: PasswordFormMode;
 }) {
   const t = useTranslations('Login');
 
@@ -34,9 +32,7 @@ export function LoginPageContent({
 
   return (
     <LoginFormCard>
-      {completedPasswordMode && (
-        <PasswordCompletionNotice mode={completedPasswordMode} />
-      )}
+      <LoginNotice {...notice} />
       <SocialAuthOptions
         disabled={isSubmitting}
         callbackError={socialAuthError}

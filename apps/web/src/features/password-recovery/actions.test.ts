@@ -1,4 +1,4 @@
-import { AUTH_ERROR_CODES } from '@ludora/security';
+import { AUTH_ERROR_CODES, AUTH_VALIDATION } from '@ludora/contracts/auth';
 import { createTranslator } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -33,13 +33,14 @@ const rateLimitFailure = {
   },
 } as const;
 
+const translator = createTranslator({
+  locale: 'es',
+  messages: esMessages,
+  namespace: 'PasswordRecovery.validation',
+});
+
 beforeEach(() => {
   vi.resetAllMocks();
-  const translator = createTranslator({
-    locale: 'es',
-    messages: esMessages,
-    namespace: 'PasswordRecovery.validation',
-  });
   vi.mocked(getTranslations).mockResolvedValue(
     translator as Awaited<ReturnType<typeof getTranslations>>,
   );
@@ -238,7 +239,7 @@ describe('resetPassword', () => {
   it.each([
     {
       data: { ...resetData, password: 'short', confirmPassword: 'short' },
-      message: esMessages.PasswordRecovery.validation.passwordMin,
+      message: translator('passwordMin', { minLength: AUTH_VALIDATION.passwordMinLength }),
     },
     {
       data: { ...resetData, confirmPassword: '' },

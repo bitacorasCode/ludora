@@ -132,13 +132,9 @@ describe('RecoveryRequestPageContent integration', () => {
       'es',
       { email: 'juan@example.com' },
     ));
-    await waitFor(() => expect(toast.success).toHaveBeenCalledExactlyOnceWith(
-      esMessages.PasswordRecovery.request.success.title,
-      {
-        id: 'recovery-request-success',
-        description: esMessages.PasswordRecovery.request.success.message,
-      },
-    ));
+    expect(await screen.findByText(esMessages.PasswordRecovery.request.success.title)).toBeTruthy();
+
+    expect(screen.getByText(esMessages.PasswordRecovery.request.success.message)).toBeTruthy();
 
     await waitFor(() => expect(
       screen.getByRole('button', {
@@ -150,7 +146,7 @@ describe('RecoveryRequestPageContent integration', () => {
       target: { value: 'not-an-email' },
     });
     expect(requestPasswordRecovery).toHaveBeenCalledOnce();
-    expect(toast.success).toHaveBeenCalledOnce();
+    expect(screen.queryByText(esMessages.PasswordRecovery.request.success.message)).toBeNull();
   });
 
   it('disables the form and prevents duplicate submissions while the action is pending', async () => {
@@ -178,7 +174,7 @@ describe('RecoveryRequestPageContent integration', () => {
       name: esMessages.PasswordRecovery.request.submit,
     }).hasAttribute('disabled')).toBe(false));
     expect(requestPasswordRecovery).toHaveBeenCalledOnce();
-    expect(toast.success).toHaveBeenCalledOnce();
+    expect(screen.getByText(esMessages.PasswordRecovery.request.success.message)).toBeTruthy();
   });
 
   it('translates API failures and keeps the error visible while editing', async () => {

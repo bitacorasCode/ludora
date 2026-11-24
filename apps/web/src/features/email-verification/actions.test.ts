@@ -10,6 +10,7 @@ import esMessages from '@/messages/es.json';
 
 import { sessionCredentials } from '../../../test/fixtures/session-credentials';
 import { resendVerification, verifyEmail } from './actions';
+import { EMAIL_VERIFICATION_API_TIMEOUT_MS } from './config';
 
 vi.mock('next-intl/server', () => ({ getTranslations: vi.fn() }));
 vi.mock('@/lib/api', async () => ({
@@ -166,24 +167,30 @@ describe('resendVerification', () => {
     expect(createSession).not.toHaveBeenCalled();
   });
 
-  it.each([true, false])('returns the renewed verification when emailSent is %s', async (emailSent) => {
+  it.each([
+    { emailSent: false, emailQueued: true },
+    { emailSent: true },
+    { emailSent: false },
+  ])('returns the renewed verification delivery status: %j', async (delivery) => {
     vi.mocked(publicApi.post).mockResolvedValue({
       status: OPERATION_STATUS.success,
-      data: { verification: { ...verification, emailSent } },
+      data: { verification: { ...verification, ...delivery } },
     });
 
     expect(await resendVerification('es', { verificationId: validData.verificationId })).toEqual({
       status: OPERATION_STATUS.success,
       data: {
         verificationId: validData.verificationId,
-        emailSent,
+        ...delivery,
         resendAvailableAt: verification.resendAvailableAt,
         retryAfterSeconds: 60,
       },
     });
-    expect(publicApi.post).toHaveBeenCalledExactlyOnceWith('/auth/resend-verification', {
-      verificationId: validData.verificationId,
-    });
+    expect(publicApi.post).toHaveBeenCalledExactlyOnceWith(
+      '/auth/resend-verification',
+      { verificationId: validData.verificationId },
+      { timeoutMs: EMAIL_VERIFICATION_API_TIMEOUT_MS },
+    );
   });
 
   it.each([

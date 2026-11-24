@@ -49,12 +49,15 @@ export async function fetchCurrentUser(): Promise<ActionResult<CurrentUser>> {
     return { status: OPERATION_STATUS.success, data: validation.data.user };
 }
 
+export const getCurrentUserResult = cache(async () => {
+    // Keep session validation outside build-time and runtime prerenders.
+    await io();
+    return fetchCurrentUser();
+});
+
 export const getCurrentUser = cache(
     async (): Promise<CurrentUser | null> => {
-        // Keep session validation outside build-time and runtime prerenders.
-        await io();
-
-        const result = await fetchCurrentUser();
+        const result = await getCurrentUserResult();
 
         if (result.status === OPERATION_STATUS.error) {
             if (isAuthenticationError(result.error)) {

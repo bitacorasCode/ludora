@@ -87,10 +87,8 @@ describe('UserSettingsPageContent', () => {
 
     await act(async () => pending.resolve({ status: OPERATION_STATUS.success, data: null }));
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledExactlyOnceWith(messages.create.success.title, {
-      id: 'password-creation-request',
-      description: messages.create.success.message,
-    }));
+    expect(await screen.findByText(messages.create.success.title)).toBeTruthy();
+    expect(screen.getByText(messages.create.success.message)).toBeTruthy();
     expect(changePassword).not.toHaveBeenCalled();
     expect(router.refresh).not.toHaveBeenCalled();
   });

@@ -43,7 +43,6 @@ describe('AuthService', () => {
         confirm: vi.fn<EmailVerificationService['confirm']>(),
         resend: vi.fn<EmailVerificationService['resend']>(),
         create: vi.fn<EmailVerificationService['create']>(),
-        send: vi.fn<EmailVerificationService['send']>(),
     };
     const prisma = {
         $transaction: vi.fn(async <T>(operation: (client: Prisma.TransactionClient) => Promise<T>) =>
@@ -88,7 +87,6 @@ describe('AuthService', () => {
             expect(authSessions.create).not.toHaveBeenCalled();
             expect(verificationService.create).not.toHaveBeenCalled();
             expect(verificationService.resend).not.toHaveBeenCalled();
-            expect(verificationService.send).not.toHaveBeenCalled();
         });
 
         it('should reject an incorrect password before exposing pending verification', async () => {
@@ -142,7 +140,6 @@ describe('AuthService', () => {
 
             expect(authSessions.create).not.toHaveBeenCalled();
             expect(verificationService.create).not.toHaveBeenCalled();
-            expect(verificationService.send).not.toHaveBeenCalled();
         });
     });
 
@@ -200,7 +197,7 @@ describe('AuthService', () => {
 
     describe('resendVerification', () => {
         it('should delegate resending to email verification without issuing a JWT', async () => {
-            const result = { verification: { ...verification, emailSent: true } };
+            const result = { verification: { ...verification, emailSent: false, emailQueued: true } };
             verificationService.resend.mockResolvedValue(result);
 
             await expect(service.resendVerification({ verificationId: verification.id })).resolves.toEqual(result);

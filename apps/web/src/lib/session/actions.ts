@@ -4,14 +4,18 @@ import { Buffer } from 'node:buffer';
 
 import { AUTH_ERROR_CODES } from '@ludora/contracts/auth';
 import { SESSION_ACTIVITY_INTERVAL_SECONDS } from '@ludora/security';
+import { redirect, RedirectType } from 'next/navigation';
 import { z } from 'zod';
 
+import { getPathname } from '@/i18n/navigation';
+import { resolveLocale } from '@/i18n/resolve-locale';
 import { type ActionResult, isAuthenticationError, OPERATION_STATUS } from '@/lib/actions';
 import { API_ERROR_CODES, authenticatedApi, HTTP_STATUS, publicApi } from '@/lib/api';
 import { fetchCurrentUser } from '@/lib/auth/get-current-user';
 import { authResponseSchema } from '@/lib/auth/schemas';
 import { MILLISECONDS_PER_SECOND } from '@/lib/time';
 
+import { SESSION_EXPIRED_LOGIN_LOCATION } from './constants';
 import { type RefreshSessionResult, SESSION_REFRESH_OUTCOME } from './refresh-result';
 import { createSession, deleteSession, getRefreshToken, getSessionToken } from './session';
 
@@ -104,4 +108,17 @@ export async function refreshSession(): Promise<RefreshSessionResult> {
     }
 
     return rotation;
+}
+
+export async function refreshAccountSession(locale: string): Promise<RefreshSessionResult> {
+    const result = await refreshSession();
+
+    if (result.status === OPERATION_STATUS.success && result.data === SESSION_REFRESH_OUTCOME.ended) {
+        redirect(
+            getPathname({ href: SESSION_EXPIRED_LOGIN_LOCATION, locale: resolveLocale(locale) }),
+            RedirectType.replace,
+        );
+    }
+
+    return result;
 }

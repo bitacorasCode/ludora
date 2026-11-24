@@ -156,7 +156,8 @@ authorization on protected operations.
   boundary. Use the same fallback for that region during renewal. If the browser
   has a refresh cookie but lacks a valid access token, it attempts renewal on the
   requested page. Temporary failures show a retry control. Requests without
-  recoverable credentials redirect to login.
+  recoverable credentials redirect to login. When Account recovery ends a
+  session, the login page asks the user to sign in again.
   If the shared header still shows an authenticated user on login, it requests
   a fresh server render once to update both desktop and mobile links.
 - Home renders immediately and attempts session recovery in the background
@@ -211,11 +212,12 @@ outages or expired sessions.
 
 Tests cover replacement and removal of both cookies, a single retry after
 confirmed authentication rejection, and header updates on login and logout
-across tabs. Deferred coverage includes matching skeletons during route loading
-and session renewal, session reads during partial prefetching, early renewal on
-activity, concurrent cookie writes during refresh or password change, logout
-during refresh or without a refresh cookie, and failed renewals that preserve
-the current cookies.
+across tabs. Browser tests also check the expired-session notice and recovery
+from a temporary session lookup failure. Deferred coverage includes matching
+skeletons during route loading and session renewal, session reads during
+partial prefetching, early renewal on activity, concurrent cookie writes during
+refresh or password change, logout during refresh or without a refresh cookie,
+and failed renewals that preserve the current cookies.
 
 The recovery request returns a generic confirmation without exposing whether an
 account exists. Reset links are validated on submission, are single-use, and
@@ -403,9 +405,6 @@ it with `pnpm --filter web exec vitest --clearCache`.
 Coverage reports are written to `apps/web/coverage`, including
 `coverage/index.html`. Real navigation, layout, and browser lifecycle behavior
 are covered by Playwright rather than jsdom alone.
-
-Test maintenance for the retired date, file, number, and select form wrappers
-and the `text` variant of `ContentSkeleton` is deferred until requested.
 
 ### Browser tests
 

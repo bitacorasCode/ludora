@@ -6,20 +6,21 @@ import { NavigationGuardProvider } from '@/components/navigation';
 import { Skeleton } from '@/components/ui';
 import { AccountShell } from '@/features/account';
 import { LogoutButton } from '@/features/logout';
-import { getCurrentUser } from '@/lib/auth';
+import { OPERATION_STATUS } from '@/lib/actions';
+import { getCurrentUserResult } from '@/lib/auth';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
 async function AccountActions() {
-  const user = await getCurrentUser();
+  const session = await getCurrentUserResult();
 
-  if (!user) return null;
+  if (session.status === OPERATION_STATUS.error) return null;
 
   return (
     <>
-      <SessionActivity key={user.id} />
+      <SessionActivity key={session.data.id} />
       <LogoutButton />
     </>
   );
@@ -35,7 +36,7 @@ export default function AccountLayout({ children }: LayoutProps<'/[locale]/accou
   );
 
   return (
-    <SessionBoundary>
+    <SessionBoundary inAccount>
       <NavigationGuardProvider>
         <AccountShell actions={actions}>{children}</AccountShell>
       </NavigationGuardProvider>

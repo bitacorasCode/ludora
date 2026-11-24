@@ -12,12 +12,17 @@ import { useRequestScope } from '@/hooks/use-request-scope';
 import { Link } from '@/i18n/navigation';
 import { type ActionError, OPERATION_STATUS } from '@/lib/actions';
 
-export function SessionRecovery({ fallback, inline = false }: { fallback?: ReactNode; inline?: boolean }) {
+export function SessionRecovery({ fallback, inAccount = false, initialError }: {
+  fallback?: ReactNode;
+  inAccount?: boolean;
+  initialError?: ActionError;
+}) {
   const common = useTranslations('Common');
+  const session = useTranslations('Header.session');
   const routeError = useTranslations('RouteError');
-  const { recoverSession } = useSessionRecoveryController();
+  const { recoverSession } = useSessionRecoveryController({ inAccount });
   const { capture } = useRequestScope();
-  const [error, setError] = useState<ActionError | null>(null);
+  const [error, setError] = useState<ActionError | null>(initialError ?? null);
   const showFeedback = fallback !== undefined;
 
   const recover = useCallback(() => {
@@ -30,7 +35,9 @@ export function SessionRecovery({ fallback, inline = false }: { fallback?: React
     });
   }, [capture, recoverSession, showFeedback]);
 
-  useEffect(recover, [recover]);
+  useEffect(() => {
+    if (!initialError) recover();
+  }, [initialError, recover]);
 
   if (!showFeedback) return null;
   if (!error) return fallback;
@@ -47,7 +54,7 @@ export function SessionRecovery({ fallback, inline = false }: { fallback?: React
 
   const feedback = (
     <ErrorState
-      title={routeError('title')}
+      title={initialError ? session('unavailable') : routeError('title')}
       description={description}
       primaryAction={(
         <Button type='button' onClick={retry}>{common('actions.retry')}</Button>
@@ -60,7 +67,7 @@ export function SessionRecovery({ fallback, inline = false }: { fallback?: React
     />
   );
 
-  if (inline) return feedback;
+  if (inAccount) return feedback;
 
   return <PageContainer><PageSection>{feedback}</PageSection></PageContainer>;
 }

@@ -3,13 +3,15 @@ import { createTranslator, NextIntlClientProvider } from 'next-intl';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { NavigationGuardProvider } from '@/components/navigation';
+import { APP_ROUTES } from '@/config/routes';
 import { getCurrentUser } from '@/lib/auth';
 import esMessages from '@/messages/es.json';
 
 import { currentUser } from '../../../../../test/fixtures/current-user';
 import { Header } from './header';
 
+const accountLinkName = new RegExp(currentUser.nickname);
+const pathname = vi.hoisted(() => ({ current: '/es' }));
 const router = vi.hoisted(() => ({
   refresh: vi.fn(),
   push: vi.fn(),
@@ -19,6 +21,7 @@ const router = vi.hoisted(() => ({
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   useRouter: () => router,
+  usePathname: () => pathname.current,
 }));
 
 let accountLinks: { desktop: ReactNode; mobile: ReactNode };
@@ -29,7 +32,6 @@ vi.mock('next-intl/server', () => ({
     createTranslator({
       locale: 'es',
       messages: esMessages,
-      namespace: 'Header',
     }),
 }));
 // Resolve this async server child before mounting the synchronous header in jsdom.
@@ -43,6 +45,7 @@ const { HeaderAccountLinks } = await vi.importActual<
 >('./header-account-links');
 
 beforeEach(() => {
+  pathname.current = '/es';
   vi.mocked(getCurrentUser).mockReset();
   vi.mocked(getCurrentUser).mockResolvedValue(currentUser);
 });
@@ -58,9 +61,7 @@ async function renderHeader() {
   };
   render(
     <NextIntlClientProvider locale='es' messages={esMessages}>
-      <NavigationGuardProvider>
-        <Header />
-      </NavigationGuardProvider>
+      <Header />
     </NextIntlClientProvider>,
   );
 }
@@ -70,10 +71,10 @@ describe('Header navigation', () => {
     await renderHeader();
     expect(
       screen
-        .getByRole('link', { name: currentUser.nickname })
+        .getByRole('link', { name: accountLinkName })
         .getAttribute('href'),
     ).toBe('/es/account/profile');
-    const accountLink = screen.getByRole('link', { name: currentUser.nickname });
+    const accountLink = screen.getByRole('link', { name: accountLinkName });
     const avatar = accountLink.querySelector('[data-slot="avatar"]');
     expect(avatar?.getAttribute('data-size')).toBe('sm');
     expect(avatar?.getAttribute('aria-hidden')).toBe('true');
@@ -112,7 +113,7 @@ describe('Header navigation', () => {
 
     await renderHeader();
 
-    const accountLink = screen.getByRole('link', { name: currentUser.nickname });
+    const accountLink = screen.getByRole('link', { name: accountLinkName });
     const image = accountLink.querySelector('img');
     expect(image?.getAttribute('src')).toBe('/avatars/fox.svg');
     expect(image?.getAttribute('alt')).toBe('');
@@ -123,7 +124,7 @@ describe('Header navigation', () => {
     await renderHeader();
     fireEvent.click(screen.getByRole('button', { name: esMessages.Header.menu.label }));
     const menu = await screen.findByRole('dialog', { name: esMessages.Header.menu.title });
-    const accountLink = within(menu).getByRole('link', { name: currentUser.nickname });
+    const accountLink = within(menu).getByRole('link', { name: accountLinkName });
 
     expect(accountLink.getAttribute('href')).toBe('/es/account/profile');
     expect(accountLink.className).toContain('justify-start');
@@ -150,7 +151,7 @@ describe('Header navigation', () => {
         .getAttribute('href'),
     ).toBe('/es/preferences');
     expect(
-      screen.queryByRole('link', { name: currentUser.nickname }),
+      screen.queryByRole('link', { name: accountLinkName }),
     ).toBeNull();
     expect(
       screen
@@ -162,6 +163,20 @@ describe('Header navigation', () => {
         .getByRole('link', { name: esMessages.Header.ranking })
         .getAttribute('href'),
     ).toBe('/es/ranking');
+  });
+
+  it('keeps public navigation visible while completing Google sign-in', async () => {
+    pathname.current = `/es${APP_ROUTES.completeGoogleAuth}`;
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    await renderHeader();
+
+    expect(screen.getByRole('link', { name: esMessages.Header.games })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: esMessages.Header.login })).toBeNull();
+    expect(screen.queryByRole('link', { name: esMessages.Header.register })).toBeNull();
+    expect(
+      screen.getByRole('navigation', { name: esMessages.Header.navigation.main })
+        .querySelector('[data-slot="skeleton"]'),
+    ).toBeTruthy();
   });
 
   it('shows a local session error while keeping public navigation available', async () => {

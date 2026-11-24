@@ -23,7 +23,6 @@ test.describe('Account settings', () => {
 
     const accountLink = page.locator('header').getByRole('link', {
       name: testAccount.nickname,
-      exact: true,
     });
     await expect(accountLink).toHaveAttribute('href', '/es/account/profile');
     await expect(accountLink.locator('[data-slot="avatar"]')).toHaveAttribute('data-size', 'sm');
@@ -171,7 +170,6 @@ test.describe('Account settings', () => {
       await expect(page.getByText(testAccount.email, { exact: true })).toBeVisible();
       await expect(page.locator('header').getByRole('link', {
         name: testAccount.nickname,
-        exact: true,
       })).toBeVisible();
     } finally {
       // Restore only this worker's temporary account for the remaining suites.
@@ -183,7 +181,11 @@ test.describe('Account settings', () => {
           const { accessToken } = await login.json();
           const restored = await request.post(`${API_URL}/auth/change-password`, {
             headers: { Authorization: `Bearer ${accessToken}` },
-            data: { currentPassword: newPassword, password: testAccount.password },
+            data: {
+              currentPassword: newPassword,
+              password: testAccount.password,
+              expectedUserId: testAccount.id,
+            },
           });
           expect(restored.status(), 'Restore the temporary account password').toBe(200);
           const restoredSession = await restored.json();

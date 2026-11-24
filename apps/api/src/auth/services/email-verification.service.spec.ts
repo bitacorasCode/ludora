@@ -1,9 +1,7 @@
-import { Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { vi } from 'vitest';
 
 import type { EmailVerification, Prisma } from '../../generated/prisma/client.js';
-import { MailService } from '../../mail/index.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { UsersService } from '../../users/users.service.js';
 import { AUTH_ERRORS } from '../constants/auth-errors.js';
@@ -29,6 +27,9 @@ describe('EmailVerificationService', () => {
         codeHash: 'stored-code-hash',
         expiresAt: futureExpiry,
         failedAttempts: 1,
+        deliveryId: null,
+        deliveryAvailableAt: null,
+        deliveryAttempts: 0,
         lastSentAt: now,
         createdAt: new Date('2026-10-29T11:50:00.000Z'),
     };
@@ -58,13 +59,11 @@ describe('EmailVerificationService', () => {
         delete: vi.fn<EmailVerificationRepository['delete']>(),
     };
     const codeService = {
-        generate: vi.fn<EmailVerificationCodeService['generate']>(),
+        generateForDelivery: vi.fn<EmailVerificationCodeService['generateForDelivery']>(),
         hash: vi.fn<EmailVerificationCodeService['hash']>(),
         verify: vi.fn<EmailVerificationCodeService['verify']>(),
     };
-    const mailService = { send: vi.fn<MailService['send']>() };
     const usersService = {
-        findById: vi.fn<UsersService['findById']>(),
         markEmailVerifiedIfPending: vi.fn<UsersService['markEmailVerifiedIfPending']>(),
     };
 
@@ -74,10 +73,9 @@ describe('EmailVerificationService', () => {
         // Preserve the transaction runner implementation, while resetting each dependency.
         prisma.$transaction.mockClear();
         events = [];
-        for (const dependency of [repository, codeService, mailService, usersService]) {
+        for (const dependency of [repository, codeService, usersService]) {
             for (const method of Object.values(dependency)) method.mockReset();
         }
-        vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
         repository.findPendingByUserId.mockResolvedValue({
             id: verificationId,
@@ -90,35 +88,26 @@ describe('EmailVerificationService', () => {
         repository.reserveAttempt.mockResolvedValue(true);
         repository.renewCode.mockResolvedValue({ id: verificationId });
         repository.delete.mockResolvedValue(verification);
-        codeService.generate.mockReturnValue(code);
+        codeService.generateForDelivery.mockReturnValue(code);
         codeService.hash.mockReturnValue('renewed-code-hash');
         codeService.verify.mockReturnValue(true);
-        mailService.send.mockImplementation(async () => { events.push('mail:send'); });
-        usersService.findById.mockResolvedValue({
-            id: userId,
-            nickname: 'player',
-            email: 'player@example.com',
-            createdAt: verification.createdAt,
-        });
         usersService.markEmailVerifiedIfPending.mockResolvedValue(true);
 
         const module = await Test.createTestingModule({
             providers: [
                 { provide: PrismaService, useValue: prisma },
                 { provide: EmailVerificationCodeService, useValue: codeService },
-                { provide: MailService, useValue: mailService },
                 { provide: EmailVerificationRepository, useValue: repository },
                 { provide: UsersService, useValue: usersService },
                 {
                     provide: EmailVerificationService,
-                    inject: [PrismaService, EmailVerificationCodeService, MailService, EmailVerificationRepository, UsersService],
+                    inject: [PrismaService, EmailVerificationCodeService, EmailVerificationRepository, UsersService],
                     useFactory: (
                         database: PrismaService,
                         codes: EmailVerificationCodeService,
-                        mail: MailService,
                         verifications: EmailVerificationRepository,
                         users: UsersService,
-                    ) => new EmailVerificationService(database, codes, mail, verifications, users),
+                    ) => new EmailVerificationService(database, codes, verifications, users),
                 },
             ],
         }).compile();
@@ -143,8 +132,7 @@ describe('EmailVerificationService', () => {
             expect(prisma.$transaction).not.toHaveBeenCalled();
             expect(repository.reserveResend).not.toHaveBeenCalled();
             expect(repository.renewCode).not.toHaveBeenCalled();
-            expect(codeService.generate).not.toHaveBeenCalled();
-            expect(mailService.send).not.toHaveBeenCalled();
+            expect(codeService.generateForDelivery).not.toHaveBeenCalled();
         });
 
         it('should keep expired verification context available so the user can request a new code', async () => {
@@ -162,7 +150,6 @@ describe('EmailVerificationService', () => {
             });
 
             expect(repository.renewCode).not.toHaveBeenCalled();
-            expect(mailService.send).not.toHaveBeenCalled();
         });
 
         it('should return null when there is no pending verification', async () => {
@@ -171,18 +158,19 @@ describe('EmailVerificationService', () => {
             await expect(service.getPending(userId)).resolves.toBeNull();
 
             expect(prisma.$transaction).not.toHaveBeenCalled();
-            expect(codeService.generate).not.toHaveBeenCalled();
+            expect(codeService.generateForDelivery).not.toHaveBeenCalled();
         });
     });
 
     describe('resend', () => {
-        it('should reserve and renew in one transaction, then submit mail after it commits', async () => {
+        it('queues the renewed verification code in the same transaction as the resend reservation', async () => {
             await expect(service.resend(verificationId)).resolves.toEqual({
                 verification: {
                     id: verificationId,
                     expiresAt: futureExpiry,
                     resendAvailableAt: futureResend,
-                    emailSent: true,
+                    emailSent: false,
+                    emailQueued: true,
                 },
             });
 
@@ -196,19 +184,19 @@ describe('EmailVerificationService', () => {
                 id: verificationId,
                 codeHash: 'renewed-code-hash',
                 expiresAt: futureExpiry,
+                deliveryId: expect.any(String),
+                deliveryAvailableAt: now,
+                deliveryAttempts: 0,
             }, transaction);
+            const [[{ deliveryId }]] = repository.renewCode.mock.calls;
+            expect(codeService.generateForDelivery).toHaveBeenCalledExactlyOnceWith(verificationId, deliveryId);
             expect(repository.reserveResend).toHaveBeenCalledBefore(repository.findPendingById);
             expect(repository.findPendingById).toHaveBeenCalledBefore(repository.renewCode);
             expect(codeService.hash).toHaveBeenCalledWith(verificationId, code);
-            expect(usersService.findById).toHaveBeenCalledWith(userId);
-            expect(mailService.send).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({
-                to: 'player@example.com',
-                text: expect.stringContaining(code),
-            }));
-            expect(events).toEqual(['transaction:start', 'transaction:commit', 'mail:send']);
+            expect(events).toEqual(['transaction:start', 'transaction:commit']);
         });
 
-        it('should return the remaining cooldown in seconds without renewing or sending mail', async () => {
+        it('should return the remaining cooldown in seconds without queuing a delivery', async () => {
             repository.reserveResend.mockResolvedValue(false);
             repository.findPendingById.mockResolvedValue({
                 ...verification,
@@ -224,9 +212,7 @@ describe('EmailVerificationService', () => {
             });
 
             expect(repository.renewCode).not.toHaveBeenCalled();
-            expect(codeService.generate).not.toHaveBeenCalled();
-            expect(usersService.findById).not.toHaveBeenCalled();
-            expect(mailService.send).not.toHaveBeenCalled();
+            expect(codeService.generateForDelivery).not.toHaveBeenCalled();
             expect(events).toEqual(['transaction:start', 'transaction:rollback']);
         });
 
@@ -240,27 +226,6 @@ describe('EmailVerificationService', () => {
             });
 
             expect(repository.renewCode).not.toHaveBeenCalled();
-            expect(mailService.send).not.toHaveBeenCalled();
-        });
-
-        it('should preserve the renewed code and cooldown when SMTP fails', async () => {
-            mailService.send.mockImplementation(async () => {
-                events.push('mail:send');
-                throw new Error('SMTP unavailable');
-            });
-
-            await expect(service.resend(verificationId)).resolves.toEqual({
-                verification: {
-                    id: verificationId,
-                    expiresAt: futureExpiry,
-                    resendAvailableAt: futureResend,
-                    emailSent: false,
-                },
-            });
-
-            expect(repository.renewCode).toHaveBeenCalledTimes(1);
-            expect(prisma.$transaction).toHaveBeenCalledTimes(1);
-            expect(events).toEqual(['transaction:start', 'transaction:commit', 'mail:send']);
         });
 
         it('should generate only once even if the new code has the same hash as before', async () => {
@@ -268,33 +233,21 @@ describe('EmailVerificationService', () => {
 
             await service.resend(verificationId);
 
-            expect(codeService.generate).toHaveBeenCalledTimes(1);
+            expect(codeService.generateForDelivery).toHaveBeenCalledTimes(1);
             expect(repository.renewCode).toHaveBeenCalledWith(expect.objectContaining({
                 codeHash: verification.codeHash,
             }), transaction);
-            expect(mailService.send).toHaveBeenCalledTimes(1);
         });
 
-        it('should not send a code whose renewal failed', async () => {
+        it('rolls back the reservation when queuing the renewed code fails', async () => {
             const error = new Error('Database update failed');
             repository.renewCode.mockRejectedValue(error);
 
             await expect(service.resend(verificationId)).rejects.toBe(error);
 
-            expect(mailService.send).not.toHaveBeenCalled();
             expect(events).toEqual(['transaction:start', 'transaction:rollback']);
         });
 
-        it('should not send mail if the user disappears after renewal', async () => {
-            usersService.findById.mockResolvedValue(null);
-
-            await expect(service.resend(verificationId)).rejects.toMatchObject({
-                status: 400,
-                response: AUTH_ERRORS.emailVerificationInvalid,
-            });
-
-            expect(mailService.send).not.toHaveBeenCalled();
-        });
     });
 
     describe('confirm', () => {
@@ -313,7 +266,6 @@ describe('EmailVerificationService', () => {
             expect(repository.delete).toHaveBeenCalledExactlyOnceWith(verificationId, transaction);
             expect(usersService.markEmailVerifiedIfPending).toHaveBeenCalledBefore(repository.delete);
             expect(events).toEqual(['transaction:start', 'transaction:commit']);
-            expect(mailService.send).not.toHaveBeenCalled();
         });
 
         it('should allow a correct code on the last permitted attempt', async () => {

@@ -177,6 +177,10 @@
         },
         "forgotPassword": "¿Olvidaste tu contraseña?",
         "register": "Crear una cuenta",
+        "sessionExpired": {
+            "message": "Vuelve a iniciar sesión para continuar.",
+            "title": "Tu sesión venció"
+        },
         "skipToForm": "Saltar al formulario de acceso",
         "submit": "Iniciar sesión",
         "submitting": "Iniciando sesión...",

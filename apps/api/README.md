@@ -385,10 +385,11 @@ and requires valid API environment configuration:
 pnpm --filter api test:e2e
 ```
 
-The smoke suite checks PostgreSQL connectivity through `/health`. Updating the
-legacy root-route expectation to reflect removal of the starter endpoint is
-deferred until requested. Browser flows using the real API, PostgreSQL, and Mailpit
-are exercised by [the web Playwright suite](../web/README.md).
+The smoke suite checks PostgreSQL connectivity through `/health` and confirms
+that the root path returns `404`. It also checks that Nest preserves a request ID
+from a trusted caller and generates an ID for other requests. The [web Playwright
+suite](../web/README.md) exercises browser flows with the real API, PostgreSQL,
+and Mailpit.
 
 `test/fixtures/auth-fixture.mjs` is local-only support for that suite. It only
 operates on temporary `e2e-…@example.test` accounts in a loopback development
@@ -475,5 +476,5 @@ events omit SQL, query parameters, request bodies, credentials, and personal
 identifiers. Request IDs are diagnostic IDs. Count and aggregate these events
 in the log platform to track volume and latency.
 
-Automated coverage for request ID propagation, timing and `429` records, and
-refresh outcome records is deferred until requested.
+The API smoke suite covers request ID handling. Dedicated assertions for timing,
+`429` records, and refresh outcome logs are deferred.

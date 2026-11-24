@@ -1,3 +1,4 @@
+import { SESSION_EXPIRED_NOTICE } from '../src/lib/session/constants';
 import esMessages from '../src/messages/es.json';
 import { API_URL, expect, REFRESH_COOKIE, SESSION_COOKIE, test } from './fixtures/auth';
 
@@ -9,7 +10,7 @@ test.beforeEach(async ({ context, request, testAccount }) => {
 
   const response = await request.put(`${API_URL}/profile`, {
     headers: { Authorization: `Bearer ${session.value}` },
-    data: { avatarPresetId: null, bio: null },
+    data: { avatarPresetId: null, bio: null, expectedUserId: testAccount.id },
   });
 
   expect(response.status()).toBe(200);
@@ -164,7 +165,7 @@ test.describe('Profile persistence', () => {
     await expect(preservedHeading).toBeHidden();
 
     await page.locator('header')
-      .getByRole('link', { name: testAccount.nickname, exact: true })
+      .getByRole('link', { name: testAccount.nickname })
       .click();
     await expect(page).toHaveURL('/es/account/profile');
     await expect(page.getByRole('button', { name: esMessages.Profile.edit })).toBeVisible();
@@ -217,7 +218,7 @@ test.describe('Profile persistence', () => {
   }) => {
     await page.goto('/es/games');
     await page.locator('header')
-      .getByRole('link', { name: testAccount.nickname, exact: true })
+      .getByRole('link', { name: testAccount.nickname })
       .click();
     await page.getByRole('button', { name: esMessages.Profile.edit }).click();
 
@@ -240,7 +241,7 @@ test.describe('Profile persistence', () => {
   }) => {
     await page.goto('/es/games');
     await page.locator('header')
-      .getByRole('link', { name: testAccount.nickname, exact: true })
+      .getByRole('link', { name: testAccount.nickname })
       .click();
     await page.getByRole('button', { name: esMessages.Profile.edit }).click();
     const biography = page.getByRole('textbox', { name: esMessages.Profile.bio.label });
@@ -356,7 +357,7 @@ test.describe('Profile persistence', () => {
     await expect(page.getByText(esMessages.Profile.saveError, { exact: true })).toHaveCount(0);
   });
 
-  test('returns to login without a profile error toast when both session cookies are gone', async ({
+  test('explains why login is required when both session cookies are gone', async ({
     page,
     context,
   }) => {
@@ -368,7 +369,13 @@ test.describe('Profile persistence', () => {
     await context.clearCookies({ name: REFRESH_COOKIE });
     await page.getByRole('button', { name: esMessages.Common.actions.saveChanges }).click();
 
-    await expect(page).toHaveURL('/es/login');
+    await expect(page).toHaveURL((url) =>
+      url.pathname === '/es/login'
+      && url.searchParams.get(SESSION_EXPIRED_NOTICE.param) === SESSION_EXPIRED_NOTICE.value,
+    );
+    await expect(page.getByRole('status').filter({
+      hasText: esMessages.Login.sessionExpired.title,
+    })).toBeVisible();
     await expect(page.getByRole('heading', { name: esMessages.Login.title, exact: true }))
       .toBeVisible();
     await expect(page.getByRole('alertdialog')).toHaveCount(0);

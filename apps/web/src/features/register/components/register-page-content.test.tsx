@@ -1,3 +1,4 @@
+import { AUTH_VALIDATION } from '@ludora/contracts/auth';
 import {
   cleanup,
   fireEvent,
@@ -7,7 +8,7 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
-import { NextIntlClientProvider } from 'next-intl';
+import { createTranslator, NextIntlClientProvider } from 'next-intl';
 import { toast } from 'sonner';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -25,7 +26,14 @@ vi.mock('@/i18n/navigation', () => ({
 
 expect.extend(toHaveNoViolations);
 
+const validation = createTranslator({
+  locale: 'es',
+  messages: esMessages,
+  namespace: 'Register.validation',
+});
+
 beforeEach(() => {
+  vi.spyOn(toast, 'warning').mockReturnValue('register-warning');
   vi.spyOn(toast, 'error').mockReturnValue('register-error');
 });
 
@@ -100,11 +108,11 @@ describe('RegisterPageContent integration', () => {
       target: { value: 'corta' },
     });
 
-    fireEvent.click(screen.getByRole('button', { name: esMessages.Register.submit }));
+    fireEvent.click(screen.getByRole('button', { name: esMessages.Register.createAccountWithEmail }));
 
     await waitFor(() => {
       expect(
-        screen.getByText(esMessages.Register.validation.nicknameMin),
+        screen.getByText(validation('nicknameMin', { minLength: AUTH_VALIDATION.nicknameMinLength })),
       ).toBeTruthy();
     });
 
@@ -128,7 +136,7 @@ describe('RegisterPageContent integration', () => {
     fireEvent.change(screen.getByLabelText('Confirmar contraseña'), {
       target: { value: 'otraContraseña123' },
     });
-    fireEvent.click(screen.getByRole('button', { name: esMessages.Register.submit }));
+    fireEvent.click(screen.getByRole('button', { name: esMessages.Register.createAccountWithEmail }));
 
     expect(await screen.findByText(esMessages.Register.validation.passwordMismatch)).toBeTruthy();
     expect(screen.getByLabelText('Confirmar contraseña').getAttribute('aria-invalid')).toBe('true');
@@ -151,7 +159,7 @@ describe('RegisterPageContent integration', () => {
     );
 
     fillValidRegisterForm();
-    fireEvent.click(screen.getByRole('button', { name: esMessages.Register.submit }));
+    fireEvent.click(screen.getByRole('button', { name: esMessages.Register.createAccountWithEmail }));
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledExactlyOnceWith(
       esMessages.Register.feedback.errorTitle,
@@ -163,7 +171,7 @@ describe('RegisterPageContent integration', () => {
     expect(registerUser).toHaveBeenCalledOnce();
   });
 
-  it('shows an error if the action fails', async () => {
+  it('warns when an interrupted registration leaves the outcome unknown', async () => {
     vi.mocked(registerUser).mockRejectedValueOnce(new Error('Network error'));
 
     render(
@@ -173,14 +181,11 @@ describe('RegisterPageContent integration', () => {
     );
 
     fillValidRegisterForm();
-    fireEvent.click(screen.getByRole('button', { name: esMessages.Register.submit }));
+    fireEvent.click(screen.getByRole('button', { name: esMessages.Register.createAccountWithEmail }));
 
-    await waitFor(() => expect(toast.error).toHaveBeenCalledExactlyOnceWith(
-      esMessages.Register.feedback.errorTitle,
-      {
-        description: esMessages.Common.errors.unknown,
-        duration: Infinity,
-      },
+    await waitFor(() => expect(toast.warning).toHaveBeenCalledExactlyOnceWith(
+      esMessages.Register.feedback.outcomeUnconfirmed.title,
+      { description: esMessages.Register.feedback.outcomeUnconfirmed.message },
     ));
     expect(registerUser).toHaveBeenCalledOnce();
   });

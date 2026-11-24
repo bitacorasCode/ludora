@@ -68,9 +68,9 @@ test.describe('Platform navigation', () => {
     await expect(page.locator('header')).toHaveCount(0);
     await expect(page.locator('main')).toHaveCount(1);
     await page
-      .getByRole('link', { name: enMessages.NotFound.exploreGames })
+      .getByRole('link', { name: enMessages.Common.actions.backHome })
       .click();
-    await expect(page).toHaveURL('/en/games');
+    await expect(page).toHaveURL('/es');
   });
 
   test('shows the standalone global fallback for a missing file', async ({

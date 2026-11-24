@@ -62,7 +62,7 @@ describe('LocaleSwitcher integration', () => {
     );
     expect(replace).toHaveBeenCalledExactlyOnceWith(
       '/account/preferences?tab=appearance&filter=a%20b#content',
-      { locale: 'en' },
+      { locale: 'en', scroll: false },
     );
   });
 });

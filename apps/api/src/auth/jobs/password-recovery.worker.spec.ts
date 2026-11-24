@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { vi } from 'vitest';
 
 import type { PasswordRecoveryJob } from '../../generated/prisma/client.js';
+import { AUTH_MAIL_QUEUE_LOGS } from '../constants/mail-queue.js';
 import { PASSWORD_RECOVERY_QUEUE } from '../constants/password-reset.js';
 import { PasswordRecoveryJobRepository } from '../repositories/password-recovery-job.repository.js';
 import { PasswordRecoveryService } from '../services/password-recovery.service.js';
@@ -12,12 +13,13 @@ describe('PasswordRecoveryWorker', () => {
     let worker: PasswordRecoveryWorker;
 
     const now = new Date('2026-11-21T12:00:00.000Z');
-    const job: PasswordRecoveryJob = {
+    const job: PasswordRecoveryJob & { readySince: Date } = {
         id: 'd56aa89f-ac5f-4d65-a49d-3653442080bf',
         email: 'player@example.com',
         prepared: false,
         attempts: 1,
         availableAt: now,
+        readySince: now,
         createdAt: now,
     };
     const { maxAgeMs, maxAttempts, pollIntervalMs, retryDelayMs } = PASSWORD_RECOVERY_QUEUE;
@@ -68,7 +70,7 @@ describe('PasswordRecoveryWorker', () => {
         const retryAt = new Date(now.getTime() + pollIntervalMs + retryDelayMs);
         expect(jobs.retry).toHaveBeenCalledExactlyOnceWith(job, retryAt);
         expect(jobs.remove).not.toHaveBeenCalled();
-        expect(warning).toHaveBeenCalledExactlyOnceWith('Could not deliver a password recovery request.');
+        expect(warning).toHaveBeenCalledExactlyOnceWith(AUTH_MAIL_QUEUE_LOGS.retryScheduled);
 
         await worker.onModuleDestroy();
         vi.setSystemTime(retryAt);

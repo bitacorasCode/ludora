@@ -34,7 +34,8 @@ const registrationSchema = z.object({
   user: z.object({ id: z.uuid() }),
   verification: z.object({
     id: z.uuid(),
-    emailSent: z.literal(true),
+    emailSent: z.literal(false),
+    emailQueued: z.literal(true),
     resendAvailableAt: z.iso.datetime(),
   }),
 });

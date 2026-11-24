@@ -4,8 +4,10 @@ import type { ReactNode } from 'react';
 
 import { APP_ROUTES } from '@/config/routes';
 import { redirect } from '@/i18n/navigation';
-import { type CurrentUser, getCurrentUser } from '@/lib/auth';
-import { getRefreshToken } from '@/lib/session';
+import { isAuthenticationError, OPERATION_STATUS } from '@/lib/actions';
+import { type CurrentUser, getCurrentUserResult } from '@/lib/auth';
+import { getRefreshToken, getSessionToken } from '@/lib/session';
+import { SESSION_EXPIRED_LOGIN_LOCATION } from '@/lib/session/constants';
 
 import { SessionRecovery } from '../../_components/auth/session-recovery';
 
@@ -16,13 +18,18 @@ type AccountAccessProps = {
 };
 
 export async function AccountAccess({ children, fallback = null, locale }: AccountAccessProps) {
-  const user = await getCurrentUser();
+  const session = await getCurrentUserResult();
 
-  if (user) return children?.(user) ?? null;
+  if (session.status === OPERATION_STATUS.success) return children?.(session.data) ?? null;
 
-  if (await getRefreshToken()) {
-    return <SessionRecovery fallback={fallback} inline />;
+  if (!isAuthenticationError(session.error)) {
+    return <SessionRecovery fallback={fallback} inAccount initialError={session.error} />;
   }
 
-  return redirect({ href: APP_ROUTES.login, locale });
+  if (await getRefreshToken()) {
+    return <SessionRecovery fallback={fallback} inAccount />;
+  }
+
+  const href = await getSessionToken() ? SESSION_EXPIRED_LOGIN_LOCATION : APP_ROUTES.login;
+  return redirect({ href, locale });
 }

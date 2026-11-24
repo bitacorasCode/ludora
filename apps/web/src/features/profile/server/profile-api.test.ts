@@ -16,6 +16,8 @@ const profile = {
   ...preferences,
 };
 
+const saveRequest = { ...preferences, expectedUserId: profile.userId };
+
 beforeEach(() => {
   vi.resetAllMocks();
 });
@@ -36,10 +38,10 @@ describe('profileApi', () => {
     const success = { status: OPERATION_STATUS.success, data: profile } as const;
     vi.mocked(authenticatedApi.put).mockResolvedValue(success);
 
-    expect(await profileApi.save(preferences)).toEqual(success);
+    expect(await profileApi.save(saveRequest)).toEqual(success);
     expect(authenticatedApi.put).toHaveBeenCalledExactlyOnceWith(
       '/profile',
-      preferences,
+      saveRequest,
     );
   });
 
@@ -67,7 +69,7 @@ describe('profileApi', () => {
     } as const;
     vi.mocked(authenticatedApi.put).mockResolvedValue(failure);
 
-    expect(await profileApi.save(preferences)).toEqual(failure);
+    expect(await profileApi.save(saveRequest)).toEqual(failure);
   });
 
   it.each([
@@ -93,7 +95,7 @@ describe('profileApi', () => {
       data: preferences,
     });
 
-    expect(await profileApi.save(preferences)).toEqual({
+    expect(await profileApi.save(saveRequest)).toEqual({
       status: OPERATION_STATUS.error,
       error: { errorCode: API_ERROR_CODES.invalidResponse },
     });

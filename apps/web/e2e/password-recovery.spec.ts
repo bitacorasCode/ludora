@@ -139,8 +139,8 @@ test.describe('Password recovery with real mail', () => {
     });
     await submitPassword(page, newPassword);
     await expect.poll(() => new URL(page.url()).pathname).toBe('/es/login');
-    await expect(page.getByText(esMessages.PasswordRecovery.reset.success.title, {
-      exact: true,
+    await expect(page.getByRole('status').filter({
+      hasText: esMessages.PasswordRecovery.reset.success.title,
     })).toBeVisible();
     expect(await page.evaluate(() =>
       (window as Window & { recoveryNavigation?: boolean }).recoveryNavigation,

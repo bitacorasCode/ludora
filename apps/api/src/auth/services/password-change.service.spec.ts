@@ -26,10 +26,9 @@ describe('PasswordChangeService', () => {
         findPasswordById: vi.fn<(
             ...args: Parameters<UsersService['findPasswordById']>
         ) => Promise<Awaited<ReturnType<UsersService['findPasswordById']>>>>(),
-        changePasswordIfCurrent: vi.fn<UsersService['changePasswordIfCurrent']>(),
-        findAuthenticationById: vi.fn<(
-            ...args: Parameters<UsersService['findAuthenticationById']>
-        ) => Promise<Awaited<ReturnType<UsersService['findAuthenticationById']>>>>(),
+        changePasswordIfCurrent: vi.fn<(
+            ...args: Parameters<UsersService['changePasswordIfCurrent']>
+        ) => Promise<Awaited<ReturnType<UsersService['changePasswordIfCurrent']>> | null>>(),
     };
     const passwordService = {
         hash: vi.fn<PasswordService['hash']>(),
@@ -45,12 +44,11 @@ describe('PasswordChangeService', () => {
             ...args: Parameters<PasswordResetRepository['deleteForUser']>
         ) => Promise<Awaited<ReturnType<PasswordResetRepository['deleteForUser']>>>>(),
     };
-    const notifications = { passwordChanged: vi.fn<PasswordNotificationService['passwordChanged']>() };
+    const notifications = { enqueuePasswordChanged: vi.fn<PasswordNotificationService['enqueuePasswordChanged']>() };
 
     beforeEach(async () => {
         vi.resetAllMocks();
         usersService.findPasswordById.mockResolvedValue({ ...authenticationUser, passwordHash: user.passwordHash });
-        usersService.changePasswordIfCurrent.mockResolvedValue(true);
         resets.deleteForUser.mockResolvedValue({ count: 1 });
         passwordService.hash.mockResolvedValue('unused-password-hash');
         passwordService.verify.mockResolvedValue(true);
@@ -72,10 +70,10 @@ describe('PasswordChangeService', () => {
     });
 
     describe('changePassword', () => {
-        const data = { currentPassword: credentials.password, password: 'NewPassword123!' };
+        const data = { currentPassword: credentials.password, password: 'NewPassword123!', expectedUserId: user.id };
         const updatedUser = { ...authenticationUser, authVersion: user.authVersion + 1 };
 
-        beforeEach(() => usersService.findAuthenticationById.mockResolvedValue(updatedUser));
+        beforeEach(() => usersService.changePasswordIfCurrent.mockResolvedValue(updatedUser));
 
         it('should verify the current password and create a replacement session in the transaction', async () => {
             await expect(service.changePassword(user.id, user.authVersion, data)).resolves.toEqual({
@@ -94,10 +92,9 @@ describe('PasswordChangeService', () => {
                 expectedAuthVersion: user.authVersion,
             }, transaction);
             expect(resets.deleteForUser).toHaveBeenCalledBefore(usersService.changePasswordIfCurrent);
-            expect(usersService.findAuthenticationById).toHaveBeenCalledExactlyOnceWith(user.id, transaction);
             expect(authSessions.create).toHaveBeenCalledExactlyOnceWith(updatedUser, transaction);
-            expect(usersService.findAuthenticationById).toHaveBeenCalledBefore(authSessions.create);
-            expect(notifications.passwordChanged).toHaveBeenCalledExactlyOnceWith(user.email);
+            expect(usersService.changePasswordIfCurrent).toHaveBeenCalledBefore(authSessions.create);
+            expect(notifications.enqueuePasswordChanged).toHaveBeenCalledExactlyOnceWith(user.id, false, transaction);
         });
 
         it('should reject an incorrect current password without invalidating the valid session', async () => {
@@ -111,7 +108,7 @@ describe('PasswordChangeService', () => {
             expect(passwordService.hash).not.toHaveBeenCalled();
             expect(prisma.$transaction).not.toHaveBeenCalled();
             expect(authSessions.create).not.toHaveBeenCalled();
-            expect(notifications.passwordChanged).not.toHaveBeenCalled();
+            expect(notifications.enqueuePasswordChanged).not.toHaveBeenCalled();
         });
 
         it('should reject a password that has not changed', async () => {
@@ -141,19 +138,18 @@ describe('PasswordChangeService', () => {
         });
 
         it('should reject a concurrent password change without issuing a JWT or scheduling a notice', async () => {
-            usersService.changePasswordIfCurrent.mockResolvedValue(false);
+            usersService.changePasswordIfCurrent.mockResolvedValue(null);
 
             await expect(service.changePassword(user.id, user.authVersion, data)).rejects.toMatchObject({
                 status: 401,
                 response: AUTH_ERRORS.invalidToken,
             });
 
-            expect(usersService.findAuthenticationById).not.toHaveBeenCalled();
             expect(authSessions.create).not.toHaveBeenCalled();
-            expect(notifications.passwordChanged).not.toHaveBeenCalled();
+            expect(notifications.enqueuePasswordChanged).not.toHaveBeenCalled();
         });
 
-        it('should wait for the transaction to commit before notifying', async () => {
+        it('queues the notice inside the transaction and waits for commit before returning credentials', async () => {
             let commit!: () => void;
             const pending = new Promise<void>((resolve) => { commit = resolve; });
             prisma.$transaction.mockImplementationOnce(async (operation) => {
@@ -162,15 +158,20 @@ describe('PasswordChangeService', () => {
                 return result;
             });
 
-            const change = service.changePassword(user.id, user.authVersion, data);
+            let returnedCredentials = false;
+            const change = service.changePassword(user.id, user.authVersion, data).then((result) => {
+                returnedCredentials = true;
+                return result;
+            });
             try {
                 await vi.waitFor(() => expect(authSessions.create).toHaveBeenCalledOnce());
-                expect(notifications.passwordChanged).not.toHaveBeenCalled();
+                expect(notifications.enqueuePasswordChanged).toHaveBeenCalledExactlyOnceWith(user.id, false, transaction);
+                expect(returnedCredentials).toBe(false);
             } finally {
                 commit();
                 await change;
             }
-            expect(notifications.passwordChanged).toHaveBeenCalledOnce();
+            expect(returnedCredentials).toBe(true);
         });
 
         it('should propagate a failed transaction without creating false success notifications', async () => {
@@ -181,7 +182,7 @@ describe('PasswordChangeService', () => {
 
             expect(usersService.changePasswordIfCurrent).not.toHaveBeenCalled();
             expect(authSessions.create).not.toHaveBeenCalled();
-            expect(notifications.passwordChanged).not.toHaveBeenCalled();
+            expect(notifications.enqueuePasswordChanged).not.toHaveBeenCalled();
         });
     });
 });
